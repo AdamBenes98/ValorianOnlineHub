@@ -42,15 +42,15 @@ a{color:var(--accent)}
 <div id="app"></div>
 <script type="module">
 /* =========================================================
-   0.  CONFIG – CHANGE THESE!
+   0.  CONFIG
 ========================================================= */
-const ADMIN_USER = 'master';
-const ADMIN_PASS = 'M4sterP@ss';
+const ADMIN_USER = 'master';        // change me
+const ADMIN_PASS = 'M4sterP@ss';    // change me
 
 /* =========================================================
    1.  Helpers
 ========================================================= */
-const $ = q => document.querySelector('#'+q.replace('#',''));
+const $   = q => document.querySelector(q);
 const storage = (k,v) => v===undefined ? JSON.parse(localStorage.getItem(k)||'null') : localStorage.setItem(k,JSON.stringify(v));
 const rand = n => crypto.getRandomValues(new Uint32Array(1))[0]%n;
 const today = () => new Date().toISOString().slice(0,10);
@@ -63,21 +63,42 @@ const DB = {
   voters:() => storage('voters')||{},
   votes: () => storage('votes')||{},
   voted: () => storage('voted')||[],
-  addVoter(u,p){ const v=this.voters(); if(v[u])return 0; v[u]=p; storage('voters',v); return 1; },
-  createPoll(o){ storage('poll',o); storage('votes',{}); storage('voted',[]); },
-  vote(u,y){ if(this.voted().includes(u))return 0; const v=this.votes(); v[u]=y; storage('votes',v); storage('voted',[...this.voted(),u]); return 1;},
+  addVoter(u,p){ const v=this.voters(); if(v[u])return 0; v[u]=p; storage('voters',v); return 1;},
+  createPoll(o){ storage('poll',o); storage('votes',{}); storage('voted',[]);},
+  vote(u,y){ if(this.voted().includes(u))return 0; const votes=this.votes(); votes[u]=y; storage('votes',votes); storage('voted',[...this.voted(),u]); return 1;},
   results(){ const v=Object.values(this.votes()), yes=v.filter(Boolean).length, no=v.length-yes, t=v.length||1; return {yes,no,total:v.length,yesP:(100*yes/t).toFixed(1),noP:(100*no/t).toFixed(1)};}
 };
 
 /* =========================================================
-   3.  Pages
+   3.  Router – decide where to start
+========================================================= */
+function start(){
+  // If user arrived from index.html → always show public gate
+  if(document.referrer.includes('index.html')){ renderGate(); return; }
+
+  // Otherwise behave like before
+  if(!DB.poll() || new Date(DB.poll().end) < new Date()){
+    app.innerHTML=`<h1>No active poll</h1><p class="small">Contact the administrator.</p>`;
+    renderAdminLogin();
+  }else if(storage('adminSession')){
+    renderAdminPanel();
+  }else if(storage('session') && DB.voters()[storage('session')]){
+    renderBallot();
+  }else{
+    renderGate();
+  }
+}
+
+/* =========================================================
+   4.  Pages
 ========================================================= */
 function renderGate(){
   app.innerHTML=`
   <h1>Parliament – Live Vote</h1>
   <p class="small">Choose your role:</p>
+  <button onclick="renderVoterLogin()">I am a voter</button>
   <button onclick="renderAdminLogin()">I am an admin</button>
-  <button onclick="renderVoterLogin()">I am a voter</button>`;
+  <p class="small"><a href="archive.html">📁 Vote archive</a></p>`;
 }
 window.renderAdminLogin=()=>{
   app.innerHTML=`
@@ -85,7 +106,7 @@ window.renderAdminLogin=()=>{
   <input id="admUser" placeholder="Admin username">
   <input id="admPass" type="password" placeholder="Admin password">
   <button onclick="checkAdmin()">Login</button>
-  <p class="small"><a href="#" onclick="renderGate()">← back</a></p>`;
+  <p class="small"><a href="#" onclick="renderGate();return false">← back</a></p>`;
 };
 window.checkAdmin=()=>{
   if(admUser.value===ADMIN_USER && admPass.value===ADMIN_PASS){ storage('adminSession',true); renderAdminPanel();}
@@ -93,7 +114,7 @@ window.checkAdmin=()=>{
 };
 window.renderAdminPanel=()=>{
   app.innerHTML=`
-  <div style="background:#ff5252;color:#fff;padding:.5rem 1rem;border-radius:var(--radius);margin-bottom:1rem">ADMIN MODE</div>
+  <div style="background:var(--accent2);color:#fff;padding:.5rem 1rem;border-radius:var(--radius);margin-bottom:1rem">ADMIN MODE</div>
   <h1>Admin Panel</h1>
   <input id="newTitle" placeholder="Poll title" value="${DB.poll()?.title||''}">
   <input id="newEnd" type="datetime-local" value="${DB.poll()?.end||''}">
@@ -102,10 +123,10 @@ window.renderAdminPanel=()=>{
   <textarea id="bulkUsers" placeholder="Add voters:  username password (one pair per line)"></textarea>
   <button onclick="addVoters()">Add voters</button>
   <button onclick="dlCsv()">Download results CSV</button>
-  <p class="small"><a href="#" onclick="logoutAdmin()">Leave admin mode</a></p>`;
+  <p class="small"><a href="#" onclick="logoutAdmin();return false">Leave admin mode</a></p>`;
 };
-window.savePoll=()=>{ DB.createPoll({title:newTitle.value,end:newEnd.value,labelYes:'Yes',labelNo:'No'}); alert('Poll saved'); };
-window.addVoters=()=>{
+window.savePoll   =()=>{ DB.createPoll({title:newTitle.value,end:newEnd.value,labelYes:'Yes',labelNo:'No'}); alert('Poll saved'); };
+window.addVoters  =()=>{
   const lines=bulkUsers.value.split('\n').map(l=>l.trim()).filter(Boolean);
   let added=0; lines.forEach(l=>{const[u,p]=l.split(/\s+/); if(u&&p) added+=DB.addVoter(u,p);});
   alert(`Added ${added} voter(s)`); bulkUsers.value='';
@@ -122,7 +143,7 @@ window.renderVoterLogin=()=>{
   <input id="user" placeholder="Username">
   <input id="pass" type="password" placeholder="Password">
   <button onclick="checkVoter()">Login</button>
-  <p class="small"><a href="#" onclick="renderGate()">← back</a></p>`;
+  <p class="small"><a href="#" onclick="renderGate();return false">← back</a></p>`;
 };
 window.checkVoter=()=>{
   const u=user.value.trim(), p=pass.value;
@@ -139,13 +160,15 @@ window.renderBallot=()=>{
   <div id="ballot"><button onclick="vote(true)">Yes</button><button onclick="vote(false)">No</button></div>
   <div id="barWrap"><div id="barYes"></div></div>
   <p class="small"><span id="yes">0</span> Yes (<span id="yesP">0</span>%) · <span id="no">0</span> No (<span id="noP">0</span>%)</p>
-  <p class="small"><a href="#" onclick="logoutVoter()">Logout</a></p>
-  <div id="qrBox"></div>`;
+  <p class="small"><a href="archive.html">📁 Vote archive</a> · <a href="#" onclick="logoutVoter();return false">Logout</a></p>`;
   const updateBar=()=>{
     const r=DB.results();
     yes.textContent=r.yes; no.textContent=r.no;
     yesP.textContent=r.yesP; noP.textContent=r.noP;
     barYes.style.width=r.yesP+'%';
+    barYes.style.background='var(--accent)';  // green for Yes
+    // colour the empty (No) part red via background on #barWrap
+    barWrap.style.background='var(--accent2)';
   };
   updateBar(); setInterval(updateBar,1000);
   const end=new Date(poll.end);
@@ -155,11 +178,6 @@ window.renderBallot=()=>{
     timer.textContent=`Closes in ${String(Math.floor(sec/3600)).padStart(2,0)}:${String(Math.floor(sec/60)%60).padStart(2,0)}:${String(sec%60).padStart(2,0)}`;
   },1000);
   if(DB.voted().includes(u)){ ballot.style.display='none'; voted.style.display='block'; }
-  import('https://cdn.jsdelivr.net/npm/qr-creator@1.0.0/dist/qr-creator.min.js').then(()=>{
-    const qr=document.createElement('div');
-    QrCreator.render({text:location.href,radius:.4,ecLevel:'H',fill:'#00c853',background:null,size:120},qr);
-    qrBox.appendChild(qr);
-  });
 };
 window.vote=y=>{
   const u=storage('session');
@@ -171,32 +189,17 @@ window.vote=y=>{
 window.logoutVoter=()=>{ storage('session',null); renderGate(); };
 
 /* =========================================================
-   4.  Seed test voters (only once)
-========================================================= */
-(()=>{ if(Object.keys(DB.voters()).length===0){ DB.addVoter('alice','alice123'); DB.addVoter('bob','bob456'); } })();
-
-/* =========================================================
-   5.  Entry point
-========================================================= */
-if(!DB.poll() || new Date(DB.poll().end) < new Date()){
-  app.innerHTML=`<h1>No active poll</h1><p class="small">Contact the administrator.</p>`;
-  renderAdminLogin();
-}else if(storage('adminSession')){
-  renderAdminPanel();
-}else if(storage('session') && DB.voters()[storage('session')]){
-  renderBallot();
-}else{
-  renderGate();
-}
-/* =========================================================
-   5b.  Seed a default poll (only once)
+   5.  Seed demo data (delete after first test)
 ========================================================= */
 (()=>{
-  if(!DB.poll()){                       // first-run → create a demo poll
-    const tomorrow = new Date(Date.now() + 24*3600*1000).toISOString().slice(0,16); // ISO string cut to minutes
-    DB.createPoll({title:'Should we adopt the new flag design?', end:tomorrow, labelYes:'Yes',labelNo:'No'});
-  }
+  if(Object.keys(DB.voters()).length===0){ DB.addVoter('alice','alice123'); DB.addVoter('bob','bob456'); }
+  if(!DB.poll()){ const t=new Date(Date.now()+24*3600*1000).toISOString().slice(0,16); DB.createPoll({title:'Should we adopt the new flag design?',end:t,labelYes:'Yes',labelNo:'No'}); }
 })();
+
+/* =========================================================
+   6.  Start
+========================================================= */
+start();
 </script>
 </body>
 </html>

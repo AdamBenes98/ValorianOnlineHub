@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Valorian News</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="hub.css">
+</head>
+<body>
+<div class="news-header">
+  <h1>Valorian News</h1>
+  <a href="hub.html">← Back to Hub</a>
+</div>
+<div class="news-main">
+  <div class="new-post">
+    <textarea id="postText" placeholder="What's happening? (Government accounts can attach files)"></textarea>
+    <input type="file" id="postFile" accept=".pdf,image/*">
+    <button onclick="submitPost()">Post</button>
+  </div>
+  <div id="feed"></div>
+</div>
+<script>
+const STORAGE_KEY = 'valorianNews';
+let posts = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+const isGov = confirm('Are you a Government member?'); // quick & dirty
+
+function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(posts)); }
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+function renderFeed(){
+  const feed = document.getElementById('feed');
+  feed.innerHTML = '';
+  posts.forEach((p,idx)=>{
+    const div = document.createElement('div'); div.className = 'post';
+    let html = `<small>${new Date(p.time).toLocaleString()}</small><p>${escapeHtml(p.text)}</p>`;
+    if(p.file){
+      const isPdf = p.file.type.includes('pdf');
+      html += isPdf
+        ? `<iframe src="${p.file.data}" width="100%" height="400px"></iframe>`
+        : `<img src="${p.file.data}" alt="image">`;
+    }
+    html += `<div class="post-actions"><a onclick="toggleComment(${idx})">💬 Comment</a></div>`;
+    html += `<div id="c${idx}" style="display:none">`;
+    p.comments.forEach(c=>{
+      html += `<div style="margin-top:.3rem;font-size:.8rem;color:#ccc">• ${escapeHtml(c)}</div>`;
+    });
+    html += `<div class="comment-box"><input placeholder="comment…" id="inp${idx}"><button onclick="addComment(${idx})">➤</button></div></div>`;
+    div.innerHTML = html;
+    feed.appendChild(div);
+  });
+}
+function submitPost(){
+  const text = document.getElementById('postText').value.trim(); if(!text)return;
+  const fileInput = document.getElementById('postFile');
+  const newPost = {text, time:Date.now(), comments:[], file:null};
+  if(fileInput.files[0] && isGov){
+    const reader = new FileReader();
+    reader.onload = e=>{
+      newPost.file = {type:fileInput.files[0].type, data:e.target.result};
+      posts.unshift(newPost); save(); renderFeed();
+      document.getElementById('postText').value=''; fileInput.value='';
+    };
+    reader.readAsDataURL(fileInput.files[0]);
+  } else {
+    posts.unshift(newPost); save(); renderFeed();
+    document.getElementById('postText').value=''; fileInput.value='';
+  }
+}
+function toggleComment(i){
+  const box = document.getElementById('c'+i);
+  box.style.display = box.style.display==='none'?'block':'none';
+}
+function addComment(i){
+  const inp = document.getElementById('inp'+i);
+  const val = inp.value.trim(); if(!val)return;
+  posts[i].comments.push(val); inp.value=''; save(); renderFeed();
+}
+renderFeed();
+</script>
+</body>
+</html>

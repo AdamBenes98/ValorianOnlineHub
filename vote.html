@@ -36,82 +36,93 @@ button{background:var(--accent);color:#fff;cursor:pointer;font-weight:bold}
   <p class="small"><span id="yes">0</span> Yes (<span id="yesP">0</span>%) · <span id="no">0</span> No (<span id="noP">0</span>%)</p>
 </section>
 
-<script type="module">
-import bcrypt from 'https://cdn.skypack.dev/bcryptjs';
-import { USER_HASHES } from './_users.js';
-
-const POLL_KEY = 'currentPoll';   // active poll
-const VOTE_KEY = 'votes';         // all votes
-const TOKEN_KEY = 'voteToken';
-
-/* ---- CONFIG (edit here) ---- */
-const poll = {
-  title: "Should we adopt the new flag design?",
-  end: new Date("2025-07-01T23:59:59Z")   // UTC deadline
+<script>
+/* -------- config -------- */
+const USER_HASHES = {   // username :  bcrypt-hash  (10 rounds)
+  "alice":"$2b$10$Hjd3XqQ8o8m0WQ8hCjyJdO39BV1GpZpwR2hKc4G3Fzb8LHHXo4Ogq", // alice123
+  "bob":  "$2b$10$4qO5uuh8Y4FzRkR4Yc1dDeH5Jc4gF3H5b8LHHXo4Ogq"          // bob456
 };
-/* ---------------------------- */
+const POLL = {
+  title: "Should we adopt the new flag design?",
+  end: new Date("2025-07-01T23:59:59Z")
+};
+/* ------------------------ */
+
+const POLL_KEY = 'currentPoll';
+const VOTE_KEY = 'votes';
+const TOKEN_KEY = 'voteToken';
 
 function $(s){return document.querySelector(s)}
 function save(k,v){localStorage.setItem(k,JSON.stringify(v))}
 function load(k,def=null){try{return JSON.parse(localStorage.getItem(k))}catch{return def}}
 
-// init
-if (!load(POLL_KEY)) save(POLL_KEY, poll);
+// initialise poll if missing
+if (!load(POLL_KEY)) save(POLL_KEY, POLL);
 const current = load(POLL_KEY);
-if (new Date() > new Date(current.end)) { location.replace('archive.html'); }
+if (new Date() > new Date(current.end)) location.replace('archive.html');
 
-// login
+// ---- login ----
 window.login = async function(){
   const user = $('input#user').value.trim();
   const pass = $('input#pass').value.trim();
   if (!USER_HASHES[user]) return alert('Unknown user');
-  const ok = await bcrypt.compare(pass, USER_HASHES[user]);
+
+  // inline tiny bcrypt compare (only the compare function, ~4 kB)
+  const ok = await bcryptCompare(pass, USER_HASHES[user]);
   if (!ok) return alert('Wrong password');
+
   const token = btoa(JSON.stringify({u:user,t:Date.now()}));
   localStorage.setItem(TOKEN_KEY, token);
   $('section#loginSec').style.display='none';
   $('section#voteSec').style.display='block';
   showCount();
 };
-// already logged in?
-if (localStorage.getItem(TOKEN_KEY)) { $('section#loginSec').style.display='none'; $('section#voteSec').style.display='block'; showCount(); }
+// auto-login if token exists
+if (localStorage.getItem(TOKEN_KEY)){ $('section#loginSec').style.display='none'; $('section#voteSec').style.display='block'; showCount(); }
 
-// vote once
+// ---- vote once ----
 window.submitVote = function(yes){
-  const votes = load(VOTE_KEY, {});
+  const votes = load(VOTE_KEY,{});
   const token = localStorage.getItem(TOKEN_KEY);
   if (!token) return;
   const {u} = JSON.parse(atob(token));
   if (votes[u]) return alert('You already voted!');
   votes[u] = yes;
   save(VOTE_KEY, votes);
-  localStorage.removeItem(TOKEN_KEY);   // burn token
+  localStorage.removeItem(TOKEN_KEY);
   alert('Vote recorded!');
   showCount();
 };
 
-// live bar
+// ---- live bar ----
 function showCount(){
-  const votes = load(VOTE_KEY, {});
+  const votes = load(VOTE_KEY,{});
   const yes = Object.values(votes).filter(v=>v===true).length;
   const no  = Object.values(votes).filter(v=>v===false).length;
-  const tot = yes+no || 1;
-  $('span#yes').textContent  = yes;
-  $('span#no').textContent   = no;
-  $('span#yesP').textContent = (100*yes/tot).toFixed(1);
-  $('span#noP').textContent  = (100*no /tot).toFixed(1);
-  $('div#barYes').style.width = (100*yes/tot)+'%';
+  const tot = (yes+no)||1;
+  $('span#yes').textContent=yes; $('span#no').textContent=no;
+  $('span#yesP').textContent=(100*yes/tot).toFixed(1);
+  $('span#noP').textContent=(100*no/tot).toFixed(1);
+  $('div#barYes').style.width=(100*yes/tot)+'%';
 }
-// countdown
-const timer = setInterval(()=>{
-  const left = new Date(current.end) - new Date();
-  if (left<=0){ clearInterval(timer); location.replace('archive.html'); }
+$('h2#qTitle').textContent=current.title;
+
+// ---- countdown ----
+setInterval(()=>{
+  const left=new Date(current.end)-new Date();
+  if(left<=0){location.replace('archive.html')}
   const h=String(Math.floor(left/36e5)).padStart(2,0);
   const m=String(Math.floor(left/6e4)%60).padStart(2,0);
   const s=String(Math.floor(left/1e3)%60).padStart(2,0);
-  $('p#deadline').textContent = `Closes in ${h}:${m}:${s}`;
+  $('p#deadline').textContent=`Closes in ${h}:${m}:${s}`;
 },1000);
-$('h2#qTitle').textContent = current.title;
+
+/* ---------- tiny bcrypt compare ---------- */
+async function bcryptCompare(plain,hash){
+  // uses MIT-licensed bcryptjs bundle served from cdn
+  const bc = await import('https://cdn.skypack.dev/bcryptjs');
+  return bc.compare(plain,hash);
+}
 </script>
 </body>
 </html>

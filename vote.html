@@ -1,136 +1,180 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<title>Parliament – Live Vote</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="hub.css">
-<style>
-body{background:var(--bg);color:var(--text);padding:2rem;max-width:600px;margin:auto}
-input,button{padding:.5rem;border:none;border-radius:4px}
-input{background:#222;color:var(--text);width:100%;margin-bottom:.5rem}
-button{background:var(--accent);color:#fff;cursor:pointer;font-weight:bold}
-#barWrap{background:#222;border-radius:4px;height:28px;margin-top:1rem;overflow:hidden}
-#barYes{height:100%;background:var(--accent);width:0%;transition:width .3s}
-.small{color:var(--sub);font-size:.75rem}
-</style>
-</head>
-<body>
-<div class="small"><a href="hub.html">← Back to Hub</a></div>
-<h1>Parliament – Live Vote</h1>
+<script type="module">
+/* =========================================================
+   0.  Tiny helpers
+========================================================= */
+const $ = q => document.querySelector(q);
+const storage = (k,v) => v===undefined ? JSON.parse(localStorage.getItem(k)||'null') : localStorage.setItem(k,JSON.stringify(v));
+const rand = n => crypto.getRandomValues(new Uint32Array(1))[0]%n;
+const today = () => new Date().toISOString().slice(0,10);
 
-<!-- KEY GATE -->
-<section id="gateSec">
-  <input id="keyIn" type="password" placeholder="Enter voting key">
-  <button onclick="unlock()">Unlock</button>
-</section>
+/* =========================================================
+   1.  Data model  (unchanged)
+========================================================= */
+const DB = {
+  poll:  () => storage('poll'),
+  voters:() => storage('voters')||{},   // now object:  {username:password}
+  votes: () => storage('votes')||{},
+  voted: () => storage('voted')||[],
+  addVoter(username,password){
+    const v = this.voters();
+    if(v[username]) return false;        // username already exists
+    v[username]=password;
+    storage('voters',v);
+    return true;
+  },
+  createPoll({title,end,labelYes='Yes',labelNo='No'}){
+    storage('poll',{title,end,labelYes,labelNo});
+    storage('votes',{});
+    storage('voted',[]);
+  },
+  vote(username,yes){
+    if(this.voted().includes(username)) return false;
+    const votes = this.votes();
+    votes[username]=yes;
+    storage('votes',votes);
+    storage('voted',[...this.voted(),username]);
+    return true;
+  },
+  results(){
+    const v = Object.values(this.votes());
+    const yes = v.filter(Boolean).length;
+    const no = v.length - yes;
+    const total = v.length||1;
+    return {yes,no,total,yesP:(100*yes/total).toFixed(1),noP:(100*no/total).toFixed(1)};
+  }
+};
 
-<!-- BALLOT -->
-<section id="voteSec" style="display:none">
-  <h2 id="qTitle"></h2>
-  <p id="deadline" class="small"></p>
-  <button id="yesBtn" onclick="submitVote(true)"></button>
-  <button id="noBtn"  onclick="submitVote(false)"></button>
+/* =========================================================
+   2.  Admin panel (unchanged except placeholders)
+========================================================= */
+function renderAdmin(){
+  const div = document.createElement('div');
+  div.innerHTML = `
+  <details style="margin-top:1rem">
+    <summary style="cursor:pointer">Admin panel</summary>
+    <div style="margin-top:.75rem">
+      <input id="newTitle" placeholder="Poll title" value="${DB.poll()?.title||''}">
+      <input id="newEnd" type="datetime-local" value="${DB.poll()?.end||''}">
+      <button id="savePoll">Create / Update poll</button>
+      <hr style="border:none;border-top:1px solid #8882;margin:1rem 0">
+      <textarea id="bulkUsers" placeholder="Add voters:  user pass (one pair per line)"></textarea>
+      <button id="addVoters">Add voters</button>
+      <button id="dlCsv">Download results CSV</button>
+    </div>
+  </details>`;
+  $('#app').appendChild(div);
+  $('#savePoll').onclick = () => {
+    DB.createPoll({title:$('#newTitle').value,end:$('#newEnd').value});
+    location.reload();
+  };
+  $('#addVoters').onclick = () => {
+    const lines = $('#bulkUsers').value.split('\n').map(l=>l.trim()).filter(Boolean);
+    let added=0;
+    lines.forEach(l=>{
+      const [u,p]=l.split(/\s+/);
+      if(u&&p&&DB.addVoter(u,p)) added++;
+    });
+    alert(`Added ${added} new voter(s)`);
+    $('#bulkUsers').value='';
+  };
+  $('#dlCsv').onclick = () => {
+    const csv = `user,vote\n${Object.entries(DB.votes()).map(([u,v])=>`${u},${v?'Yes':'No'}`).join('\n')}`;
+    const blob = new Blob([csv],{type:'text/csv'});
+    const url = URL.createObjectURL(blob);
+    const a = Object.assign(document.createElement('a'),{href:url,download:`poll-${today()}.csv`});
+    a.click();
+  };
+}
+
+/* =========================================================
+   3.  Voter login  (username + password)
+========================================================= */
+function renderLogin(){
+  $('#app').innerHTML = `
+  <h1>Parliament – Live Vote</h1>
+  <p class="small">Enter the login credentials you received from the administrator.</p>
+  <input id="user" placeholder="Username">
+  <input id="pass" type="password" placeholder="Password">
+  <button id="loginBtn">Login</button>`;
+  $('#loginBtn').onclick = () => {
+    const user = $('#user').value.trim();
+    const pass = $('#pass').value;
+    const voters = DB.voters();
+    if(!voters[user] || voters[user]!==pass) return alert('Invalid username or password.');
+    if(DB.voted().includes(user)) return alert('This username has already voted.');
+    storage('session',user);
+    location.reload();
+  };
+}
+
+/* =========================================================
+   4.  Ballot screen (unchanged except username instead of email)
+========================================================= */
+function renderBallot(){
+  const poll = DB.poll();
+  const user = storage('session');
+  const {labelYes='Yes',labelNo='No'} = poll;
+  $('#app').innerHTML = `
+  <h1>${poll.title}</h1>
+  <p id="timer" class="small"></p>
+  <div id="voted" style="display:none"><p>Your vote has been recorded ✅</p><p class="small">Live result:</p></div>
+  <div id="ballot">
+    <button id="btnY">${labelYes}</button>
+    <button id="btnN">${labelNo}</button>
+  </div>
   <div id="barWrap"><div id="barYes"></div></div>
-  <p class="small">
-    <span id="yes">0</span> <span id="yesL">Yes</span> (<span id="yesP">0</span>%) ·
-    <span id="no">0</span> <span id="noL">No</span>  (<span id="noP">0</span>%)
-  </p>
-</section>
-
-<script>
-/* ============================================================
-   GOVERNMENT EDITORS ONLY → ADD / REMOVE KEYS HERE
-   base64-encode each key  (btoa('MyKey123'))
-============================================================ */
-const KEY_B64 = [
-  'TXlLZXkxMjM=',   // MyKey123
-  'YWxpY2VLZXk=',   // aliceKey
-  'Ym9iU2VjcmV0'    // bobSecret
-];
-/* ========================================================== */
-
-const POLL_KEY   = 'currentPoll';
-const VOTE_KEY   = 'votes';
-const TOKEN_KEY  = 'voteToken';   // stores the key that logged in
-
-function $(s){return document.querySelector(s)}
-function save(k,v){localStorage.setItem(k,JSON.stringify(v))}
-function load(k,def=null){try{return JSON.parse(localStorage.getItem(k))}catch{return def}}
-
-// decode key list
-const KEYS = KEY_B64.map(b=>atob(b));
-
-/* -------- poll load / expire -------- */
-let poll = load(POLL_KEY, {
-  title:'Should we adopt the new flag design?',
-  labelYes:'Yes',
-  labelNo:'No',
-  end: new Date(Date.now() + 24*3600*1000).toISOString()
-});
-if (new Date(poll.end) < new Date()){
-  localStorage.removeItem(POLL_KEY);
-  localStorage.removeItem(VOTE_KEY);
-  location.replace('archive.html');
+  <p class="small"><span id="yes">0</span> Yes (<span id="yesP">0</span>%) · <span id="no">0</span> No (<span id="noP">0</span>%)</p>
+  <div class="small"><a href="#" id="logout">Logout</a></div>
+  <div id="qrBox"></div>`;
+  const updateBar = () => {
+    const r = DB.results();
+    $('#yes').textContent=r.yes; $('#no').textContent=r.no;
+    $('#yesP').textContent=r.yesP; $('#noP').textContent=r.noP;
+    $('#barYes').style.width = r.yesP+'%';
+  };
+  updateBar(); setInterval(updateBar,1000);
+  const end = new Date(poll.end);
+  const int = setInterval(()=>{
+    const sec = Math.max(0,Math.floor((end-new Date())/1000));
+    if(!sec){clearInterval(int); location.reload();}
+    const h=String(Math.floor(sec/3600)).padStart(2,0);
+    const m=String(Math.floor(sec/60)%60).padStart(2,0);
+    const s=String(sec%60).padStart(2,0);
+    $('#timer').textContent=`Closes in ${h}:${m}:${s}`;
+  },1000);
+  if(DB.voted().includes(user)){
+    $('#ballot').style.display='none';
+    $('#voted').style.display='block';
+  }else{
+    $('#btnY').onclick = () => recordVote(true);
+    $('#btnN').onclick = () => recordVote(false);
+  }
+  $('#logout').onclick = e => {e.preventDefault(); storage('session',null); location.reload();};
+  import('https://cdn.jsdelivr.net/npm/qr-creator@1.0.0/dist/qr-creator.min.js').then(()=>{
+    const qr = document.createElement('div');
+    QrCreator.render({text:location.href,radius:.4,ecLevel:'H',fill:'#00c853',background:null,size:120},qr);
+    $('#qrBox').appendChild(qr);
+  });
 }
-$('h2#qTitle').textContent = poll.title;
-$('button#yesBtn').textContent = poll.labelYes;
-$('button#noBtn').textContent  = poll.labelNo;
-
-/* -------- key gate -------- */
-window.unlock = function(){
-  const k = $('input#keyIn').value.trim();
-  if (!KEYS.includes(k)) return alert('Invalid key');
-  if (load(VOTE_KEY,{})[k]) return alert('This key has already voted!');
-  // store the key as "logged-in" token
-  localStorage.setItem(TOKEN_KEY, k);
-  $('section#gateSec').style.display='none';
-  $('section#voteSec').style.display='block';
-  showCount();
-};
-// auto-login if key present and not voted
-const tok = localStorage.getItem(TOKEN_KEY);
-if (tok && KEYS.includes(tok) && !load(VOTE_KEY,{})[tok]){
-  $('section#gateSec').style.display='none';
-  $('section#voteSec').style.display='block';
-  showCount();
+function recordVote(yes){
+  const user = storage('session');
+  if(DB.vote(user,yes)){
+    import('https://cdn.skypack.dev/canvas-confetti').then(({default:confetti})=>{
+      confetti({particleCount:120,spread:70,origin:{y:.7}});
+    });
+    renderBallot();
+  }
 }
 
-/* -------- vote once -------- */
-window.submitVote = function(yes){
-  const votes = load(VOTE_KEY,{});
-  const key   = localStorage.getItem(TOKEN_KEY);
-  if (!key || !KEYS.includes(key)) return;
-  if (votes[key]) return alert('Key already used!');
-  votes[key] = yes;
-  save(VOTE_KEY, votes);
-  localStorage.removeItem(TOKEN_KEY);   // burn token
-  alert('Vote recorded!');
-  showCount();
-};
-
-/* -------- live bar -------- */
-function showCount(){
-  const votes = load(VOTE_KEY,{});
-  const yes = Object.values(votes).filter(v=>v===true).length;
-  const no  = Object.values(votes).filter(v=>v===false).length;
-  const tot = (yes+no)||1;
-  $('span#yes').textContent=yes; $('span#no').textContent=no;
-  $('span#yesP').textContent=(100*yes/tot).toFixed(1);
-  $('span#noP').textContent=(100*no/tot).toFixed(1);
-  $('div#barYes').style.width=(100*yes/tot)+'%';
+/* =========================================================
+   5.  Router (unchanged)
+========================================================= */
+if(!DB.poll() || new Date(DB.poll().end) < new Date()){
+  $('#app').innerHTML = `<h1>No active poll</h1><p class="small">Contact the administrator.</p>`;
+  renderAdmin();
+}else if(storage('session') && DB.voters()[storage('session')]){
+  renderBallot();
+}else{
+  renderLogin();
 }
-showCount();
-
-/* -------- countdown -------- */
-setInterval(()=>{
-  const left=new Date(poll.end)-new Date();
-  if(left<=0){location.replace('archive.html')}
-  const h=String(Math.floor(left/36e5)).padStart(2,0);
-  const m=String(Math.floor(left/6e4)%60).padStart(2,0);
-  const s=String(Math.floor(left/1e3)%60).padStart(2,0);
-  $('p#deadline').textContent=`Closes in ${h}:${m}:${s}`;
-},1000);
 </script>
-</body>
-</html>

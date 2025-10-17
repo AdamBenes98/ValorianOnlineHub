@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Parliament – Live Vote</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="hub.css">   <!-- reuse your existing css -->
+<style>
+body{background:var(--bg);color:var(--text);padding:2rem;max-width:600px;margin:auto}
+input,button{padding:.5rem;border:none;border-radius:4px}
+input{background:#222;color:var(--text);width:100%;margin-bottom:.5rem}
+button{background:var(--accent);color:#fff;cursor:pointer;font-weight:bold}
+#barWrap{background:#222;border-radius:4px;height:28px;margin-top:1rem;overflow:hidden}
+#barYes{height:100%;background:var(--accent);width:0%;transition:width .3s}
+.small{color:var(--sub);font-size:.75rem}
+</style>
+</head>
+<body>
+<div class="small"><a href="hub.html">← Back to Hub</a></div>
+<h1>Parliament – Live Vote</h1>
+
+<!-- LOGIN -->
+<section id="loginSec">
+  <input id="user" placeholder="Username">
+  <input id="pass" type="password" placeholder="Password">
+  <button onclick="login()">Enter</button>
+</section>
+
+<!-- BALLOT -->
+<section id="voteSec" style="display:none">
+  <h2 id="qTitle">Loading…</h2>
+  <p id="deadline" class="small"></p>
+  <button onclick="submitVote(true)">Yes</button>
+  <button onclick="submitVote(false)">No</button>
+  <div id="barWrap"><div id="barYes"></div></div>
+  <p class="small"><span id="yes">0</span> Yes (<span id="yesP">0</span>%) · <span id="no">0</span> No (<span id="noP">0</span>%)</p>
+</section>
+
+<script type="module">
+import bcrypt from 'https://cdn.skypack.dev/bcryptjs';
+import { USER_HASHES } from './_users.js';
+
+const POLL_KEY = 'currentPoll';   // active poll
+const VOTE_KEY = 'votes';         // all votes
+const TOKEN_KEY = 'voteToken';
+
+/* ---- CONFIG (edit here) ---- */
+const poll = {
+  title: "Should we adopt the new flag design?",
+  end: new Date("2025-07-01T23:59:59Z")   // UTC deadline
+};
+/* ---------------------------- */
+
+function $(s){return document.querySelector(s)}
+function save(k,v){localStorage.setItem(k,JSON.stringify(v))}
+function load(k,def=null){try{return JSON.parse(localStorage.getItem(k))}catch{return def}}
+
+// init
+if (!load(POLL_KEY)) save(POLL_KEY, poll);
+const current = load(POLL_KEY);
+if (new Date() > new Date(current.end)) { location.replace('archive.html'); }
+
+// login
+window.login = async function(){
+  const user = $('input#user').value.trim();
+  const pass = $('input#pass').value.trim();
+  if (!USER_HASHES[user]) return alert('Unknown user');
+  const ok = await bcrypt.compare(pass, USER_HASHES[user]);
+  if (!ok) return alert('Wrong password');
+  const token = btoa(JSON.stringify({u:user,t:Date.now()}));
+  localStorage.setItem(TOKEN_KEY, token);
+  $('section#loginSec').style.display='none';
+  $('section#voteSec').style.display='block';
+  showCount();
+};
+// already logged in?
+if (localStorage.getItem(TOKEN_KEY)) { $('section#loginSec').style.display='none'; $('section#voteSec').style.display='block'; showCount(); }
+
+// vote once
+window.submitVote = function(yes){
+  const votes = load(VOTE_KEY, {});
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (!token) return;
+  const {u} = JSON.parse(atob(token));
+  if (votes[u]) return alert('You already voted!');
+  votes[u] = yes;
+  save(VOTE_KEY, votes);
+  localStorage.removeItem(TOKEN_KEY);   // burn token
+  alert('Vote recorded!');
+  showCount();
+};
+
+// live bar
+function showCount(){
+  const votes = load(VOTE_KEY, {});
+  const yes = Object.values(votes).filter(v=>v===true).length;
+  const no  = Object.values(votes).filter(v=>v===false).length;
+  const tot = yes+no || 1;
+  $('span#yes').textContent  = yes;
+  $('span#no').textContent   = no;
+  $('span#yesP').textContent = (100*yes/tot).toFixed(1);
+  $('span#noP').textContent  = (100*no /tot).toFixed(1);
+  $('div#barYes').style.width = (100*yes/tot)+'%';
+}
+// countdown
+const timer = setInterval(()=>{
+  const left = new Date(current.end) - new Date();
+  if (left<=0){ clearInterval(timer); location.replace('archive.html'); }
+  const h=String(Math.floor(left/36e5)).padStart(2,0);
+  const m=String(Math.floor(left/6e4)%60).padStart(2,0);
+  const s=String(Math.floor(left/1e3)%60).padStart(2,0);
+  $('p#deadline').textContent = `Closes in ${h}:${m}:${s}`;
+},1000);
+$('h2#qTitle').textContent = current.title;
+</script>
+</body>
+</html>

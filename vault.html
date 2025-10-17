@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>GovVault – Login</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="hub.css">
+</head>
+<body>
+<div class="news-header">
+  <h1>GovVault</h1>
+  <a href="hub.html">← Back to Hub</a>
+</div>
+<div class="vault-login">
+  <input id="pw" type="password" placeholder="Enter password">
+  <button onclick="check()">Unlock</button>
+</div>
+<script>
+function check(){
+  if(document.getElementById('pw').value === 'Vavau4578'){
+    document.body.innerHTML = `
+<div class="news-header"><h1>GovVault – Archive</h1><a href="hub.html">← Back to Hub</a></div>
+<div class="news-main">
+  <div class="new-post">
+    <textarea id="memoText" placeholder="Internal memo…"></textarea>
+    <input type="file" id="memoFile">
+    <button onclick="submitMemo()">Save Memo</button>
+  </div>
+  <div id="memos"></div>
+</div>`;
+    renderMemos();
+  } else {
+    alert('Wrong password');
+  }
+}
+const MEMO_KEY = 'govMemos';
+let memos = JSON.parse(localStorage.getItem(MEMO_KEY)) || [];
+function saveMemo(){ localStorage.setItem(MEMO_KEY, JSON.stringify(memos)); }
+function renderMemos(){
+  const div = document.getElementById('memos'); div.innerHTML='';
+  memos.forEach(m=>{
+    const card=document.createElement('div'); card.className='post';
+    let html = `<small>${new Date(m.time).toLocaleString()}</small><pre style="white-space:pre-wrap">${m.text}</pre>`;
+    if(m.file){
+      html += m.file.type.includes('pdf')
+        ? `<iframe src="${m.file.data}" width="100%" height="400px"></iframe>`
+        : `<img src="${m.file.data}" alt="image">`;
+    }
+    card.innerHTML=html; div.appendChild(card);
+  });
+}
+function submitMemo(){
+  const text=document.getElementById('memoText').value.trim(); if(!text)return;
+  const fileInput=document.getElementById('memoFile');
+  const newMemo={text,time:Date.now(),file:null};
+  if(fileInput.files[0]){
+    const reader=new FileReader();
+    reader.onload=e=>{
+      newMemo.file={type:fileInput.files[0].type,data:e.target.result};
+      memos.unshift(newMemo); saveMemo(); renderMemos();
+      document.getElementById('memoText').value=''; fileInput.value='';
+    };
+    reader.readAsDataURL(fileInput.files[0]);
+  } else {
+    memos.unshift(newMemo); saveMemo(); renderMemos();
+    document.getElementById('memoText').value=''; fileInput.value='';
+  }
+}
+</script>
+</body>
+</html>

@@ -1,11 +1,10 @@
 <!DOCTYPE html>
-if (new Date(load(POLL_KEY, {}).end) < new Date()) localStorage.removeItem(POLL_KEY);
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <title>Parliament – Live Vote</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="hub.css">   <!-- reuse your existing css -->
+<link rel="stylesheet" href="hub.css">
 <style>
 body{background:var(--bg);color:var(--text);padding:2rem;max-width:600px;margin:auto}
 input,button{padding:.5rem;border:none;border-radius:4px}
@@ -29,59 +28,73 @@ button{background:var(--accent);color:#fff;cursor:pointer;font-weight:bold}
 
 <!-- BALLOT -->
 <section id="voteSec" style="display:none">
-  <h2 id="qTitle">Loading…</h2>
+  <h2 id="qTitle"></h2>
   <p id="deadline" class="small"></p>
-  <button onclick="submitVote(true)">Yes</button>
-  <button onclick="submitVote(false)">No</button>
+  <button id="yesBtn" onclick="submitVote(true)"></button>
+  <button id="noBtn"  onclick="submitVote(false)"></button>
   <div id="barWrap"><div id="barYes"></div></div>
-  <p class="small"><span id="yes">0</span> Yes (<span id="yesP">0</span>%) · <span id="no">0</span> No (<span id="noP">0</span>%)</p>
+  <p class="small">
+    <span id="yes">0</span> <span id="yesL">Yes</span> (<span id="yesP">0</span>%) ·
+    <span id="no">0</span> <span id="noL">No</span>  (<span id="noP">0</span>%)
+  </p>
 </section>
 
-<script>
-/* -------- config -------- */
-const USER_HASHES = {   // username :  bcrypt-hash  (10 rounds)
+<script type="module">
+/* -------- user DB -------- */
+const USER_HASHES = {
   "alice":"$2b$10$Hjd3XqQ8o8m0WQ8hCjyJdO39BV1GpZpwR2hKc4G3Fzb8LHHXo4Ogq", // alice123
   "bob":  "$2b$10$4qO5uuh8Y4FzRkR4Yc1dDeH5Jc4gF3H5b8LHHXo4Ogq"          // bob456
 };
-const POLL = {
-   title: "NEW QUESTION GOES HERE",
-  end: new Date("2026-01-31T23:59:59Z")
-};
-/* ------------------------ */
-
-const POLL_KEY = 'currentPoll';
-const VOTE_KEY = 'votes';
-const TOKEN_KEY = 'voteToken';
+/* ------------------------- */
+const POLL_KEY   = 'currentPoll';
+const VOTE_KEY   = 'votes';
+const TOKEN_KEY  = 'voteToken';
 
 function $(s){return document.querySelector(s)}
 function save(k,v){localStorage.setItem(k,JSON.stringify(v))}
 function load(k,def=null){try{return JSON.parse(localStorage.getItem(k))}catch{return def}}
 
-// initialise poll if missing
-if (!load(POLL_KEY)) save(POLL_KEY, POLL);
-const current = load(POLL_KEY);
-if (new Date() > new Date(current.end)) location.replace('archive.html');
+// load poll (fallback dummy if nothing exists)
+let poll = load(POLL_KEY, {
+  title:"Sample question",
+  labelYes:"Yes",
+  labelNo:"No",
+  end: new Date(Date.now()+24*3600*1000).toISOString()   // +24 h
+});
 
-// ---- login ----
+// if stored poll is expired, wipe it and use fresh one
+if (new Date(poll.end) < new Date()) {
+  localStorage.removeItem(POLL_KEY);
+  poll = load(POLL_KEY, poll);          // now uses the fresh one from code
+  localStorage.removeItem(VOTE_KEY);    // also reset votes
+}
+
+// redirect to archive if still expired (should never happen now)
+if (new Date(poll.end) < new Date()) location.replace('archive.html');
+
+// fill texts
+$('h2#qTitle').textContent = poll.title;
+$('button#yesBtn').textContent = poll.labelYes;
+$('button#noBtn').textContent  = poll.labelNo;
+
+/* ---- login ---- */
 window.login = async function(){
   const user = $('input#user').value.trim();
   const pass = $('input#pass').value.trim();
   if (!USER_HASHES[user]) return alert('Unknown user');
-
-  // inline tiny bcrypt compare (only the compare function, ~4 kB)
-  const ok = await bcryptCompare(pass, USER_HASHES[user]);
+  const bc = await import('https://cdn.skypack.dev/bcryptjs');
+  const ok = await bc.compare(pass, USER_HASHES[user]);
   if (!ok) return alert('Wrong password');
-
   const token = btoa(JSON.stringify({u:user,t:Date.now()}));
   localStorage.setItem(TOKEN_KEY, token);
   $('section#loginSec').style.display='none';
   $('section#voteSec').style.display='block';
   showCount();
 };
-// auto-login if token exists
+// auto-login if token present
 if (localStorage.getItem(TOKEN_KEY)){ $('section#loginSec').style.display='none'; $('section#voteSec').style.display='block'; showCount(); }
 
-// ---- vote once ----
+/* ---- vote once ---- */
 window.submitVote = function(yes){
   const votes = load(VOTE_KEY,{});
   const token = localStorage.getItem(TOKEN_KEY);
@@ -90,40 +103,34 @@ window.submitVote = function(yes){
   if (votes[u]) return alert('You already voted!');
   votes[u] = yes;
   save(VOTE_KEY, votes);
-  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(TOKEN_KEY);   // burn token
   alert('Vote recorded!');
   showCount();
 };
 
-// ---- live bar ----
+/* ---- live bar ---- */
 function showCount(){
   const votes = load(VOTE_KEY,{});
   const yes = Object.values(votes).filter(v=>v===true).length;
   const no  = Object.values(votes).filter(v=>v===false).length;
   const tot = (yes+no)||1;
-  $('span#yes').textContent=yes; $('span#no').textContent=no;
-  $('span#yesP').textContent=(100*yes/tot).toFixed(1);
-  $('span#noP').textContent=(100*no/tot).toFixed(1);
-  $('div#barYes').style.width=(100*yes/tot)+'%';
+  $('span#yes').textContent   = yes;
+  $('span#no').textContent    = no;
+  $('span#yesP').textContent  = (100*yes/tot).toFixed(1);
+  $('span#noP').textContent   = (100*no /tot).toFixed(1);
+  $('div#barYes').style.width = (100*yes/tot)+'%';
 }
-$('h2#qTitle').textContent=current.title;
+showCount();
 
-// ---- countdown ----
+/* ---- countdown ---- */
 setInterval(()=>{
-  const left=new Date(current.end)-new Date();
-  if(left<=0){location.replace('archive.html')}
+  const left = new Date(poll.end) - new Date();
+  if (left<=0){ location.replace('archive.html'); }
   const h=String(Math.floor(left/36e5)).padStart(2,0);
   const m=String(Math.floor(left/6e4)%60).padStart(2,0);
   const s=String(Math.floor(left/1e3)%60).padStart(2,0);
-  $('p#deadline').textContent=`Closes in ${h}:${m}:${s}`;
+  $('p#deadline').textContent = `Closes in ${h}:${m}:${s}`;
 },1000);
-
-/* ---------- tiny bcrypt compare ---------- */
-async function bcryptCompare(plain,hash){
-  // uses MIT-licensed bcryptjs bundle served from cdn
-  const bc = await import('https://cdn.skypack.dev/bcryptjs');
-  return bc.compare(plain,hash);
-}
 </script>
 </body>
 </html>

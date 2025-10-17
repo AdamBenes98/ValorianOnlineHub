@@ -199,5 +199,32 @@ window.logoutVoter=()=>{ storage('session',null); renderGate(); };
 (()=>{ if(Object.keys(DB.voters()).length===0){ DB.addVoter('alice','alice123'); DB.addVoter('bob','bob456'); } })();
 
 /* ----------  kick off  ---------- */
+/* ----------------------------------------------------  ROUTER  */
+function start(){
+  const p = DB.poll();
+  if(!p || new Date(p.end) < new Date()){
+    renderNoPollPage();          // ← NEW: stay on file, show message
+    return;
+  }
+  if(storage('adminSession')){ renderAdminPanel(); return; }
+  if(storage('session') && DB.voters()[storage('session')]){ renderBallot(); return; }
+  renderGate();
+}
+
+/* ----------------------------------------------------  NO-POLL PAGE  */
+function renderNoPollPage(){
+  app.innerHTML = `
+  <div class="ivcf-card">
+    <h1>No active polls</h1>
+    <p>If you want to create one, please log in as administrator.</p>
+    <button class="ivcf-button" onclick="renderAdminLogin()">Admin login</button>
+    <p class="small"><a href="archive.html">📁 Vote archive</a></p>
+  </div>`;
+}
+
+/* ----------------------------------------------------  DEMO SEED  */
+(()=>{ if(Object.keys(DB.voters()).length===0){ DB.addVoter('alice','alice123'); DB.addVoter('bob','bob456'); } })();
+
+/* ----------------------------------------------------  KICK OFF  */
 start();
 </script>

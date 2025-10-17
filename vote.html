@@ -188,6 +188,15 @@ if(!DB.poll() || new Date(DB.poll().end) < new Date()){
 }else{
   renderGate();
 }
+/* =========================================================
+   5b.  Seed a default poll (only once)
+========================================================= */
+(()=>{
+  if(!DB.poll()){                       // first-run → create a demo poll
+    const tomorrow = new Date(Date.now() + 24*3600*1000).toISOString().slice(0,16); // ISO string cut to minutes
+    DB.createPoll({title:'Should we adopt the new flag design?', end:tomorrow, labelYes:'Yes',labelNo:'No'});
+  }
+})();
 </script>
 </body>
 </html>

@@ -8,27 +8,28 @@
 <style>
 :root{
   --bg:#111;
-  --text:#ffffff;      /* pure white */
+  --text:#ffffff;        /* white text everywhere */
   --sub:#999;
   --blue:#00b4ff;
-  --green:#00c853;
-  --red:#ff5252;
+  --green:#00c853;       /* Yes fill */
+  --red:#ff5252;         /* No fill & accents */
   --radius:4px;
   --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
 }
 @media (prefers-color-scheme:light){
   :root{
-    --bg:#f5f5f5;
-    --card:#ffffff;
-    --text:#000000;   /* keeps ivcf contrast in light mode */
-    --sub:#555;
+    --bg:#1e1e1e;        /* keep dark card even in light OS mode */
+    --card:#1e1e1e;
+    --text:#ffffff;
+    --sub:#aaa;
   }
 }
 
+/* ----  ivcf shell  ---- */
 .ivcf-page{background:var(--bg);color:var(--text);display:none}
 .ivcf-page.active{display:block}
 .ivcf-header{background:#1e1e1e;border-bottom:2px solid var(--red);padding:1rem 2rem;display:flex;align-items:center;gap:1.5rem}
-.ivcf-header h1{margin:0;font-size:1.6rem}
+.ivcf-header h1{margin:0;font-size:1.6rem;color:var(--text)}   /* white title */
 .ivcf-nav{display:flex;gap:1rem;flex-wrap:wrap}
 .ivcf-nav a{padding:.4rem .7rem;border-radius:var(--radius);background:#0003;text-decoration:none;color:var(--text)}
 .ivcf-nav a.active{background:var(--red);color:#000;font-weight:bold}
@@ -38,14 +39,17 @@
 .ivcf-table{width:100%;border-collapse:collapse;margin-top:1rem}
 .ivcf-table th,.ivcf-table td{padding:.5rem;text-align:left;border-bottom:1px solid #333}
 .ivcf-table th{color:var(--blue)}
-.ivcf-card{background:#1e1e1e;padding:1.2rem;border-radius:8px;margin-bottom:1.2rem}
+.ivcf-card{background:#1e1e1e;padding:1.2rem;border-radius:8px;margin-bottom:1.2rem;color:var(--text)} /* <- force white text inside card */
 .ivcf-input,.ivcf-select,.ivcf-button{padding:.5rem;border:none;border-radius:var(--radius);font-family:var(--font);font-size:1rem}
 .ivcf-input,.ivcf-select{background:#222;color:var(--text);width:100%}
-.ivcf-button{background:var(--red);color:#000000;cursor:pointer;font-weight:bold;transition:filter .15s} /* <- black text */
+.ivcf-button{background:var(--red);color:#000;cursor:pointer;font-weight:bold;transition:filter .15s}
 .ivcf-button:hover{filter:brightness(1.15)}
 .ivcf-button:active{filter:brightness(0.85)}
+
+/* ----  vote bar : red empty (No) , green fill (Yes)  ---- */
 #barWrap{height:28px;background:var(--red);border-radius:var(--radius);overflow:hidden;margin:1rem 0}
-#barYes{height:100%;background:var(--red);width:0%;transition:width .4s}
+#barYes{height:100%;background:var(--green);width:0%;transition:width .4s}
+
 body{margin:0;background:var(--bg);font-family:var(--font);display:flex;align-items:center;justify-content:center;min-height:100vh}
 a{color:var(--red)}
 .small{font-size:.8rem;color:var(--sub)}

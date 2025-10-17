@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Vote Archive</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="hub.css">
+<style>
+body{background:var(--bg);color:var(--text);padding:2rem;max-width:700px;margin:auto}
+.poll{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:1rem;margin-bottom:1rem}
+.barWrap{background:#222;border-radius:4px;height:24px;margin:.5rem 0;overflow:hidden}
+.bar{height:100%;background:var(--accent)}
+</style>
+</head>
+<body>
+<div class="small"><a href="hub.html">← Back to Hub</a></div>
+<h1>Past Referenda</h1>
+<div id="list"></div>
+
+<script>
+const ARCHIVE_KEY = 'pollArchive';   // filled automatically when a poll ends
+function load(k,def=[]){try{return JSON.parse(localStorage.getItem(k))}catch{return def}}
+const list = load(ARCHIVE_KEY);
+const box = document.getElementById('list');
+if (!list.length) box.innerHTML = '<p>No archived votes yet.</p>';
+list.forEach(p=>{
+  const yesP = (100*p.yes/(p.yes+p.no)||0).toFixed(1);
+  const noP  = (100*p.no /(p.yes+p.no)||0).toFixed(1);
+  const div = document.createElement('div'); div.className='poll';
+  div.innerHTML = `
+    <h3>${p.title}</h3>
+    <p class="small">Ended ${new Date(p.end).toLocaleString()}</p>
+    <div class="barWrap"><div class="bar" style="width:${yesP}%"></div></div>
+    <p class="small">${p.yes} Yes (${yesP}%) · ${p.no} No (${noP}%)</p>
+  `;
+  box.appendChild(div);
+});
+</script>
+</body>
+</html>

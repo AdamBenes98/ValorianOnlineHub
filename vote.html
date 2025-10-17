@@ -19,14 +19,13 @@ button{background:var(--accent);color:#fff;cursor:pointer;font-weight:bold}
 <div class="small"><a href="hub.html">← Back to Hub</a></div>
 <h1>Parliament – Live Vote</h1>
 
-<!--  LOGIN  -->
-<section id="loginSec">
-  <input id="user" placeholder="Username">
-  <input id="pass" type="password" placeholder="Password">
-  <button onclick="login()">Enter</button>
+<!-- KEY GATE -->
+<section id="gateSec">
+  <input id="keyIn" type="password" placeholder="Enter voting key">
+  <button onclick="unlock()">Unlock</button>
 </section>
 
-<!--  BALLOT  -->
+<!-- BALLOT -->
 <section id="voteSec" style="display:none">
   <h2 id="qTitle"></h2>
   <p id="deadline" class="small"></p>
@@ -41,37 +40,33 @@ button{background:var(--accent);color:#fff;cursor:pointer;font-weight:bold}
 
 <script>
 /* ============================================================
-   GOVERNMENT EDITORS ONLY → ADD USERS HERE
-   Encode  user:pass  with  btoa('alice:alice123')  etc.
+   GOVERNMENT EDITORS ONLY → ADD / REMOVE KEYS HERE
+   base64-encode each key  (btoa('MyKey123'))
 ============================================================ */
-const USER_B64 = [        //  btoa('user:password')
-  'YWxpY2U6YWxpY2UxMjM=',   // alice : alice123
-  'Ym9iOmJvYjQ1Ng=='        // bob   : bob456
+const KEY_B64 = [
+  'TXlLZXkxMjM=',   // MyKey123
+  'YWxpY2VLZXk=',   // aliceKey
+  'Ym9iU2VjcmV0'    // bobSecret
 ];
 /* ========================================================== */
 
 const POLL_KEY   = 'currentPoll';
 const VOTE_KEY   = 'votes';
-const TOKEN_KEY  = 'voteToken';
+const TOKEN_KEY  = 'voteToken';   // stores the key that logged in
 
 function $(s){return document.querySelector(s)}
 function save(k,v){localStorage.setItem(k,JSON.stringify(v))}
 function load(k,def=null){try{return JSON.parse(localStorage.getItem(k))}catch{return def}}
 
-/* -------- decode user:pass  -------- */
-const USERS = Object.fromEntries(
-  USER_B64.map(b=>{
-    const [u,p] = atob(b).split(':');
-    return [u,p];
-  })
-);
+// decode key list
+const KEYS = KEY_B64.map(b=>atob(b));
 
-/* -------- load / expire poll -------- */
+/* -------- poll load / expire -------- */
 let poll = load(POLL_KEY, {
   title:'Should we adopt the new flag design?',
   labelYes:'Yes',
   labelNo:'No',
-  end: new Date(Date.now() + 24*3600*1000).toISOString()  // +24 h
+  end: new Date(Date.now() + 24*3600*1000).toISOString()
 });
 if (new Date(poll.end) < new Date()){
   localStorage.removeItem(POLL_KEY);
@@ -82,30 +77,34 @@ $('h2#qTitle').textContent = poll.title;
 $('button#yesBtn').textContent = poll.labelYes;
 $('button#noBtn').textContent  = poll.labelNo;
 
-/* -------- login -------- */
-window.login = function(){
-  const u = $('input#user').value.trim();
-  const p = $('input#pass').value.trim();
-  if (!USERS[u] || USERS[u] !== p) return alert('Wrong user or password');
-  const token = btoa(JSON.stringify({u:u,t:Date.now()}));
-  localStorage.setItem(TOKEN_KEY, token);
-  $('section#loginSec').style.display='none';
+/* -------- key gate -------- */
+window.unlock = function(){
+  const k = $('input#keyIn').value.trim();
+  if (!KEYS.includes(k)) return alert('Invalid key');
+  if (load(VOTE_KEY,{})[k]) return alert('This key has already voted!');
+  // store the key as "logged-in" token
+  localStorage.setItem(TOKEN_KEY, k);
+  $('section#gateSec').style.display='none';
   $('section#voteSec').style.display='block';
   showCount();
 };
-// auto-login if token exists
-if (localStorage.getItem(TOKEN_KEY)){ $('section#loginSec').style.display='none'; $('section#voteSec').style.display='block'; showCount(); }
+// auto-login if key present and not voted
+const tok = localStorage.getItem(TOKEN_KEY);
+if (tok && KEYS.includes(tok) && !load(VOTE_KEY,{})[tok]){
+  $('section#gateSec').style.display='none';
+  $('section#voteSec').style.display='block';
+  showCount();
+}
 
 /* -------- vote once -------- */
 window.submitVote = function(yes){
   const votes = load(VOTE_KEY,{});
-  const token = localStorage.getItem(TOKEN_KEY);
-  if (!token) return;
-  const {u} = JSON.parse(atob(token));
-  if (votes[u]) return alert('You already voted!');
-  votes[u] = yes;
+  const key   = localStorage.getItem(TOKEN_KEY);
+  if (!key || !KEYS.includes(key)) return;
+  if (votes[key]) return alert('Key already used!');
+  votes[key] = yes;
   save(VOTE_KEY, votes);
-  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(TOKEN_KEY);   // burn token
   alert('Vote recorded!');
   showCount();
 };

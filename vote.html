@@ -1,141 +1,117 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<title>Parliament – Live Vote</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- =========  NEW STYLES  ========= -->
 <style>
-/* ----------  base variables  ---------- */
 :root{
   --bg:#111;
-  --card:#1e1e1e;
   --text:#eee;
   --sub:#999;
-  --accent:#00c853;        /*  green replacement for ivcf blue  */
+  --blue:#00b4ff;      /* ivcf blue */
+  --green:#00c853;     /* tiny green accent */
+  --red:#ff5252;       /* red for No */
   --radius:4px;
   --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
 }
 @media (prefers-color-scheme:light){
   :root{
     --bg:#f5f5f5;
-    --card:#fff;
     --text:#222;
     --sub:#555;
   }
 }
-
-/* ----------  page shell (borrowed from ivcf)  ---------- */
+/* ----  ivcf shell  ---- */
 .ivcf-page{background:var(--bg);color:var(--text);display:none}
 .ivcf-page.active{display:block}
-.ivcf-header{background:var(--card);border-bottom:2px solid var(--accent);padding:1rem 2rem;display:flex;align-items:center;gap:1.5rem}
+.ivcf-header{background:#1e1e1e;border-bottom:2px solid var(--blue);padding:1rem 2rem;display:flex;align-items:center;gap:1.5rem}
 .ivcf-header h1{margin:0;font-size:1.6rem}
 .ivcf-nav{display:flex;gap:1rem;flex-wrap:wrap}
 .ivcf-nav a{padding:.4rem .7rem;border-radius:var(--radius);background:#0003;text-decoration:none;color:var(--text)}
-.ivcf-nav a.active{background:var(--accent);color:#000;font-weight:bold}
+.ivcf-nav a.active{background:var(--blue);color:#000;font-weight:bold}
 .ivcf-main{padding:2rem;max-width:1200px;margin:auto}
 .ivcf-section{display:none}
 .ivcf-section.active{display:block}
 .ivcf-table{width:100%;border-collapse:collapse;margin-top:1rem}
 .ivcf-table th,.ivcf-table td{padding:.5rem;text-align:left;border-bottom:1px solid #333}
-.ivcf-table th{color:var(--accent)}
-.ivcf-card{background:var(--card);padding:1.2rem;border-radius:8px;margin-bottom:1.2rem}
-
-/* ----------  controls  ---------- */
-.ivcf-input,.ivcf-select,.ivcf-button{
-  padding:.5rem;border:none;border-radius:var(--radius);font-family:var(--font);font-size:1rem
-}
+.ivcf-table th{color:var(--blue)}
+.ivcf-card{background:#1e1e1e;padding:1.2rem;border-radius:8px;margin-bottom:1.2rem}
+.ivcf-input,.ivcf-select,.ivcf-button{padding:.5rem;border:none;border-radius:var(--radius);font-family:var(--font);font-size:1rem}
 .ivcf-input,.ivcf-select{background:#222;color:var(--text);width:100%}
-.ivcf-button{
-  background:var(--accent);color:#000;cursor:pointer;font-weight:bold;
-  transition:filter .15s
-}
+.ivcf-button{background:var(--blue);color:#000;cursor:pointer;font-weight:bold;transition:filter .15s}
 .ivcf-button:hover{filter:brightness(1.15)}
-/*  pressed state  */
 .ivcf-button:active{filter:brightness(0.85)}
-
-/* ----------  vote bar  ---------- */
-#barWrap{height:28px;background:#222;border-radius:var(--radius);overflow:hidden;margin:1rem 0}
-#barYes{height:100%;background:var(--accent);width:0%;transition:width .4s}
-/*  red empty part (No votes)  */
-#barWrap{background:var(--accent2)}   /*  we’ll set --accent2 in JS  */
-
-/* ----------  tiny extras  ---------- */
+/* ----  vote bar  ---- */
+#barWrap{height:28px;background:var(--red);border-radius:var(--radius);overflow:hidden;margin:1rem 0}
+#barYes{height:100%;background:var(--green);width:0%;transition:width .4s}
+/* ----  helpers  ---- */
 body{margin:0;background:var(--bg);font-family:var(--font)}
-a{color:var(--accent);text-decoration:none}
+a{color:var(--blue)}
 .small{font-size:.8rem;color:var(--sub)}
-#qrBox{display:none}                 /*  QR removed  */
+#qrBox{display:none}
 </style>
-</head>
-<body>
-<div id="app"></div>
-<script type="module">
-/* =========================================================
-   0.  CONFIG
-========================================================= */
-const ADMIN_USER = 'master';        // change me
-const ADMIN_PASS = 'M4sterP@ss';    // change me
 
-/* =========================================================
-   1.  Helpers
-========================================================= */
-const $   = q => document.querySelector(q);
+<!-- =========  NEW SCRIPT  ========= -->
+<script type="module">
+/* ----------------------------------------------------  CONFIG  */
+const ADMIN_USER = 'master';
+const ADMIN_PASS = 'M4sterP@ss';
+
+/* ----------------------------------------------------  HELPERS  */
+const $ = q => document.querySelector(q);
 const storage = (k,v) => v===undefined ? JSON.parse(localStorage.getItem(k)||'null') : localStorage.setItem(k,JSON.stringify(v));
-const rand = n => crypto.getRandomValues(new Uint32Array(1))[0]%n;
 const today = () => new Date().toISOString().slice(0,10);
 
-/* =========================================================
-   2.  Data model
-========================================================= */
+/* ----------------------------------------------------  DATA  */
 const DB = {
   poll:  () => storage('poll'),
   voters:() => storage('voters')||{},
   votes: () => storage('votes')||{},
   voted: () => storage('voted')||[],
+  archive:()=> storage('archive')||[],
   addVoter(u,p){ const v=this.voters(); if(v[u])return 0; v[u]=p; storage('voters',v); return 1;},
   createPoll(o){ storage('poll',o); storage('votes',{}); storage('voted',[]);},
   vote(u,y){ if(this.voted().includes(u))return 0; const votes=this.votes(); votes[u]=y; storage('votes',votes); storage('voted',[...this.voted(),u]); return 1;},
   results(){ const v=Object.values(this.votes()), yes=v.filter(Boolean).length, no=v.length-yes, t=v.length||1; return {yes,no,total:v.length,yesP:(100*yes/t).toFixed(1),noP:(100*no/t).toFixed(1)};}
 };
 
-/* =========================================================
-   3.  Router – decide where to start
-========================================================= */
-function start(){
-  // If user arrived from index.html → always show public gate
-  if(document.referrer.includes('index.html')){ renderGate(); return; }
-
-  // Otherwise behave like before
-  if(!DB.poll() || new Date(DB.poll().end) < new Date()){
-    app.innerHTML=`<h1>No active poll</h1><p class="small">Contact the administrator.</p>`;
-    renderAdminLogin();
-  }else if(storage('adminSession')){
-    renderAdminPanel();
-  }else if(storage('session') && DB.voters()[storage('session')]){
-    renderBallot();
-  }else{
-    renderGate();
-  }
+/* ----------------------------------------------------  ARCHIVE HANDLING  */
+function archiveThisPoll(){
+  const p = DB.poll(), v = DB.votes(), r = DB.results();
+  if(!p) return;
+  const entry = { ...p, results:r, votes:v, archivedAt:new Date().toISOString() };
+  const list = DB.archive(); list.push(entry); storage('archive',list);
 }
-/*  put this near the top of the script (after the :root block)  */
-document.documentElement.style.setProperty('--accent2','#ff5252');   // red for No
-/* =========================================================
-   4.  Pages
-========================================================= */
+
+/* ----------------------------------------------------  ROUTER  */
+function start(){
+  const p = DB.poll();
+  if(!p || new Date(p.end) < new Date()){
+    // no active poll → send straight to archive
+    location.replace('archive.html');
+    return;
+  }
+  if(storage('adminSession')){ renderAdminPanel(); return; }
+  if(storage('session') && DB.voters()[storage('session')]){ renderBallot(); return; }
+  renderGate();
+}
+
+/* ----------------------------------------------------  PAGES  */
 function renderGate(){
   app.innerHTML=`
-  <h1>Parliament – Live Vote</h1>
-  <p class="small">Choose your role:</p>
-  <button onclick="renderVoterLogin()">I am a voter</button>
-  <button onclick="renderAdminLogin()">I am an admin</button>
-  <p class="small"><a href="archive.html">📁 Vote archive</a></p>`;
+  <div class="ivcf-card">
+    <h1>Parliament – Live Vote</h1>
+    <p class="small">Choose your role:</p>
+    <button class="ivcf-button" onclick="renderVoterLogin()">I am a voter</button>
+    <button class="ivcf-button" onclick="renderAdminLogin()">I am an admin</button>
+    <p class="small"><a href="archive.html">📁 Vote archive</a></p>
+  </div>`;
 }
 window.renderAdminLogin=()=>{
   app.innerHTML=`
-  <h1>Admin Login</h1>
-  <input id="admUser" placeholder="Admin username">
-  <input id="admPass" type="password" placeholder="Admin password">
-  <button onclick="checkAdmin()">Login</button>
-  <p class="small"><a href="#" onclick="renderGate();return false">← back</a></p>`;
+  <div class="ivcf-card">
+    <h1>Admin Login</h1>
+    <input class="ivcf-input" id="admUser" placeholder="Admin username">
+    <input class="ivcf-input" id="admPass" type="password" placeholder="Admin password">
+    <button class="ivcf-button" onclick="checkAdmin()">Login</button>
+    <p class="small"><a href="index.html">← back to main page</a></p>
+  </div>`;
 };
 window.checkAdmin=()=>{
   if(admUser.value===ADMIN_USER && admPass.value===ADMIN_PASS){ storage('adminSession',true); renderAdminPanel();}
@@ -143,19 +119,20 @@ window.checkAdmin=()=>{
 };
 window.renderAdminPanel=()=>{
   app.innerHTML=`
-  <div style="background:var(--accent2);color:#fff;padding:.5rem 1rem;border-radius:var(--radius);margin-bottom:1rem">ADMIN MODE</div>
-  <h1>Admin Panel</h1>
-  <input id="newTitle" placeholder="Poll title" value="${DB.poll()?.title||''}">
-  <input id="newEnd" type="datetime-local" value="${DB.poll()?.end||''}">
-  <button onclick="savePoll()">Create / Update poll</button>
-  <hr style="border:none;border-top:1px solid #8882;margin:1rem 0">
-  <textarea id="bulkUsers" placeholder="Add voters:  username password (one pair per line)"></textarea>
-  <button onclick="addVoters()">Add voters</button>
-  <button onclick="dlCsv()">Download results CSV</button>
-  <p class="small"><a href="#" onclick="logoutAdmin();return false">Leave admin mode</a></p>`;
+  <div class="ivcf-card" style="border-left:4px solid var(--green)">
+    <h1>Admin Panel <span style="color:var(--green)">●</span></h1>
+    <input class="ivcf-input" id="newTitle" placeholder="Poll title" value="${DB.poll()?.title||''}">
+    <input class="ivcf-input" id="newEnd" type="datetime-local" value="${DB.poll()?.end||''}">
+    <button class="ivcf-button" onclick="savePoll()">Create / Update poll</button>
+    <hr style="border:none;border-top:1px solid #333;margin:1rem 0">
+    <textarea class="ivcf-input" id="bulkUsers" placeholder="Add voters:  username password (one pair per line)"></textarea>
+    <button class="ivcf-button" onclick="addVoters()">Add voters</button>
+    <button class="ivcf-button" onclick="dlCsv()">Download results CSV</button>
+    <p class="small"><a href="#" onclick="logoutAdmin();return false">Leave admin mode</a></p>
+  </div>`;
 };
-window.savePoll   =()=>{ DB.createPoll({title:newTitle.value,end:newEnd.value,labelYes:'Yes',labelNo:'No'}); alert('Poll saved'); };
-window.addVoters  =()=>{
+window.savePoll=()=>{ DB.createPoll({title:newTitle.value,end:newEnd.value,labelYes:'Yes',labelNo:'No'}); alert('Poll saved'); };
+window.addVoters=()=>{
   const lines=bulkUsers.value.split('\n').map(l=>l.trim()).filter(Boolean);
   let added=0; lines.forEach(l=>{const[u,p]=l.split(/\s+/); if(u&&p) added+=DB.addVoter(u,p);});
   alert(`Added ${added} voter(s)`); bulkUsers.value='';
@@ -168,11 +145,13 @@ window.logoutAdmin=()=>{ storage('adminSession',null); renderGate(); };
 
 window.renderVoterLogin=()=>{
   app.innerHTML=`
-  <h1>Voter Login</h1>
-  <input id="user" placeholder="Username">
-  <input id="pass" type="password" placeholder="Password">
-  <button onclick="checkVoter()">Login</button>
-  <p class="small"><a href="#" onclick="renderGate();return false">← back</a></p>`;
+  <div class="ivcf-card">
+    <h1>Voter Login</h1>
+    <input class="ivcf-input" id="user" placeholder="Username">
+    <input class="ivcf-input" id="pass" type="password" placeholder="Password">
+    <button class="ivcf-button" onclick="checkVoter()">Login</button>
+    <p class="small"><a href="index.html">← back to main page</a></p>
+  </div>`;
 };
 window.checkVoter=()=>{
   const u=user.value.trim(), p=pass.value;
@@ -183,27 +162,26 @@ window.checkVoter=()=>{
 window.renderBallot=()=>{
   const poll=DB.poll(), u=storage('session');
   app.innerHTML=`
-  <h1>${poll.title}</h1>
-  <p id="timer" class="small"></p>
-  <div id="voted" style="display:none"><p>Your vote has been recorded ✅</p><p class="small">Live result:</p></div>
-  <div id="ballot"><button onclick="vote(true)">Yes</button><button onclick="vote(false)">No</button></div>
-  <div id="barWrap"><div id="barYes"></div></div>
-  <p class="small"><span id="yes">0</span> Yes (<span id="yesP">0</span>%) · <span id="no">0</span> No (<span id="noP">0</span>%)</p>
-  <p class="small"><a href="archive.html">📁 Vote archive</a> · <a href="#" onclick="logoutVoter();return false">Logout</a></p>`;
+  <div class="ivcf-card">
+    <h1>${poll.title}</h1>
+    <p id="timer" class="small"></p>
+    <div id="voted" style="display:none"><p>Your vote has been recorded ✅</p><p class="small">Live result:</p></div>
+    <div id="ballot"><button class="ivcf-button" onclick="vote(true)">Yes</button><button class="ivcf-button" onclick="vote(false)">No</button></div>
+    <div id="barWrap"><div id="barYes"></div></div>
+    <p class="small"><span id="yes">0</span> Yes (<span id="yesP">0</span>%) · <span id="no">0</span> No (<span id="noP">0</span>%)</p>
+    <p class="small"><a href="archive.html">📁 Vote archive</a> · <a href="#" onclick="logoutVoter();return false">Logout</a></p>
+  </div>`;
   const updateBar=()=>{
     const r=DB.results();
     yes.textContent=r.yes; no.textContent=r.no;
     yesP.textContent=r.yesP; noP.textContent=r.noP;
     barYes.style.width=r.yesP+'%';
-    barYes.style.background='var(--accent)';  // green for Yes
-    // colour the empty (No) part red via background on #barWrap
-    barWrap.style.background='var(--accent2)';
   };
   updateBar(); setInterval(updateBar,1000);
   const end=new Date(poll.end);
   const int=setInterval(()=>{
     const sec=Math.max(0,Math.floor((end-new Date())/1000));
-    if(!sec){clearInterval(int); location.reload();}
+    if(!sec){clearInterval(int); archiveThisPoll(); location.replace('archive.html');}
     timer.textContent=`Closes in ${String(Math.floor(sec/3600)).padStart(2,0)}:${String(Math.floor(sec/60)%60).padStart(2,0)}:${String(sec%60).padStart(2,0)}`;
   },1000);
   if(DB.voted().includes(u)){ ballot.style.display='none'; voted.style.display='block'; }
@@ -217,18 +195,9 @@ window.vote=y=>{
 };
 window.logoutVoter=()=>{ storage('session',null); renderGate(); };
 
-/* =========================================================
-   5.  Seed demo data (delete after first test)
-========================================================= */
-(()=>{
-  if(Object.keys(DB.voters()).length===0){ DB.addVoter('alice','alice123'); DB.addVoter('bob','bob456'); }
-  if(!DB.poll()){ const t=new Date(Date.now()+24*3600*1000).toISOString().slice(0,16); DB.createPoll({title:'Should we adopt the new flag design?',end:t,labelYes:'Yes',labelNo:'No'}); }
-})();
+/* ----------  demo voters (delete after test)  ---------- */
+(()=>{ if(Object.keys(DB.voters()).length===0){ DB.addVoter('alice','alice123'); DB.addVoter('bob','bob456'); } })();
 
-/* =========================================================
-   6.  Start
-========================================================= */
+/* ----------  kick off  ---------- */
 start();
 </script>
-</body>
-</html>

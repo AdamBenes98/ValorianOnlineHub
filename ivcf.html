@@ -46,10 +46,17 @@
       </div>
       <div class="ivcf-card">
         <h3>CCR Formula</h3>
-        <p class="mono">New = Old + K×(Result−E)</p>
-        <p>K = 32 (&lt;2000), 24 (2000+)</p>
-        <p>E = 1/(1+10^((Opp−Old)/400))</p>
-        <p>Bonuses: +10 for beating +200 opponent, −10 for losing to −200 opponent.  ‑10 per month of inactivity after 60 d.</p>
+      <div class="ivcf-card">
+  <h3>CCR Formula (IVCF 2.1 – faster climb)</h3>
+  <p class="mono">New = Old + K×(Result − E) + Bonus</p>
+  <p>K = 50 (&lt;1400), 40 (1400-1799), 32 (1800-2199), 24 (2200-2399), 10 (2400+)</p>
+  <p>E = 1 / (1 + 10^((Opp − Old) / 400))</p>
+  <p>Bonuses: <br>
+  +15 for beating +200 rating opponent<br>
+  +10 for beating +100 rating opponent<br>
+  +5  for beating +50  rating opponent<br>
+  No inactivity penalty.</p>
+</div>
       </div>
       <div class="ivcf-card">
         <h3>Title & Prestige (per tournament entry)</h3>
@@ -138,16 +145,37 @@ document.querySelectorAll('.ivcf-nav a[data-ipage]').forEach(a=>{
   });
 });
 function calcRating(){
-  const old=+document.getElementById('cOld').value;
-  const opp=+document.getElementById('cOpp').value;
-  const res=+document.getElementById('cRes').value;
-  const k=old<2000?32:24;
-  const e=1/(1+10**((opp-old)/400));
-  const neu=Math.round(old+k*(res-e));
-  let bonus='';
-  if(res===1 && opp-old>=200) bonus=' (+10 bonus)';
-  if(res===0 && old-opp>=200) bonus=' (−10 penalty)';
-  document.getElementById('cOut').textContent=`New CCR: ${neu}${bonus}`;
+  const old = +document.getElementById('cOld').value;
+  const opp = +document.getElementById('cOpp').value;
+  const res = +document.getElementById('cRes').value;   // 1 / 0.5 / 0
+
+  // K-factor ladder
+  let k = 50;
+  if (old >= 2400) k = 10;
+  else if (old >= 2200) k = 24;
+  else if (old >= 1800) k = 32;
+  else if (old >= 1400) k = 40;
+
+  // expected score
+  const e = 1 / (1 + 10 ** ((opp - old) / 400));
+
+  // base change
+  let delta = k * (res - e);
+
+  // bonus for upset wins
+  if (res === 1){
+    const diff = opp - old;
+    if (diff >= 200) delta += 15;
+    else if (diff >= 100) delta += 10;
+    else if (diff >= 50) delta += 5;
+  }
+
+  const neu = Math.round(old + delta);
+  let bonus = '';
+  if (delta > k * 0.75) bonus = ' (big upset bonus)';
+  else if (delta > 0) bonus = ' (bonus)';
+
+  document.getElementById('cOut').textContent = `New CCR: ${neu}${bonus}`;
 }
 </script>
 </body>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>IVCF 2.0 Hub</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="hub.css">
+<style>
+/* ivcf styles already inside hub.css */
+</style>
+</head>
+<body>
+<div class="ivcf-page active">
+  <div class="ivcf-header">
+    <h1>♟ IVCF 2.0 Hub</h1>
+    <nav class="ivcf-nav">
+      <a class="active" href="#" data-ipage="home">Home</a>
+      <a href="#" data-ipage="ranking">Rankings</a>
+      <a href="#" data-ipage="events">Events</a>
+      <a href="#" data-ipage="rules">Rules</a>
+      <a href="#" data-ipage="calc">Rating Calc</a>
+      <a href="#" data-ipage="results">Results</a>
+      <a href="hub.html">← Back to Hub</a>
+    </nav>
+  </div>
+  <div class="ivcf-main">
+    <section id="ivcf-home" class="ivcf-section active">
+      <h2>Welcome</h2>
+      <p>Official portal of the Intergalactic Centralian Chess Federation (IVCF 2.0).</p>
+    </section>
+    <section id="ivcf-ranking" class="ivcf-section">
+      <h2>Live Rankings</h2>
+      <div class="ivcf-card"><input id="rankSearch" placeholder="Search player / team / nation"></div>
+      <table class="ivcf-table" id="rankTable">
+        <thead><tr><th>#</th><th>Player</th><th>Team</th><th>Nation</th><th>CCR</th><th>Title</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+    <section id="ivcf-events" class="ivcf-section">
+      <h2>Upcoming & Past Events</h2>
+      <div class="ivcf-card"><h3>CCWT – Centralian Chess World Tournament</h3><p>Quarterly Swiss main event.  $200 k 1st prize.</p></div>
+      <div class="ivcf-card"><h3>VCC – Valorian Chess 960 Cup</h3><p>Randomized starting positions.  Prestige bonus only.</p></div>
+      <div class="ivcf-card"><h3>CIC – Centralian Invitational Cup</h3><p>Top 16 on rating list.  Single-elimination.</p></div>
+    </section>
+    <section id="ivcf-rules" class="ivcf-section">
+      <h2>Quick-Reference Rules</h2>
+      <div class="ivcf-card">
+        <h3>Licensing</h3><ul><li>One-time $20 k payment on licensing.</li><li>Grants access to all official events & CCR tracking.</li></ul>
+      </div>
+      <div class="ivcf-card">
+        <h3>CCR Formula</h3>
+        <p class="mono">New = Old + K×(Result−E)</p>
+        <p>K = 32 (&lt;2000), 24 (2000+)</p>
+        <p>E = 1/(1+10^((Opp−Old)/400))</p>
+        <p>Bonuses: +10 for beating +200 opponent, −10 for losing to −200 opponent.  ‑10 per month of inactivity after 60 d.</p>
+      </div>
+      <div class="ivcf-card">
+        <h3>Title & Prestige (per tournament entry)</h3>
+        <table class="ivcf-table">
+          <thead><tr><th>Title</th><th>Range</th><th>Bonus</th></tr></thead>
+          <tbody>
+            <tr><td>IC</td><td>400-999</td><td>$1 k</td></tr>
+            <tr><td>AC</td><td>1000-1399</td><td>$2 k</td></tr>
+            <tr><td>SCM</td><td>1400-1699</td><td>$4 k</td></tr>
+            <tr><td>CCM</td><td>1700-1999</td><td>$6 k</td></tr>
+            <tr><td>CIM</td><td>2000-2299</td><td>$8 k</td></tr>
+            <tr><td>CE</td><td>2300-2499</td><td>$12 k</td></tr>
+            <tr><td>CEC</td><td>2500+</td><td>$20 k</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <section id="ivcf-calc" class="ivcf-section">
+      <h2>Rating Calculator</h2>
+      <div class="ivcf-card">
+        <label>Your current CCR<br><input class="ivcf-input" id="cOld" type="number" value="1800"></label><br>
+        <label>Opponent CCR<br><input class="ivcf-input" id="cOpp" type="number" value="2000"></label><br>
+        <label>Result<br>
+          <select class="ivcf-select" id="cRes">
+            <option value="1">Win</option>
+            <option value="0.5">Draw</option>
+            <option value="0">Loss</option>
+          </select>
+        </label><br>
+        <button class="ivcf-button" onclick="calcRating()">Calculate new CCR</button>
+        <p id="cOut"></p>
+      </div>
+    </section>
+    <section id="ivcf-results" class="ivcf-section">
+      <h2>Event Results</h2>
+      <p>Paste your own result tables here.  A starter template is provided.</p>
+      <div class="ivcf-card">
+        <h3>CCWT #1 (template)</h3>
+        <table class="ivcf-table">
+          <thead><tr><th>Place</th><th>Player</th><th>Prize</th></tr></thead>
+          <tbody>
+            <tr><td>1st</td><td>Test Player</td><td>$200 k</td></tr>
+            <tr><td>2nd</td><td>---</td><td>$100 k</td></tr>
+            <tr><td>3rd-4th</td><td>---</td><td>$50 k</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="ivcf-card">
+        <h3>VCC #1 (template)</h3>
+        <table class="ivcf-table">
+          <thead><tr><th>Place</th><th>Player</th></tr></thead>
+          <tbody><tr><td>1st</td><td>Test Player</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</div>
+<script>
+const players = [{id:"test", name:"Test Player", team:"VSV", nation:"Centralia", ccr:2222}];
+const titleFromCCR = c=> c<1000?'IC':c<1400?'AC':c<1700?'SCM':c<2000?'CCM':c<2300?'CIM':c<2500?'CE':'CEC';
+function buildRanking(){
+  const list = players.map(p=>({...p,title:titleFromCCR(p.ccr)})).sort((a,b)=>b.ccr-a.ccr);
+  const tbody = document.querySelector('#rankTable tbody');
+  tbody.innerHTML='';
+  list.forEach((p,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${i+1}</td><td>${p.name}</td><td>${p.team}</td><td>${p.nation}</td><td>${p.ccr}</td><td>${p.title}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+buildRanking();
+document.getElementById('rankSearch').addEventListener('input',e=>{
+  const q=e.target.value.toLowerCase();
+  document.querySelectorAll('#rankTable tbody tr').forEach(row=>{
+    row.style.display=row.innerText.toLowerCase().includes(q)?'':'none';
+  });
+});
+document.querySelectorAll('.ivcf-nav a[data-ipage]').forEach(a=>{
+  a.addEventListener('click',ev=>{
+    ev.preventDefault();
+    document.querySelectorAll('.ivcf-section').forEach(s=>s.classList.remove('active'));
+    document.querySelectorAll('.ivcf-nav a').forEach(x=>x.classList.remove('active'));
+    const page=a.dataset.ipage;
+    document.getElementById('ivcf-'+page).classList.add('active');
+    a.classList.add('active');
+  });
+});
+function calcRating(){
+  const old=+document.getElementById('cOld').value;
+  const opp=+document.getElementById('cOpp').value;
+  const res=+document.getElementById('cRes').value;
+  const k=old<2000?32:24;
+  const e=1/(1+10**((opp-old)/400));
+  const neu=Math.round(old+k*(res-e));
+  let bonus='';
+  if(res===1 && opp-old>=200) bonus=' (+10 bonus)';
+  if(res===0 && old-opp>=200) bonus=' (−10 penalty)';
+  document.getElementById('cOut').textContent=`New CCR: ${neu}${bonus}`;
+}
+</script>
+</body>
+</html>

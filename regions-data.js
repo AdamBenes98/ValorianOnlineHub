@@ -10,103 +10,99 @@ const REGION_DATA = [
   {
     id: "altstadt",
     name: "Altstadt",
-    owner: "Free Merchant Guild",
-    houses: [
-      {type: "Apartment", price: "6 500 g", available: true}
-    ],
+    owner: "Valorian government",
+    houses: [],
     funFacts: [
-      "No walls – protected by ancient runes instead.",
-      "Hosts the biggest cheese festival each spring."
+      "Its the oldest known City which gives it the Name Old-City (In english)",
+      "It was rebuild for History and theres a Museum."
     ]
   },
   {
     id: "frostborne",
     name: "Frostborne",
-    owner: "Jarl Sigrun Ice-Eye",
-    houses: [],
+    owner: "Valorian Government",
+    houses: [
+        {type: "Cabins", price: "3000$", available: true}
+    ],
     funFacts: [
-      "Temperature never rises above 0 °C.",
-      "Ice-crystal mines produce 80 % of realm’s mana gems."
+      "Founded by King Beeba.",
+      "Was founded for workers and more jobs.",
+      "Later the wine for the Astari (Valorka) was produced there."
     ]
   },
   {
     id: "westliche-insel",
     name: "Westliche Insel",
-    owner: "Crown (disputed)",
+    owner: "king Adam",
     houses: [
-      {type: "Beach cottage", price: "9 000 g", available: true}
+      {type: "cabins", price: "4000$", available: true}
     ],
     funFacts: [
-      "Pirates occasionally claim sovereignty.",
-      "Hidden cove perfect for smugglers."
+      "Originally only was nature - forests.",
+      "king Adam build his personal Castle there",
+      "Has the longest wall in Valoria and is also (gonna be) the safest City",
+      "Its still not finished building."
     ]
   },
   {
     id: "schloss-valor",
     name: "Schloss Valor",
-    owner: "King Albrecht IV",
+    owner: "Valorian Government",
     houses: [],
     funFacts: [
-      "Royal treasury guarded by gold golems.",
-      "Public tours every Tuesday (free)."
+      "oldest known castle in Valoria",
+      "is the biggest castle."
     ]
   },
   {
     id: "mienen",
     name: "Mienen",
-    owner: "Dwarven Consortium",
-    houses: [
-      {type: "Cave dwelling", price: "5 000 g", available: true}
-    ],
+    owner: "Valorian Government",
+    houses: [],
     funFacts: [
-      "Lowest crime rate on the continent.",
-      "Beer flows cheaper than water."
+      "Only publicly available mines in Valoria.",
+      "King Beebas encounter with the ghosts happened there."
     ]
   },
   {
     id: "konigshagen",
     name: "Königshagen",
-    owner: "King Albrecht IV",
-    houses: [
-      {type: "Noble villa", price: "38 000 g", available: true}
-    ],
+    owner: "King Adam",
+    houses: [],
     funFacts: [
-      "Capital city since age of heroes.",
-      "Griffon rookery open to public on weekends."
+      "Richest City - only royals are allowed to life there.",
+      "The Valorian grand Chess hall is supposed to be build there.",
+      "King Adams first ever House is there."
     ]
   },
   {
     id: "sud-block",
     name: "Süd-Block",
-    owner: "Independent communes",
-    houses: [
-      {type: "Artist loft", price: "Rent-only 200 g/month", available: true}
-    ],
+    owner: "Valoprian Government",
+    houses: [],
     funFacts: [
-      "Street art is legal and taxed.",
-      "Home of the floating market every dusk."
+      "For people with a thight budget that want to own land",
+      "Only one person is recorded living there."
     ]
   },
   {
-    id: "Grosse Mann Mienen",
-    name: "Ostliche Insel",
-    owner: "Circle of Magi",
+    id: "Ostliche Insel",
+    name: "Grosse Mann Mienen",
+    owner: "Dwayne (BMD)",
     houses: [],
     funFacts: [
-      "Levitates 3 m above sea – no bridges.",
-      "Library contains every spell ever cast."
+      "Bought by Dwayne - the biggest investor - to build mines there",
+      "was used by scouts to scout on enemys"
     ]
   },
   {
     id: "neuer-hafen",
     name: "Neuer Hafen",
-    owner: "Trade Federation",
-    houses: [
-      {type: "Warehouse loft", price: "14 000 g", available: true}
-    ],
+    owner: "Not Sure",
+    houses: [],
     funFacts: [
-      "Imports 40 % of realm’s coffee.",
-      "Sea-serpent sightings every full moon."
+      "Originally build by the Astari",
+      "Allows access to Draig on foot."
     ]
   },
   {
@@ -114,11 +110,11 @@ const REGION_DATA = [
     name: "AlterHafen",
     owner: "Old captains’ families",
     houses: [
-      {type: "Captains’ cottage", price: "10 500 g", available: false}
+      {type: "apartements", price: "unknown", available: false}
     ],
     funFacts: [
-      "Ghost ships dock here on foggy nights.",
-      "Oldest tavern serves 200-year-old rum."
+      "Was rebuild by King MineKid",
+      "Is partly autonomous."
     ]
   },
 ];

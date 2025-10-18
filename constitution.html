@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Constitution of the Kingdom of Valoria</title>
+    <style>
+        :root{
+            --bg:#000;
+            --card:#0a0a0a;
+            --border:#222;
+            --accent:#dc143c;
+            --text:#fff;
+            --sub:#aaa;
+            --gap:1.2rem;
+            font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+        }
+        * {box-sizing:border-box}
+        body{margin:0;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+        a{color:var(--accent);text-decoration:none}
+        header,footer{background:var(--card);border-bottom:2px solid var(--accent)}
+        header{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem}
+        header h1{margin:0;font-size:1.6rem;letter-spacing:1px}
+        header span{font-weight:300;font-size:.9rem;color:var(--sub)}
+        main{flex:1;padding:2rem;max-width:1100px;margin:auto;width:100%}
+        .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:var(--gap)}
+        .tile{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.5rem 1rem;text-align:center;transition:transform .15s,box-shadow .15s;cursor:pointer;position:relative}
+        .tile:hover{transform:translateY(-4px);box-shadow:0 8px 24px #0008}
+        .tile .emoji{font-size:2.2rem;margin-bottom:.5rem}
+        .tile h3{margin:.4rem 0 .2rem;font-size:1.1rem}
+        .tile p{font-size:.85rem;color:var(--sub);margin:0}
+        .tile.external::after{content:"⧉";position:absolute;top:.5rem;right:.7rem;font-size:.8rem;opacity:.6}
+        footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-bottom:none;border-top:2px solid var(--accent)}
+        .badge{display:inline-block;background:var(--accent);color:#fff;padding:.15rem .35rem;border-radius:4px;font-size:.65rem;margin-left:.4rem}
+        .mono{font-family:monospace}
+
+        /* Custom styles for constitution page */
+        .constitution-header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+            border-bottom: 3px solid var(--accent);
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .constitution-header::before {
+            content: "⚔️";
+            position: absolute;
+            font-size: 8rem;
+            opacity: 0.05;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .constitution-header h1 {
+            font-size: 2.5rem;
+            margin: 0;
+            background: linear-gradient(45deg, var(--accent), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .constitution-header p {
+            color: var(--sub);
+            margin: 0.5rem 0 0 0;
+            font-size: 1.1rem;
+        }
+        .document-nav {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .document-nav a {
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            background: #111;
+            transition: all 0.3s;
+        }
+        .document-nav a:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+        .constitution-section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        .constitution-section h2 {
+            color: var(--accent);
+            font-size: 1.8rem;
+            margin-top: 0;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 0.5rem;
+        }
+        .constitution-section h3 {
+            color: #fff;
+            font-size: 1.3rem;
+            margin-top: 1.5rem;
+        }
+        .constitution-section h4 {
+            color: var(--sub);
+            font-size: 1.1rem;
+            margin-top: 1rem;
+        }
+        .constitution-section p {
+            line-height: 1.6;
+            margin: 0.5rem 0;
+        }
+        .punishment-box {
+            background: #1a1a1a;
+            border-left: 4px solid var(--accent);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 4px 4px 0;
+        }
+        .punishment-box::before {
+            content: "⚖️ Punishment: ";
+            color: var(--accent);
+            font-weight: bold;
+        }
+        .interactive-feature {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+        .interactive-feature h3 {
+            color: var(--accent);
+            margin-top: 0;
+        }
+        .search-box {
+            width: 100%;
+            max-width: 400px;
+            padding: 0.8rem;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background: #111;
+            color: var(--text);
+            font-size: 1rem;
+            margin: 1rem auto;
+            display: block;
+        }
+        .article-toc {
+            background: #111;
+            border-radius: 4px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        .article-toc ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .article-toc li {
+            margin: 0.5rem 0;
+        }
+        .article-toc a {
+            color: var(--sub);
+            transition: color 0.3s;
+        }
+        .article-toc a:hover {
+            color: var(--accent);
+        }
+        .flag-container {
+            text-align: center;
+            margin: 2rem 0;
+        }
+        .valorian-flag {
+            display: inline-block;
+            width: 200px;
+            height: 120px;
+            background: linear-gradient(to bottom, #dc143c 33%, #fff 33% 66%, #dc143c 66%);
+            border: 2px solid var(--border);
+            border-radius: 4px;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(220, 20, 60, 0.3);
+        }
+        .valorian-flag::before {
+            content: "⚔️";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2rem;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Valoria <span>Digital Archives</span></h1>
+        <span>Constitution & Law Codex</span>
+    </header>
+
+    <main>
+        <div class="constitution-header">
+            <h1>Constitution of the Kingdom of Valoria</h1>
+            <p>⚖️ The supreme law of the realm ⚖️</p>
+        </div>
+
+        <div class="interactive-feature">
+            <h3>🔍 Search the Constitution</h3>
+            <input type="text" class="search-box" placeholder="Search articles, rights, or laws..." id="searchBox">
+            <p style="color: var(--sub); font-size: 0.9rem;">Quickly find specific articles or legal provisions</p>
+        </div>
+
+        <div class="document-nav">
+            <a href="#preamble">Preamble</a>
+            <a href="#articles">Constitutional Articles</a>
+            <a href="#codex">Law Codex</a>
+            <a href="#rights">Citizen Rights</a>
+            <a href="#duties">Civic Duties</a>
+        </div>
+
+        <div class="flag-container">
+            <div class="valorian-flag"></div>
+            <p style="color: var(--sub); margin-top: 0.5rem;">The Valorian Flag</p>
+        </div>
+
+        <section id="preamble" class="constitution-section">
+            <h2>📜 Preamble</h2>
+            <p style="font-style: italic; font-size: 1.1rem; text-align: center; padding: 1rem; background: #111; border-radius: 4px;">
+                "We, the people of Valoria, united under our King and loyal to the Union of United Realms (UUR), establish this Constitution to preserve our sovereignty, ensure justice and security, and uphold the Valorian spirit of strength, honor, and freedom."
+            </p>
+        </section>
+
+        <section id="articles" class="constitution-section">
+            <h2>📋 Constitutional Articles</h2>
+            
+            <div class="article-toc">
+                <h4>Quick Navigation:</h4>
+                <ul>
+                    <li><a href="#article1">Article I — Valoria and the UUR</a></li>
+                    <li><a href="#article2">Article II — Autonomy and Governance</a></li>
+                    <li><a href="#article3">Article III — Rights and Duties of Citizens</a></li>
+                    <li><a href="#article4">Article IV — Economy</a></li>
+                    <li><a href="#article5">Article V — Security and Law Enforcement</a></li>
+                </ul>
+            </div>
+
+            <div id="article1">
+                <h3>Article I — Valoria and the UUR</h3>
+                <p>Valoria is a proud and sovereign realm within the Union of United Realms (UUR). Valoria shall remain loyal to the UUR and contribute to its collective security and prosperity. In return, Valoria enjoys protection and recognition as a semi-autonomous member state.</p>
+            </div>
+
+            <div id="article2">
+                <h3>Article II — Autonomy and Governance</h3>
+                <p>Valoria holds partial independence, retaining the right to create and enforce its own domestic laws consistent with UUR principles. The national government operates as a constitutional monarchy with:</p>
+                <ul style="color: var(--sub);">
+                    <li>The King as Head of State</li>
+                    <li>Lord of Alter Hafen as Deputy to the King</li>
+                    <li>Valorian Representative Council (VRC) elected by citizens</li>
+                </ul>
+            </div>
+
+            <div id="article3">
+                <h3>Article III — Rights and Duties of Citizens</h3>
+                <p>All citizens are equal before the law and enjoy fundamental rights to safety, freedom of expression, property, and fair trial. Employment and contribution to the realm are civic duties and marks of honor.</p>
+            </div>
+        </section>
+
+        <section id="codex" class="constitution-section">
+            <h2>⚖️ The Valorian Law Codex (VLC)</h2>
+            <p style="color: var(--sub); margin-bottom: 1.5rem;">Established under the Constitution of the Kingdom of Valoria, ratified by the Valorian Royal Council (VRC) and confirmed by His Majesty the King.</p>
+
+            <h3>Title I — General Provisions</h3>
+            <p><strong>Article 1 — Purpose:</strong> The Valorian Law Codex ensures order, justice, and the protection of Valoria's sovereignty, culture, and citizens.</p>
+            <p><strong>Article 2 — Supremacy of the Constitution:</strong> All laws derive their authority from the Valorian Constitution. In conflict, constitutional principles prevail.</p>
+
+            <h3>Title II — Crimes Against the Realm</h3>
+            <h4>Chapter 1 — Treason and Rebellion</h4>
+            <p><strong>Article 5.1 — High Treason:</strong> Acts intending to overthrow, harm, or betray Valoria or the UUR are treason.</p>
+            <div class="punishment-box">10–30 days imprisonment, exile, or, in grave cases, loss of citizenship.</div>
+
+            <p><strong>Article 5.2 — Sedition and Civil Disorder:</strong> Organizing or leading demonstrations that oppose royal decrees or promote disobedience constitutes sedition.</p>
+            <div class="punishment-box">3–15 days imprisonment or fine up to $5,000.</div>
+        </section>
+
+        <section id="rights" class="constitution-section">
+            <h2>🛡️ Citizen Rights & Safeguards</h2>
+            <div class="grid">
+                <div class="tile">
+                    <div class="emoji">⚖️</div>
+                    <h3>Fair Trial</h3>
+                    <p>Every accused has the right to defense, legal representation, and appeal</p>
+                </div>
+                <div class="tile">
+                    <div class="emoji">🏠</div>
+                    <h3>Privacy & Dignity</h3>
+                    <p>Private correspondence, homes, and property are protected from unjust intrusion</p>
+                </div>
+                <div class="tile">
+                    <div class="emoji">🗣️</div>
+                    <h3>Freedom of Expression</h3>
+                    <p>Citizens enjoy fundamental rights to express themselves within legal boundaries</p>
+                </div>
+                <div class="tile">
+                    <div class="emoji">🔫</div>
+                    <h3>Bear Arms</h3>
+                    <p>Right to bear arms for defense of the realm, subject to regulation</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="duties" class="constitution-section">
+            <h2>⚔️ Civic Duties & Responsibilities</h2>
+            <div class="grid">
+                <div class="tile">
+                    <div class="emoji">💼</div>
+                    <h3>Employment</h3>
+                    <p>Contribution to the realm through employment is a civic duty and mark of honor</p>
+                </div>
+                <div class="tile">
+                    <div class="emoji">🛡️</div>
+                    <h3>National Defense</h3>
+                    <p>The defense of Valoria is the duty of all able citizens</p>
+                </div>
+                <div class="tile">
+                    <div class="emoji">🏛️</div>
+                    <h3>Loyalty Oath</h3>
+                    <p>All officials and citizens shall swear loyalty to the Central Royal Family</p>
+                </div>
+                <div class="tile">
+                    <div class="emoji">💰</div>
+                    <h3>Tax Contribution</h3>
+                    <p>Mandatory civic contributions or service hours may be enacted in times of need</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Kingdom of Valoria Digital Archives | ⚔️ Strength, Honor, Freedom ⚔️</p>
+        <p style="font-size: 0.7rem; margin-top: 0.5rem;">Constitution ratified by the Valorian Royal Council and confirmed by His Majesty the King</p>
+    </footer>
+
+    <script>
+        // Simple search functionality
+        document.getElementById('searchBox').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const sections = document.querySelectorAll('.constitution-section');
+            
+            sections.forEach(section => {
+                const text = section.textContent.toLowerCase();
+                if (text.includes(searchTerm) || searchTerm === '') {
+                    section.style.display = 'block';
+                } else {
+                    section.style.display = 'none';
+                }
+            });
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -17,6 +17,17 @@
   --radius:8px;
   --font:"Inter",system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
 }
+/* ----- format-bar ----- */
+#formatBar{display:flex;align-items:center}
+#formatBar button,#formatBar select{background:#222;color:#fff;border:1px solid #444;border-radius:4px;padding:.3rem .5rem;font-size:.9rem;cursor:pointer}
+#formatBar button:hover{background:#333}
+
+/* ----- three-dots menu fix ----- */
+.opts{position:relative}
+.optsMenu{position:absolute;top:100%;right:0;margin-top:.3rem;background:#111;border:1px solid #333;border-radius:4px;overflow:hidden;opacity:0;pointer-events:none;transition:opacity .15s;z-index:10}
+.opts.open .optsMenu{opacity:1;pointer-events:auto}
+.optsMenu a{display:block;padding:.5rem .9rem;font-size:.8rem;color:var(--text);white-space:nowrap}
+.optsMenu a:hover{background:#222}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;display:flex;flex-direction:column}
 a{color:var(--accent);text-decoration:none}
@@ -94,22 +105,37 @@ main{flex:1;padding:2rem 1rem;max-width:700px;margin:auto;width:100%}
     <span data-sort="top">Most Liked</span>
   </div>
 
-  <!-- COMPOSER -->
-  <section id="composer">
-    <textarea id="draft" placeholder="What’s happening?"></textarea>
-    <div id="composerOptions">
-      <input id="fileInp" type="file" accept="image/*,.pdf" />
-      <label for="fileInp">📎 Attach</label>
-      <input id="userInp" type="text" placeholder="Username (optional)" />
-      <select id="fontFamily"><option>Inter</option><option>Arial</option><option>Georgia</option><option>Courier</option></select>
-      <select id="fontSize"><option>14px</option><option>16px</option><option>18px</option><option>22px</option></select>
-      <input id="fontColor" type="color" value="#ffffff" />
-      <button id="postBtn">Post</button>
-    </div>
-  </section>
+ <!-- COMPOSER -->
+<section id="composer">
+  <!-- NEW: hidden div that will receive the formatted HTML -->
+  <div id="hiddenHTML" style="display:none" contenteditable="true"></div>
 
-  <!-- FEED -->
-  <div id="feed"></div>
+  <!-- visible textarea for raw typing -->
+  <textarea id="draft" placeholder="What’s happening?"></textarea>
+
+  <!-- format-bar (appears only when the cursor is inside the textarea) -->
+  <div id="formatBar" style="display:none;gap:.4rem;margin:.4rem 0">
+    <button data-cmd="bold" title="bold"><b>B</b></button>
+    <button data-cmd="italic" title="italic"><i>I</i></button>
+    <button data-cmd="underline" title="underline"><u>U</u></button>
+    <button data-cmd="foreColor" title="colour" style="color:#ff004c">A</button>
+    <select id="sizeSelect" title="size">
+      <option value="3">normal</option>
+      <option value="4">large</option>
+      <option value="5">huge</option>
+    </select>
+  </div>
+
+  <div id="composerOptions">
+    <input id="fileInp" type="file" accept="image/*,.pdf" />
+    <label for="fileInp">📎 Attach</label>
+    <input id="userInp" type="text" placeholder="Username (optional)" />
+    <button id="postBtn">Post</button>
+  </div>
+</section>
+
+ <!-- FEED -->
+<div id="feed"></div>
 </main>
 
 <!-- ADMIN LOGIN MODAL -->
@@ -122,7 +148,7 @@ main{flex:1;padding:2rem 1rem;max-width:700px;margin:auto;width:100%}
   </div>
 </div>
 
-<script>
+<script> 
 /* ---------- UTILS ---------- */
 const qs=s=>document.querySelector(s);
 const qsa=s=>[...document.querySelectorAll(s)];
@@ -133,28 +159,53 @@ let posts=JSON.parse(localStorage.getItem('newsPosts')||'[]');
 let adminMode=false;
 const adminCreds={user:'master',pass:'M4sterP@ss'};
 
-/* ---------- LIVE PREVIEW ---------- */
-function syncPreview(){
-  const ta=qs('#draft');
-  ta.style.fontFamily=qs('#fontFamily').value;
-  ta.style.fontSize=qs('#fontSize').value;
-  ta.style.color=qs('#fontColor').value;
-}
-qs('#fontFamily').onchange=syncPreview;
-qs('#fontSize').onchange=syncPreview;
-qs('#fontColor').oninput=syncPreview;
-syncPreview(); // initial
+/* ---------- RICH-EDITOR ---------- */
+const ta=qs('#draft');
+const bar=qs('#formatBar');
+const hidden=qs('#hiddenHTML');
 
-/* ---------- DRAG-ORDER SORT ---------- */
+ta.addEventListener('focus',_=>bar.style.display='flex');
+ta.addEventListener('blur',_=>setTimeout(_=>bar.style.display='none',200)); // hide when focus lost
+
+/* whenever the raw text changes we sync it into the hidden div */
+ta.addEventListener('input',_=>{
+  hidden.innerHTML=ta.value
+    .replace(/\*\*(.*?)\*\*/g,'<b>$1</b>')          // **bold**
+    .replace(/\*(.*?)\*/g,'<i>$1</i>')              // *italic*
+    .replace(/__(.*?)__/g,'<u>$1</u>')              // __underline__
+    .replace(/`(.*?)`/g,'<code>$1</code>')          // `code`
+    .replace(/\n/g,'<br>');
+});
+
+bar.addEventListener('mousedown',e=>{
+  e.preventDefault();                       // keep focus in textarea
+  const cmd=e.target.dataset.cmd;
+  if(cmd==='foreColor'){
+    const colour=prompt('Colour (hex or name):','#ff004c');
+    if(colour) document.execCommand(cmd,false,colour);
+  }else if(cmd){
+    document.execCommand(cmd,false,null);
+  }else if(e.target.id==='sizeSelect'){
+    document.execCommand('fontSize',false,e.target.value);
+  }
+  syncBack();
+});
+
+/* copy the HTML that the browser produced back into the textarea (as plain text) */
+function syncBack(){
+  ta.value=hidden.innerText;
+}
+hidden.addEventListener('input',syncBack);
+
+/* ---------- SORT / RENDER ---------- */
 const sortPosts=mode=>{
   if(mode==='top') posts.sort((a,b)=>(b.likes||0)-(a.likes||0));
   else posts.sort((a,b)=>b.date-a.date);
 };
 const render=_=>{
   sortPosts(qs('#sortBar span.active').dataset.sort);
-  const feed=qs('#feed');
-  feed.innerHTML='';
-  posts.forEach(p=>feed.appendChild(buildPostEl(p)));
+  qs('#feed').innerHTML='';
+  posts.forEach(p=>qs('#feed').appendChild(buildPostEl(p)));
 };
 const save=_=>localStorage.setItem('newsPosts',JSON.stringify(posts));
 
@@ -176,7 +227,7 @@ function buildPostEl(p){
       <time>${fmtTime(p.date)}</time>
       ${p.pinned?'<span>📌 Pinned</span>':''}
     </div>
-    <div class="postText" style="font-family:${p.fontFamily||'inherit'};font-size:${p.fontSize||'16px'};color:${p.fontColor||'#fff'}">${esc(p.text)}</div>
+    <div class="postText">${p.html||esc(p.text)}</div>
     <div class="postAttachment">${attachHtml}</div>
     <div class="postActions">
       <span class="like ${p.liked?'liked':''}" data-id="${p.id}">👍 ${p.likes||0}</span>
@@ -192,6 +243,13 @@ function buildPostEl(p){
       </div>
     </div>
   `;
+  /* three-dots toggle */
+  const opts=d.querySelector('.opts');
+  opts.querySelector('span').onclick=_=>opts.classList.toggle('open');
+  document.addEventListener('click',e=>{
+    if(!opts.contains(e.target)) opts.classList.remove('open');
+  });
+
   /* likes */
   d.querySelector('.like').onclick=e=>toggleLike(p.id,true);
   d.querySelector('.dislike').onclick=e=>toggleLike(p.id,false);
@@ -274,7 +332,7 @@ function editPost(id){
   const p=posts.find(x=>x.id===id);
   const newText=prompt('Edit text:',p.text);
   if(newText===null) return;
-  p.text=newText; save(); render();
+  p.text=newText; p.html=null; save(); render();
 }
 function delPost(id){
   if(!confirm('Delete forever?')) return;
@@ -291,19 +349,17 @@ function toggleHighlight(id){
 
 /* ---------- COMPOSER ---------- */
 qs('#postBtn').onclick=_=>{
-  const text=qs('#draft').value.trim();
-  if(!text) return;
+  const raw=ta.value.trim();
+  if(!raw) return;
   const fileInp=qs('#fileInp'), file=fileInp.files[0];
   const attachment=file?{name:file.name, type:file.type, url:URL.createObjectURL(file)}:null;
   const post={
     id:randId(),
-    text,
+    text:raw,
+    html:hidden.innerHTML,                 // store the coloured HTML
     user:qs('#userInp').value.trim(),
     date:Date.now(),
     likes:0, dislikes:0,
-    fontFamily:qs('#fontFamily').value,
-    fontSize:qs('#fontSize').value,
-    fontColor:qs('#fontColor').value,
     attachment,
     admin:adminMode,
     pinned:false,
@@ -312,14 +368,14 @@ qs('#postBtn').onclick=_=>{
   posts.unshift(post);
   save(); render();
   /* reset */
-  qs('#draft').value='';
+  ta.value=''; hidden.innerHTML='';
   qs('#userInp').value='';
   fileInp.value='';
 };
 /* auto-save draft */
 const draftKey='newsDraft';
-qs('#draft').value=localStorage.getItem(draftKey)||'';
-qs('#draft').oninput=e=>localStorage.setItem(draftKey,e.target.value);
+ta.value=localStorage.getItem(draftKey)||'';
+ta.addEventListener('input',_=>localStorage.setItem(draftKey,ta.value));
 
 /* ---------- SORT BAR ---------- */
 qsa('#sortBar span').forEach(el=>{

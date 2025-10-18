@@ -86,7 +86,7 @@ const REGION_DATA = [
     ]
   },
   {
-    id: "Ostliche Insel",
+    id: "ostliche-insel",
     name: "Grosse Mann Mienen",
     owner: "Dwayne (BMD)",
     houses: [],

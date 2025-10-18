@@ -1,248 +1,623 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Official News Feed</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8">
+<title>News Feed</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
+/* ---------- THEME VARIABLES (exactly the ones you gave) ---------- */
 :root{
-    --bg:#f7f9fc;
-    --card:#fff;
-    --accent:#1d9bf0;
-    --danger:#f4212e;
-    --gray:#536471;
-    --border:#eff3f4;
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --bg:#000;
+  --card:#0a0a0a;
+  --border:#222;
+  --accent:#dc143c;
+  --text:#fff;
+  --sub:#aaa;
+  --gap:1.2rem;
+  font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
 }
-body{margin:0;background:var(--bg);color:#111;}
-a{color:var(--accent);text-decoration:none;}
-header{position:sticky;top:0;z-index:10;background:var(--card);border-bottom:1px solid var(--border);padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;}
-header h1{margin:0;font-size:1.25rem;font-weight:700;}
-.btn{background:var(--accent);color:#fff;border:0;padding:.5rem .9rem;border-radius:999px;font-size:.9rem;cursor:pointer;}
-.btn:hover{filter:brightness(1.1);}
-.container{max-width:680px;margin:auto;padding:1rem;}
-.post{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:1rem;position:relative;}
-.post-header{display:flex;gap:.5rem;align-items:center;font-size:.9rem;color:var(--gray);}
-.post-header .username{font-weight:700;color:#111;}
-.post-time{font-size:.8rem;}
-.post-body{margin:.75rem 0;font-size:1rem;white-space:pre-wrap;}
-.post-footer{display:flex;gap:1.25rem;font-size:.9rem;color:var(--gray);}
-.post-footer span{cursor:pointer;display:flex;align-items:center;gap:.3rem;}
-.post-footer span:hover{color:var(--accent);}
-.post-footer .dislike:hover{color:var(--danger);}
-.post-options{position:absolute;top:.75rem;right:.75rem;font-size:1.2rem;cursor:pointer;color:var(--gray);}
-.post-options:hover{color:#111}
-/* modal & forms */
-.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);align-items:center;justify-content:center;z-index:100;}
-.modal-content{background:var(--card);padding:1.5rem;border-radius:12px;width:90%;max-width:420px;}
-.modal-content h3{margin-top:0}
-.form-group{margin-bottom:1rem;}
-.form-group label{display:block;margin-bottom:.3rem;font-weight:600;font-size:.9rem;}
-.form-group input,.form-group textarea,.form-group select{width:100%;padding:.55rem;font-size:.9rem;border:1px solid var(--border);border-radius:6px;}
-.form-group textarea{resize:vertical;min-height:80px;}
-.toolbar{display:flex;gap:.5rem;margin-bottom:.5rem;}
-.toolbar button,.toolbar select{padding:.3rem .5rem;font-size:.8rem;border:1px solid var(--border);background:#fff;border-radius:4px;cursor:pointer;}
-#previewArea{border:1px dashed var(--border);padding:.5rem;border-radius:6px;min-height:60px;background:#fafafa;font-size:1rem;}
+/* ---------- RESET & BASE ---------- */
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+a{color:var(--accent);text-decoration:none}
+img,svg,video,iframe{max-width:100%;display:block}
+input,button,textarea,select{font:inherit;color:inherit;background:transparent;border:1px solid var(--border);border-radius:4px;padding:.4rem .6rem}
+button{cursor:pointer;background:var(--accent);color:#fff;border:none}
+button:disabled{opacity:.45;cursor:not-allowed}
+/* ---------- HEADER ---------- */
+header{background:var(--card);border-bottom:2px solid var(--accent);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between}
+header h1{margin:0;font-size:1.6rem;letter-spacing:1px}
+header span{font-weight:300;font-size:.9rem;color:var(--sub)}
+header nav{display:flex;align-items:center;gap:1rem}
+header nav button{background:none;border:1px solid var(--accent);color:var(--accent);padding:.4rem .7rem;border-radius:4px}
+/* ---------- MAIN ---------- */
+main{flex:1;padding:2rem;max-width:1100px;margin:auto;width:100%}
+/* ---------- POST CARD ---------- */
+.post{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:1.2rem;position:relative;display:flex;flex-direction:column;gap:.5rem}
+.post.pinned{border-color:var(--accent)}
+.post-header{display:flex;align-items:center;gap:.6rem;font-size:.85rem;color:var(--sub)}
+.post-header .name{font-weight:600;color:var(--text)}
+.post-body{line-height:1.55;white-space:pre-wrap}
+.post-body img,.post-body video{margin:.5rem 0;border-radius:6px}
+.post-body .attachment audio{width:100%}
+.post-footer{display:flex;align-items:center;gap:1rem;font-size:.8rem}
+.post-footer .stats{margin-left:auto;display:flex;gap:.8rem;color:var(--sub)}
+.post-actions{display:flex;gap:.8rem}
+.post-actions button{background:none;border:none;color:var(--sub);display:flex;align-items:center;gap:.3rem;transition:color .15s}
+.post-actions button:hover{color:var(--accent)}
+.post-actions button.liked,.post-actions button.disliked{color:var(--accent)}
+.post-options{margin-left:auto;position:relative}
+.post-options>button{background:none;border:none;color:var(--sub);font-size:1.2rem}
+.post-options .menu{position:absolute;top:100%;right:0;background:#111;border:1px solid var(--border);border-radius:6px;min-width:160px;z-index:10;display:none;flex-direction:column}
+.post-options .menu.show{display:flex}
+.post-options .menu button{background:none;border:none;text-align:left;padding:.6rem 1rem;font-size:.8rem;color:var(--text)}
+.post-options .menu button:hover{background:#dc143c22}
+/* ---------- COMMENTS ---------- */
+.comments{margin-top:.8rem;padding-left:1rem;border-left:2px solid var(--border)}
+.comment{background:#0003;padding:.6rem;border-radius:4px;margin-bottom:.6rem;font-size:.8rem}
+.comment-header{display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem;color:var(--sub)}
+.comment-body{line-height:1.4}
+/* ---------- EDITOR ---------- */
+.editor-toolbar{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.4rem}
+.editor-toolbar button,.editor-toolbar select{background:#111;border:1px solid var(--border);padding:.3rem .5rem;font-size:.8rem}
+.new-post textarea{width:100%;min-height:120px;padding:.6rem;resize:vertical}
+.new-post .counters{font-size:.7rem;color:var(--sub);display:flex;gap:.8rem;margin-top:.3rem}
+.attachments{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.5rem}
+.attachments .thumb{position:relative;width:100px;height:100px;border-radius:6px;overflow:hidden;border:1px solid var(--border)}
+.attachments .thumb img,.attachments .thumb video{width:100%;height:100%;object-fit:cover}
+.attachments .thumb button{position:absolute;top:2px;right:2px;background:#0008;border:none;color:#fff;font-size:1rem;border-radius:50%;width:22px;height:22px;display:grid;place-items:center}
+/* ---------- MODALS ---------- */
+.modal{position:fixed;inset:0;background:#000c;display:none;align-items:center;justify-content:center;z-index:100}
+.modal.show{display:flex}
+.modal-content{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.5rem;max-width:500px;width:90%;max-height:90vh;overflow:auto;display:flex;flex-direction:gap:1rem}
+.modal-header{display:flex;align-items:center;justify-content:space-between}
+.modal-header h2{margin:0}
+/* ---------- UTILS ---------- */
 .hidden{display:none}
-/* login badge */
-#adminBadge{position:fixed;bottom:1rem;right:1rem;background:var(--accent);color:#fff;padding:.4rem .8rem;border-radius:999px;font-size:.8rem;display:none;}
+.muted{color:var(--sub)}
+.mono{font-family:monospace}
+badge{display:inline-block;background:var(--accent);color:#fff;padding:.15rem .35rem;border-radius:4px;font-size:.65rem;margin-left:.4rem}
+/* ---------- DARK MODE TOGGLE ---------- */
+#themeToggle{background:none;border:none;color:var(--accent);font-size:1.2rem}
+/* ---------- RESPONSIVE ---------- */
+@media(max-width:600px){
+  header{flex-direction:column;align-items:flex-start;gap:.5rem}
+  main{padding:1rem}
+}
 </style>
 </head>
 <body>
-
+<!-- ---------- HEADER ---------- -->
 <header>
-    <h1>Official News</h1>
-    <div>
-        <button class="btn" onclick="showNewPost()">＋ New Post</button>
-        <a class="btn" href="index.html" style="margin-left:.5rem">🏠 Home</a>
-    </div>
+  <div>
+    <h1>News Feed</h1>
+    <span>Official news &amp; updates</span>
+  </div>
+  <nav>
+    <button id="backBtn" onclick="location.href='index.html'">← Main Page</button>
+    <button id="themeToggle" title="Toggle dark/light">🌗</button>
+  </nav>
 </header>
 
-<div class="container" id="feed"></div>
+<!-- ---------- MAIN ---------- -->
+<main>
+  <!-- Controls bar -->
+  <section style="display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;align-items:center">
+    <input id="searchInput" placeholder="Search posts…" style="flex:1;min-width:220px">
+    <select id="sortSelect">
+      <option value="new">Newest first</option>
+      <option value="old">Oldest first</option>
+      <option value="likes">Most liked</option>
+      <option value="comments">Most discussed</option>
+    </select>
+    <select id="filterSelect">
+      <option value="all">All posts</option>
+      <option value="media">Media only</option>
+      <option value="text">Text only</option>
+    </select>
+    <button id="newPostBtn">✍️ New Post</button>
+  </section>
 
-<!-- ========== NEW POST MODAL ========== -->
-<div class="modal" id="newPostModal">
-    <div class="modal-content">
-        <h3>Create News Post</h3>
-        <div class="form-group">
-            <label>Username / Author</label>
-            <input id="npUsername" placeholder="e.g.  Reuters">
-        </div>
-        <div class="form-group">
-            <label>Text (with mini editor)</label>
-            <div class="toolbar">
-                <select id="fs" onchange="format()"><option>Size</option><option value="1">small</option><option value="3">normal</option><option value="5">large</option><option value="7">huge</option></select>
-                <select id="fc" onchange="format()"><option>Color</option><option value="red">Red</option><option value="blue">Blue</option><option value="green">Green</option><option value="black">Black</option></select>
-                <select id="ff" onchange="format()"><option>Font</option><option value="Arial">Arial</option><option value="Georgia">Georgia</option><option value="Courier">Courier</option></select>
-                <button onclick="setBold()"><b>B</b></button>
-                <button onclick="setItalic()"><i>I</i></button>
-            </div>
-            <div contenteditable id="richEditor" style="border:1px solid var(--border);padding:.5rem;border-radius:6px;min-height:100px;"></div>
-        </div>
-        <div class="form-group">
-            <label>Attach file (img/video/pdf)</label>
-            <input type="file" id="npFile">
-        </div>
-        <div class="form-group">
-            <label>Preview</label>
-            <div id="previewArea"></div>
-        </div>
-        <div style="display:flex;gap:.5rem;justify-content:flex-end">
-            <button class="btn" onclick="publishPost()">Publish</button>
-            <button class="btn" style="background:#999" onclick="closeModal('newPostModal')">Cancel</button>
-        </div>
+  <!-- New post editor (hidden by default) -->
+  <section id="editor" class="new-post hidden">
+    <div class="editor-toolbar">
+      <button data-cmd="bold" title="Bold"><b>B</b></button>
+      <button data-cmd="italic" title="Italic"><i>I</i></button>
+      <button data-cmd="underline" title="Underline"><u>U</u></button>
+      <button data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
+      <select data-cmd="fontSize" title="Font size">
+        <option value="1">Small</option>
+        <option value="3" selected>Normal</option>
+        <option value="5">Large</option>
+        <option value="7">X-Large</option>
+      </select>
+      <select data-cmd="fontName" title="Font family">
+        <option value="system-ui">System</option>
+        <option value="Arial">Arial</option>
+        <option value="Georgia">Georgia</option>
+        <option value="Times New Roman">Times</option>
+        <option value="Courier New">Courier</option>
+        <option value="Verdana">Verdana</option>
+        <option value="Comic Sans MS">Comic</option>
+        <option value="Impact">Impact</option>
+      </select>
+      <input type="color" data-cmd="foreColor" value="#ffffff" title="Text color">
+      <input type="color" data-cmd="hiliteColor" value="#dc143c" title="Highlight">
+      <button data-cmd="insertUnorderedList" title="Bullet list">• List</button>
+      <button data-cmd="insertOrderedList" title="Numbered list">1. List</button>
+      <button data-cmd="removeFormat" title="Clear format">Clear</button>
+      <button id="emojiBtn" title="Emoji">😊</button>
     </div>
+    <div contenteditable id="editorArea" style="background:#111;border:1px solid var(--border);border-radius:4px;padding:.6rem;min-height:120px;max-height:300px;overflow:auto"></div>
+    <div class="counters">
+      <span id="charCount">0</span> / 5 000 chars
+      <span id="wordCount">0 words</span>
+      <span id="readTime">0 min read</span>
+    </div>
+    <input type="file" id="attachFiles" accept="image/*,video/*,audio/*" multiple>
+    <div id="attachPreview" class="attachments"></div>
+    <div style="display:flex;gap:.5rem;margin-top:.5rem">
+      <button id="publishBtn">Publish</button>
+      <button id="cancelBtn">Cancel</button>
+    </div>
+  </section>
+
+  <!-- Posts container -->
+  <section id="feed"></section>
+</main>
+
+<!-- ---------- ADMIN LOGIN MODAL ---------- -->
+<div id="loginModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Admin Login</h2>
+      <button onclick="closeModal('loginModal')">✕</button>
+    </div>
+    <label>Username
+      <input id="loginUser" autocomplete="off">
+    </label>
+    <label>Password
+      <input type="password" id="loginPass" autocomplete="off">
+    </label>
+    <button onclick="doLogin()">Login</button>
+    <p id="loginErr" class="muted"></p>
+  </div>
 </div>
 
-<!-- ========== OPTIONS / SHARE / ADMIN ========== -->
-<div class="modal" id="optsModal">
-    <div class="modal-content">
-        <h3>Post Options</h3>
-        <button class="btn" style="width:100%;margin-bottom:.5rem" onclick="copyLink()">🔗 Copy link</button>
-        <button class="btn" style="width:100%;margin-bottom:.5rem" onclick="shareExternal()">📤 Share</button>
-        <button class="btn" id="adminBtn" style="width:100%;display:none" onclick="showAdminActions()">⚙️ Admin features</button>
-        <button class="btn" style="width:100%;background:#999" onclick="closeModal('optsModal')">Close</button>
+<!-- ---------- ADMIN TOOLS MODAL ---------- -->
+<div id="adminModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Admin Tools</h2>
+      <button onclick="closeModal('adminModal')">✕</button>
     </div>
+    <div id="adminPanel"></div>
+  </div>
 </div>
 
-<!-- ========== ADMIN LOGIN ========== -->
-<div class="modal" id="loginModal">
-    <div class="modal-content">
-        <h3>Admin Login</h3>
-        <div class="form-group">
-            <label>Username</label>
-            <input id="logUser">
-        </div>
-        <div class="form-group">
-            <label>Password</label>
-            <input type="password" id="logPass">
-        </div>
-        <div style="display:flex;gap:.5rem;justify-content:flex-end">
-            <button class="btn" onclick="doLogin()">Login</button>
-            <button class="btn" style="background:#999" onclick="closeModal('loginModal')">Cancel</button>
-        </div>
+<!-- ---------- EMOJI PALETTE ---------- -->
+<div id="emojiModal" class="modal">
+  <div class="modal-content" style="max-width:360px">
+    <div class="modal-header">
+      <h2>Pick an emoji</h2>
+      <button onclick="closeModal('emojiModal')">✕</button>
     </div>
+    <div id="emojiGrid" style="display:grid;grid-template-columns:repeat(9,1fr);gap:.3rem;font-size:1.4rem"></div>
+  </div>
 </div>
 
-<!-- ========== ADMIN ACTIONS ========== -->
-<div class="modal" id="adminModal">
-    <div class="modal-content">
-        <h3>Admin Actions</h3>
-        <button class="btn" style="width:100%;margin-bottom:.5rem" onclick="pinPost()">📌 Pin / Unpin</button>
-        <button class="btn" style="width:100%;margin-bottom:.5rem;background:var(--danger)" onclick="deletePost()">🗑️ Delete Post</button>
-        <button class="btn" style="width:100%;background:#999" onclick="closeModal('adminModal')">Close</button>
-    </div>
-</div>
-
-<div id="adminBadge">👑 Admin mode</div>
-
+<!-- ---------- SCRIPTS ---------- -->
 <script>
-/* ====== simple data store ====== */
-let posts=JSON.parse(localStorage.getItem("newsPosts")||"[]");
-let currentPostId=null; // which post is being acted upon
-let admin=false;
+/* ========== CONFIG ========== */
+const ADMIN_USER = 'master';
+const ADMIN_PASS = 'M4sterP@ss';
+const POST_LIMIT = 5000;
+const SPAM_POST = 3000; // ms
+const SPAM_COMMENT = 3000;
 
-/* ====== render feed ====== */
-function render(){
-    const f=document.getElementById("feed");
-    f.innerHTML="";
-    posts.sort((a,b)=> (b.pinned||0)-(a.pinned||0) || b.date-a.date );
-    posts.forEach(p=>{
-        const d=new Date(p.date);
-        const card=document.createElement("div");
-        card.className="post";
-        card.id="post-"+p.id;
-        card.innerHTML=`
-        <div class="post-options" onclick="openOpts('${p.id}')">⋯</div>
-        <div class="post-header">
-            <span class="username">${esc(p.username)}</span>
-            <span class="post-time">${d.toLocaleString()}</span>
-            ${p.pinned?'<span style="color:var(--accent);font-size:.75rem">📌 Pinned</span>':''}
-        </div>
-        <div class="post-body">${p.html||esc(p.text)}</div>
-        ${p.file?`<div style="margin:.5rem 0"><a href="${p.file}" target="_blank">📎 View attachment</a></div>`:''}
-        <div class="post-footer">
-            <span onclick="react('${p.id}','like')">🔥 ${p.likes||0}</span>
-            <span class="dislike" onclick="react('${p.id}','dislike')">❄️ ${p.dislikes||0}</span>
-        </div>`;
-        f.appendChild(card);
-    });
-}
-render();
+/* ========== STATE ========== */
+let posts = JSON.parse(localStorage.getItem('newsPosts')||'[]');
+let nextId = posts.length ? Math.max(...posts.map(p=>p.id)) + 1 : 1;
+let deviceId = localStorage.getItem('deviceId') || crypto.randomUUID();
+localStorage.setItem('deviceId', deviceId);
+let adminToken = sessionStorage.getItem('adminToken') || null;
+let editingId = null;
+let lastPost = 0;
+let lastComment = 0;
 
-/* ====== new post ====== */
-function showNewPost(){ document.getElementById("newPostModal").style.display="flex"; }
-function closeModal(id){ document.getElementById(id).style.display="none"; }
-function esc(str){ return str.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
-function setBold(){ document.execCommand("bold"); }
-function setItalic(){ document.execCommand("italic"); }
-function format(){
-    const s=document.getElementById("fs").value;
-    const c=document.getElementById("fc").value;
-    const f=document.getElementById("ff").value;
-    if(s!=="Size") document.execCommand("fontSize",false,s);
-    if(c!=="Color") document.execCommand("foreColor",false,c);
-    if(f!=="Font") document.execCommand("fontName",false,f);
-}
-document.getElementById("richEditor").addEventListener("input",()=>{
-    document.getElementById("previewArea").innerHTML=document.getElementById("richEditor").innerHTML;
+/* ========== THEME ========== */
+const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+if (!localStorage.theme) localStorage.theme = prefersDark ? 'dark' : 'light';
+document.documentElement.setAttribute('data-theme', localStorage.theme);
+themeToggle.textContent = localStorage.theme==='dark'?'🌙':'☀️';
+themeToggle.onclick = ()=>{
+  const t = localStorage.theme === 'dark' ? 'light' : 'dark';
+  localStorage.theme = t;
+  document.documentElement.setAttribute('data-theme', t);
+  themeToggle.textContent = t==='dark'?'🌙':'☀️';
+};
+
+/* ========== UTILS ========== */
+const qs = q=>document.querySelector(q);
+const qsa = q=>[...document.querySelectorAll(q)];
+const stamp = ()=>Date.now();
+const uuid = ()=>crypto.randomUUID();
+const escapeHTML = str=>str.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const formatTime = t=>{
+  const s = (Date.now()-t)/1000;
+  if (s<60) return 'now';
+  const m = Math.floor(s/60);
+  if (m<60) return m+' min ago';
+  const h = Math.floor(m/60);
+  if (h<24) return h+' h ago';
+  const d = Math.floor(h/24);
+  return d+' d ago';
+};
+const readingTime = txt=>{
+  const w = txt.trim().split(/\s+/).length;
+  return Math.ceil(w/200)||1;
+};
+
+/* ========== EMOJI ========== */
+const EMOJIS = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','🤤','😪','😵','🤐','🥴','🤢','🤮','🤧','😷','🤒','🤕','🤑','🤠','😈','👿','👹','👺','🤡','💩','👻','💀','☠️','👽','👾','🤖','🎃','😺','😸','😹','😻','😼','😽','🙀','😿','😾','❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','💟','☮️','✝️','☪️','🕉️','☸️','✡️','🔯','🕎','☯️','☦️','🛐','⛎','♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓','🆔','⚛️','🉑','☢️','☣️','📴','📳','🈶','🈚','🈸','🈺','🈷️','✴️','🆚','💮','🉐','㊙️','㊗️','🈴','🈵','🈹','🈲','🅰️','🅱️','🆎','🆑','🅾️','🆘','❌','⭕','🛑','⛔','📛','🚫','💯','💢','♨️','🚷','🚯','🚳','🚱','🔞','📵','🚭','❗','❕','❓','❔','‼️','⁉️','🔅','🔆','〽️','⚠️','🚸','🔱','⚜️','🔰','♻️','✅','🈯','💹','❇️','✳️','❎','🌐','💠','Ⓜ️','🌀','💤','🏧','🚾','♿','🅿️','🈳','🈂️','🛂','🛃','🛄','🛅','🚹','🚺','🚼','🚻','🚮','🎦','📶','🈁','🔣','ℹ️','🔤','🔡','🔠','🆖','🆗','🆙','🆒','🆕','🆓','0️⃣','1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟','🔢','#️⃣','*️⃣','⏏️','▶️','⏸️','⏯️','⏹️','⏺️','⏭️','⏮️','⏩','⏪','⏫','⏬','◀️','🔼','🔽','➡️','⬅️','⬆️','⬇️','↗️','↘️','↙️','↖️','↕️','↔️','↪️','↩️','⤴️','⤵️','🔀','🔁','🔂','🔄','🔃','🎵','🎶','➕','➖','➗','✖️','♾','💲','💱','™️','©️','®️','〰️','➰','➿','🔚','🔙','🔛','🔝','🔜','✔️','☑️','🔘','🔴','🟠','🟡','🟢','🔵','🟣','⚫','⚪','🟤','🔺','🔻','🔸','🔹','🔶','🔷','🔳','🔲','▪️','▫️','◾','◽','◼️','◻️','🟥','🟧','🟨','🟩','🟦','🟪','⬛','⬜','🟫','🔈','🔇','🔉','🔊','🔔','🔕','📣','📢','👁‍🗨','💬','💭','🗯️','♠️','♣️','♥️','♦️','🃏','🎴','🀄','🕐','🕑','🕒','🕓','🕔','🕕','🕖','🕗','🕘','🕙','🕚','🕛','🕜','🕝','🕞','🕟','🕠','🕡','🕢','🕣','🕤','🕥','🕦','🕧'];
+EMOJIS.forEach(e=>{
+  const b = document.createElement('button');
+  b.textContent = e;
+  b.onclick = ()=>{ document.execCommand('insertText',false,e); closeModal('emojiModal'); };
+  emojiGrid.appendChild(b);
 });
-function publishPost(){
-    const user=document.getElementById("npUsername").value.trim();
-    const html=document.getElementById("richEditor").innerHTML;
-    const text=document.getElementById("richEditor").innerText.trim();
-    const fileInput=document.getElementById("npFile");
-    if(!user||!text){ alert("Username and text required");return; }
-    let fileURL="";
-    if(fileInput.files.length){
-        const file=fileInput.files[0];
-        fileURL=URL.createObjectURL(file); // demo only – in prod upload to server
-    }
-    posts.push({ id:Date.now(), username:user, text:text, html:html, file:fileURL, date:Date.now(), likes:0, dislikes:0, pinned:false });
-    save(); render(); closeModal("newPostModal");
-    // reset form
-    document.getElementById("npUsername").value="";
-    document.getElementById("richEditor").innerHTML="";
-    document.getElementById("previewArea").innerHTML="";
-    document.getElementById("npFile").value="";
+emojiBtn.onclick = ()=>showModal('emojiModal');
+
+/* ========== EDITOR ========== */
+editorArea.oninput = ()=>{
+  const txt = editorArea.innerText;
+  charCount.textContent = txt.length;
+  wordCount.textContent = txt.trim().split(/\s+/).filter(Boolean).length;
+  readTime.textContent = readingTime(txt);
+};
+editorToolbar.onclick = e=>{
+  const cmd = e.target.dataset.cmd;
+  if (!cmd) return;
+  if (cmd==='hiliteColor') document.execCommand('backColor',false,e.target.value);
+  else if (cmd==='foreColor') document.execCommand('foreColor',false,e.target.value);
+  else if (cmd==='fontSize'||cmd==='fontName') document.execCommand(cmd,false,e.target.value);
+  else document.execCommand(cmd,false,null);
+  editorArea.focus();
+};
+attachFiles.onchange = e=>{
+  [...e.target.files].forEach(file=>{
+    if (file.size>5e6){ alert('Max 5 MB per file'); return; }
+    const reader = new FileReader();
+    reader.onload = ev=>{
+      const url = ev.target.result;
+      const wrap = document.createElement('div');
+      wrap.className='thumb';
+      if (file.type.startsWith('image/')){
+        const img = new Image();
+        img.src = url;
+        wrap.appendChild(img);
+      } else if (file.type.startsWith('video/')){
+        const vid = document.createElement('video');
+        vid.src = url; vid muted = true; vid.loop = true; vid.onclick = ()=>vid.play();
+        wrap.appendChild(vid);
+      } else if (file.type.startsWith('audio/')){
+        const aud = document.createElement('audio');
+        aud.src = url; aud.controls = true; aud.style.width='100%';
+        wrap.appendChild(aud);
+      }
+      const del = document.createElement('button');
+      del.innerHTML='✕'; del.onclick = ()=>wrap.remove();
+      wrap.appendChild(del);
+      attachPreview.appendChild(wrap);
+    };
+    reader.readAsDataURL(file);
+  });
+  e.target.value='';
+};
+publishBtn.onclick = ()=>{
+  if (stamp()-lastPost<SPAM_POST){ alert('Please wait a few seconds before posting.'); return; }
+  const body = editorArea.innerHTML.trim();
+  if (!body){ alert('Write something…'); return; }
+  if (body.length>POST_LIMIT){ alert('Too long'); return; }
+  const attachments = [...attachPreview.querySelectorAll('img,video,audio')].map(el=>{
+    const src = el.src;
+    const type = el.tagName==='IMG'?'image':el.tagName==='VIDEO'?'video':'audio';
+    return {type,src};
+  });
+  const name = prompt('Your name (optional):')||'Anonymous';
+  const color = prompt('Name color (hex, optional):')||'';
+  const post = {
+    id: editingId||nextId++,
+    title: '',
+    body,
+    author: {name,color},
+    attachments,
+    likes:new Set(),
+    dislikes:new Set(),
+    comments:[],
+    pinned:false,
+    locked:false,
+    created: editingId ? posts.find(p=>p.id===editingId).created : stamp(),
+    edited: editingId ? stamp() : null,
+    views:0
+  };
+  if (editingId){
+    const idx = posts.findIndex(p=>p.id===editingId);
+    posts[idx] = {...posts[idx],...post};
+    editingId = null;
+  } else posts.unshift(post);
+  save();
+  render();
+  cancelBtn.click();
+  lastPost = stamp();
+};
+cancelBtn.onclick = ()=>{
+  editorArea.innerHTML='';
+  attachPreview.innerHTML='';
+  editor.classList.add('hidden');
+  newPostBtn.disabled = false;
+  editingId = null;
+};
+newPostBtn.onclick = ()=>{
+  editor.classList.remove('hidden');
+  newPostBtn.disabled = true;
+  editorArea.focus();
+};
+
+/* ========== RENDER ========== */
+function render(){
+  const s = searchInput.value.trim().toLowerCase();
+  const sort = sortSelect.value;
+  const filter = filterSelect.value;
+  let list = posts.slice();
+  if (s) list = list.filter(p=> (p.body+p.author.name).toLowerCase().includes(s));
+  if (filter==='media') list = list.filter(p=>p.attachments.length);
+  if (filter==='text') list = list.filter(p=>!p.attachments.length);
+  if (sort==='old') list.reverse();
+  if (sort==='likes') list.sort((a,b)=>b.likes.size - a.likes.size);
+  if (sort==='comments') list.sort((a,b)=>b.comments.length - a.comments.length);
+  list.sort((a,b)=> (b.pinned?1:0) - (a.pinned?1:0));
+  feed.innerHTML = '';
+  list.forEach(p=>feed.appendChild(createPostEl(p)));
 }
-/* ====== reactions ====== */
-function react(id,type){
-    const p=posts.find(x=>x.id==id);
-    if(!p) return;
-    p[type]=(p[type]||0)+1;
+function createPostEl(p){
+  const div = document.createElement('div');
+  div.className='post'+(p.pinned?' pinned':'');
+  div.dataset.id = p.id;
+  div.innerHTML = `
+    <div class="post-header">
+      <span class="name" ${p.author.color?`style="color:${p.author.color}"`:''}>${escapeHTML(p.author.name)}</span>
+      <span class="muted">• ${formatTime(p.created)}</span>
+      ${p.pinned?'<span class="badge">Pinned</span>':''}
+      ${p.locked?'<span class="badge">Locked</span>':''}
+    </div>
+    <div class="post-body">${p.body}</div>
+    ${p.attachments.map(a=>{
+      if (a.type==='image') return `<img src="${a.src}" loading="lazy">`;
+      if (a.type==='video') return `<video src="${a.src}" controls muted loop></video>`;
+      if (a.type==='audio') return `<div class="attachment"><audio src="${a.src}" controls></audio></div>`;
+    }).join('')}
+    <div class="post-footer">
+      <div class="post-actions">
+        <button class="like ${p.likes.has(deviceId)?'liked':''}" onclick="toggleLike(${p.id},'like')">👍 ${p.likes.size}</button>
+        <button class="dislike ${p.dislikes.has(deviceId)?'disliked':''}" onclick="toggleLike(${p.id},'dislike')">👎 ${p.dislikes.size}</button>
+        ${p.locked?'<span class="muted">Locked</span>':'<button onclick="showCommentBox('+p.id+')">💬 Reply</button>'}
+      </div>
+      <div class="stats muted">${readingTime(p.body)} min read • ${p.views} views</div>
+      <div class="post-options">
+        <button>⋯</button>
+        <div class="menu">
+          <button onclick="sharePost(${p.id})">Share</button>
+          <button onclick="copyText(${p.id})">Copy text</button>
+          <button onclick="copyLink(${p.id})">Copy link</button>
+          <button onclick="reportPost(${p.id})">Report</button>
+          <button onclick="showAdmin(${p.id})">Admin features</button>
+        </div>
+      </div>
+    </div>
+    <div id="comments-${p.id}" class="comments"></div>
+  `;
+  // render comments
+  const cdiv = div.querySelector(`#comments-${p.id}`);
+  p.comments.forEach(c=>{
+    const cd = document.createElement('div');
+    cd.className='comment';
+    cd.innerHTML = `
+      <div class="comment-header">
+        <span class="name" ${c.author.color?`style="color:${c.author.color}"`:''}>${escapeHTML(c.author.name)}</span>
+        <span class="muted">• ${formatTime(c.created)}</span>
+      </div>
+      <div class="comment-body">${c.body}</div>
+    `;
+    cdiv.appendChild(cd);
+  });
+  // inc view
+  if (!p.views) p.views=0;
+  if (!p.lastView||stamp()-p.lastView>60_000){
+    p.views++;
+    p.lastView = stamp();
+    save();
+  }
+  return div;
+}
+/* ========== POST ACTIONS ========== */
+function toggleLike(pid,type){
+  const p = posts.find(x=>x.id===pid);
+  if (!p) return;
+  const set = type==='like'?p.likes:p.dislikes;
+  const other = type==='like'?p.dislikes:p.likes;
+  if (set.has(deviceId)) set.delete(deviceId);
+  else { set.add(deviceId); other.delete(deviceId); }
+  save(); render();
+}
+function showCommentBox(pid){
+  const p = posts.find(x=>x.id===pid);
+  if (p.locked) return;
+  const box = qs(`#comments-${pid}`);
+  if (box.querySelector('.comment-box')) return;
+  const cbox = document.createElement('div');
+  cbox.className='comment-box';
+  cbox.innerHTML = `<input placeholder="Write a reply…"><button>Post</button>`;
+  const inp = cbox.querySelector('input');
+  const btn = cbox.querySelector('button');
+  btn.onclick = ()=>{
+    if (stamp()-lastComment<SPAM_COMMENT){ alert('Wait a bit…'); return; }
+    const v = inp.value.trim();
+    if (!v) return;
+    const name = prompt('Your name (optional):')||'Anonymous';
+    const color = prompt('Name color (hex, optional):')||'';
+    p.comments.push({
+      id: uuid(),
+      body: escapeHTML(v),
+      author:{name,color},
+      created: stamp()
+    });
     save(); render();
+    lastComment = stamp();
+  };
+  box.appendChild(cbox);
+  inp.focus();
 }
-/* ====== options ====== */
-function openOpts(id){ currentPostId=id; document.getElementById("optsModal").style.display="flex"; document.getElementById("adminBtn").style.display=admin?"block":"none"; }
-function copyLink(){
-    const url=location.href.split("#")[0]+"#post-"+currentPostId;
-    navigator.clipboard.writeText(url).then(()=>alert("Link copied!"));
+function sharePost(pid){
+  const p = posts.find(x=>x.id===pid);
+  const url = location.href.split('#')[0]+'#post-'+pid;
+  const text = `Check this: ${p.body.slice(0,100)}…`;
+  if (navigator.share) navigator.share({title:'News post',text,url});
+  else alert('Share:\n'+url);
 }
-function shareExternal(){
-    if(navigator.share){ navigator.share({title:"Check this news",url:location.href.split("#")[0]+"#post-"+currentPostId}); }
-    else{ copyLink(); }
+function copyText(pid){
+  const p = posts.find(x=>x.id===pid);
+  navigator.clipboard.writeText(p.body);
+  alert('Text copied');
 }
-/* ====== admin ====== */
-function showAdminActions(){ closeModal("optsModal"); document.getElementById("adminModal").style.display="flex"; }
+function copyLink(pid){
+  const url = location.href.split('#')[0]+'#post-'+pid;
+  navigator.clipboard.writeText(url);
+  alert('Link copied');
+}
+function reportPost(pid){ alert('Reported – admins will review.'); }
+
+/* ========== ADMIN ========== */
+function showAdmin(pid){
+  showModal('loginModal');
+  loginModal.dataset.pid = pid;
+}
 function doLogin(){
-    const u=document.getElementById("logUser").value.trim();
-    const p=document.getElementById("logPass").value.trim();
-    if(u==="master"&&p==="M4sterP@ss"){ admin=true; localStorage.setItem("newsAdmin","1"); document.getElementById("adminBadge").style.display="block"; closeModal("loginModal"); alert("Admin mode ON"); }
-    else{ alert("Wrong credentials"); }
+  const u = loginUser.value.trim();
+  const p = loginPass.value.trim();
+  if (u===ADMIN_USER && p===ADMIN_PASS){
+    adminToken = uuid();
+    sessionStorage.setItem('adminToken', adminToken);
+    closeModal('loginModal');
+    showAdminTools(+loginModal.dataset.pid);
+  } else {
+    loginErr.textContent = 'Wrong credentials';
+  }
 }
-function pinPost(){
-    const p=posts.find(x=>x.id==currentPostId);
-    if(p){ p.pinned=!p.pinned; save(); render(); closeModal("adminModal"); }
+function showAdminTools(pid){
+  const p = posts.find(x=>x.id===pid);
+  if (!p) return;
+  showModal('adminModal');
+  adminPanel.innerHTML = `
+    <p><b>Post #${p.id}</b></p>
+    <button onclick="pinPost(${pid})">${p.pinned?'Unpin':'Pin'} post</button>
+    <button onclick="lockPost(${pid})">${p.locked?'Unlock':'Lock'} post</button>
+    <button onclick="editPost(${pid})">Edit post</button>
+    <button onclick="deletePost(${pid})">Delete post</button>
+    <hr>
+    <button onclick="exportJSON()">Export all posts (JSON)</button>
+    <input type="file" id="importFile" accept=".json" onchange="importJSON(event)">
+    <button onclick="document.getElementById('importFile').click()">Import JSON</button>
+  `;
 }
-function deletePost(){
-    if(!confirm("Delete this post?")) return;
-    posts=posts.filter(x=>x.id!=currentPostId);
-    save(); render(); closeModal("adminModal");
+function pinPost(pid){
+  const p = posts.find(x=>x.id===pid);
+  p.pinned = !p.pinned;
+  save(); render(); closeModal('adminModal');
 }
-/* ====== init ====== */
-if(localStorage.getItem("newsAdmin")==="1"){ admin=true; document.getElementById("adminBadge").style.display="block"; }
-function save(){ localStorage.setItem("newsPosts",JSON.stringify(posts)); }
+function lockPost(pid){
+  const p = posts.find(x=>x.id===pid);
+  p.locked = !p.locked;
+  save(); render(); closeModal('adminModal');
+}
+function editPost(pid){
+  const p = posts.find(x=>x.id===pid);
+  editingId = pid;
+  editorArea.innerHTML = p.body;
+  attachPreview.innerHTML = p.attachments.map(a=>{
+    if (a.type==='image') return `<div class="thumb"><img src="${a.src}"><button onclick="this.parentElement.remove()">✕</button></div>`;
+    if (a.type==='video') return `<div class="thumb"><video src="${a.src}"></video><button onclick="this.parentElement.remove()">✕</button></div>`;
+    if (a.type==='audio') return `<div class="thumb"><audio src="${a.src}" controls></audio><button onclick="this.parentElement.remove()">✕</button></div>`;
+  }).join('');
+  editor.classList.remove('hidden');
+  newPostBtn.disabled = true;
+  closeModal('adminModal');
+}
+function deletePost(pid){
+  if (!confirm('Delete forever?')) return;
+  posts = posts.filter(p=>p.id!==pid);
+  save(); render(); closeModal('adminModal');
+}
+function exportJSON(){
+  const data = JSON.stringify(posts,null,2);
+  const blob = new Blob([data],{type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'news-backup.json'; a.click();
+  URL.revokeObjectURL(url);
+}
+function importJSON(e){
+  const file = e.target.files[0];
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = ()=>{
+    try {
+      const arr = JSON.parse(r.result);
+      if (!Array.isArray(arr)) throw 0;
+      posts = arr;
+      nextId = posts.length ? Math.max(...posts.map(p=>p.id)) + 1 : 1;
+      save(); render();
+      alert('Imported');
+    } catch {
+      alert('Invalid file');
+    }
+  };
+  r.readAsText(file);
+}
+
+/* ========== MODALS ========== */
+function showModal(id){ qs('#'+id).classList.add('show'); }
+function closeModal(id){ qs('#'+id).classList.remove('show'); }
+
+/* ========== SEARCH / SORT / FILTER ========== */
+searchInput.oninput = ()=>render();
+sortSelect.onchange = ()=>render();
+filterSelect.onchange = ()=>render();
+
+/* ========== SAVE / LOAD ========== */
+function save(){
+  // convert Sets to Arrays for JSON
+  const data = posts.map(p=>({...p, likes:[...p.likes], dislikes:[...p.dislikes]}));
+  localStorage.setItem('newsPosts', JSON.stringify(data));
+}
+/* migrate old format */
+posts.forEach(p=>{
+  if (!p.likes) p.likes = [];
+  if (!p.dislikes) p.dislikes = [];
+  p.likes = new Set(p.likes);
+  p.dislikes = new Set(p.dislikes);
+  if (!p.attachments) p.attachments = [];
+  if (!p.comments) p.comments = [];
+  if (!p.views) p.views = 0;
+});
+
+/* ========== INIT ========== */
+render();
+setInterval(render, 60_000); // update timestamps
+window.onkeydown = e=>{
+  if (e.key==='Escape') qsa('.modal').forEach(m=>m.classList.remove('show'));
+  if (e.key==='/' && e.ctrlKey===false && document.activeElement!==searchInput){ searchInput.focus(); e.preventDefault(); }
+};
 </script>
 </body>
 </html>

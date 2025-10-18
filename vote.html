@@ -25,7 +25,7 @@
   }
 }
 
-/* ----  ivcf shell  ---- */
+
 .ivcf-page{background:var(--bg);color:var(--text);display:none}
 .ivcf-page.active{display:block}
 .ivcf-header{background:#1e1e1e;border-bottom:2px solid var(--red);padding:1rem 2rem;display:flex;align-items:center;gap:1.5rem}
@@ -46,7 +46,7 @@
 .ivcf-button:hover{filter:brightness(1.15)}
 .ivcf-button:active{filter:brightness(0.85)}
 
-/* ----  vote bar : red empty (No) , green fill (Yes)  ---- */
+/* vote bar */
 #barWrap{height:28px;background:var(--red);border-radius:var(--radius);overflow:hidden;margin:1rem 0}
 #barYes{height:100%;background:var(--green);width:0%;transition:width .4s}
 
@@ -60,16 +60,16 @@ a{color:var(--red)}
 <div id="app"></div>
 
 <script type="module">
-/* ----------  CONFIG  ---------- */
+/* CONFIG */
 const ADMIN_USER = 'master';
 const ADMIN_PASS = 'M4sterP@ss';
 
-/* ----------  HELPERS  ---------- */
+/* HELPERS */
 const $ = q => document.querySelector(q);
 const storage = (k,v) => v===undefined ? JSON.parse(localStorage.getItem(k)||'null') : localStorage.setItem(k,JSON.stringify(v));
 const today = () => new Date().toISOString().slice(0,10);
 
-/* ----------  DATA  ---------- */
+/* DATA */
 const DB = {
   poll:  () => storage('poll'),
   voters:() => storage('voters')||{},
@@ -82,7 +82,7 @@ const DB = {
   results(){ const v=Object.values(this.votes()), yes=v.filter(Boolean).length, no=v.length-yes, t=v.length||1; return {yes,no,total:v.length,yesP:(100*yes/t).toFixed(1),noP:(100*no/t).toFixed(1)};}
 };
 
-/* ----------  ARCHIVE  ---------- */
+/* ARCHIVE */
 function archiveThisPoll(){
   const p = DB.poll(), v = DB.votes(), r = DB.results();
   if(!p) return;
@@ -90,7 +90,7 @@ function archiveThisPoll(){
   const list = DB.archive(); list.push(entry); storage('archive',list);
 }
 
-/* ----------  ROUTER  ---------- */
+/* ROUTER */
 function start(){
   const p = DB.poll();
   if(!p || new Date(p.end) < new Date()){ renderNoPollPage(); return; }
@@ -108,7 +108,7 @@ function renderNoPollPage(){
   </div>`;
 }
 
-/* ----------  PAGES  ---------- */
+/* PAGES */
 window.renderGate=()=>{
   app.innerHTML=`
   <div class="ivcf-card">
@@ -211,10 +211,10 @@ window.vote=y=>{
 };
 window.logoutVoter=()=>{ storage('session',null); renderGate(); };
 
-/* ----------  demo data  ---------- */
+/* demo data */
 (()=>{ if(Object.keys(DB.voters()).length===0){ DB.addVoter('alice','alice123'); DB.addVoter('bob','bob456'); } })();
 
-/* ----------  kick off  ---------- */
+/* kick off */
 start();
 </script>
 </body>

@@ -5,99 +5,118 @@
 <title>Valorian News</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-/* ---------- dark-theme defaults ---------- */
+/* ---------- your design tokens ---------- */
 :root{
-  --bg:#0d1117;
-  --card:#161b22;
-  --border:#30363d;
-  --text:#c9d1d9;
-  --link:#58a6ff;
-  --accent:#238636;
-  --danger:#da3633;
+  --bg:#000;
+  --card:#0a0a0a;
+  --border:#222;
+  --accent:#dc143c;
+  --text:#fff;
+  --sub:#aaa;
+  --gap:1.2rem;
+  font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
 }
-* {box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;}
-body{margin:0;background:var(--bg);color:var(--text);line-height:1.5;}
-a{color:var(--link);text-decoration:none;}
-button{cursor:pointer;border:none;padding:.5rem 1rem;border-radius:.25rem;background:var(--accent);color:#fff;}
-button:hover{filter:brightness(1.1);}
-textarea,input{width:100%;padding:.5rem;border-radius:.25rem;border:1px solid var(--border);background:var(--card);color:var(--text);resize:vertical;}
+* {box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+a{color:var(--accent);text-decoration:none}
+header,footer{background:var(--card);border-bottom:2px solid var(--accent)}
+header{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem}
+header h1{margin:0;font-size:1.6rem;letter-spacing:1px}
+header span{font-weight:300;font-size:.9rem;color:var(--sub)}
+main{flex:1;padding:2rem;max-width:1100px;margin:auto;width:100%}
+.news-header{background:#111;border-bottom:2px solid var(--accent);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between}
+.news-header h1{margin:0;font-size:1.5rem}
+.news-main{max-width:700px;margin:2rem auto;padding:0 1rem}
+.post{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:1rem;margin-bottom:1rem}
+.post img,.post iframe{max-width:100%;border-radius:4px;margin-top:.5rem}
+.post small{color:var(--sub);font-size:.75rem}
+.post-actions{margin-top:.5rem;display:flex;gap:1rem;font-size:.8rem}
+.comment-box{margin-top:.5rem;display:flex;gap:.5rem}
+.comment-box input{flex:1;padding:.4rem;border:none;border-radius:4px;background:#222;color:var(--text)}
+.comment-box button{padding:.4rem .8rem;border:none;border-radius:4px;background:var(--accent);color:#fff;cursor:pointer}
 
-/* ---------- layout ---------- */
-.news-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;border-bottom:1px solid var(--border);}
-.news-main{max-width:800px;margin:2rem auto;padding:0 1rem;}
-.post,.editor{background:var(--card);border:1px solid var(--border);border-radius:.5rem;padding:1rem;margin-bottom:1rem;}
-.post small{color:#8b949e;}
-.post img,.post iframe{max-width:100%;margin-top:.5rem;border-radius:.25rem;}
-.post-actions{margin-top:.5rem;font-size:.9rem;}
-.comment-box{display:flex;gap:.5rem;margin-top:.5rem;}
-.toolbar{display:flex;gap:.5rem;margin-bottom:.5rem;}
-.toolbar button{background:var(--border);}
-#preview{min-height:120px;border:1px dashed var(--border);padding:.5rem;border-radius:.25rem;background:#010409;margin-top:.5rem;}
-.danger{background:var(--danger);}
+/* ---------- editor ---------- */
+.editor{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.5rem;margin-bottom:1.5rem}
+.editor input[type=text],.editor textarea{width:100%;padding:.6rem;border:none;border-radius:4px;background:#222;color:var(--text)}
+.editor textarea{min-height:100px;resize:vertical}
+.toolbar{display:flex;gap:.6rem;margin:.6rem 0}
+.toolbar button{padding:.4rem .8rem;border:none;border-radius:4px;background:#222;color:var(--text);font-weight:bold;cursor:pointer}
+.toolbar button:hover{background:#333}
+#preview{min-height:100px;border:1px dashed var(--border);padding:.6rem;border-radius:4px;background:#0f0f0f;margin-top:.6rem}
+.new-post input[type=file]{margin-top:.6rem}
+.new-post button{margin-top:.6rem;padding:.5rem 1rem;border:none;border-radius:4px;background:var(--accent);color:#fff;cursor:pointer;font-weight:bold}
 </style>
 </head>
 <body>
 
-<div class="news-header">
+<header class="news-header">
   <h1>Valorian News</h1>
   <a href="index.html">← Back to Hub</a>
-</div>
+</header>
 
-<div class="news-main">
+<main class="news-main">
 
-  <!-- Editor (only visible to gov) -->
+  <!-- EDITOR (gov only) -->
   <div id="editorArea" class="editor" style="display:none">
     <input id="title" placeholder="Headline / Title" maxlength="120">
     <div class="toolbar">
-      <button onclick="wrapSelected('**')" title="Bold"><b>B</b></button>
-      <button onclick="wrapSelected('*')" title="Italic"><i>I</i></button>
+      <button onclick="wrapStars('**')" title="Bold"><strong>B</strong></button>
+      <button onclick="wrapStars('*')" title="Italic"><em>I</em></button>
     </div>
-    <textarea id="bodyText" rows="6" placeholder="Article text…"></textarea>
+    <textarea id="bodyText" placeholder="Article text…"></textarea>
     <input type="file" id="postFile" accept=".pdf,image/*">
     <button onclick="publish()">Publish</button>
-    <h4 style="margin:.5rem 0 0;font-size:1rem">Live preview</h4>
+    <h4 style="margin:.6rem 0 0;font-size:1rem">Live preview</h4>
     <div id="preview"></div>
   </div>
 
-  <!-- Feed -->
+  <!-- FEED -->
   <div id="feed"></div>
-</div>
+</main>
 
 <script>
 /* ---------- storage ---------- */
 const STORAGE_KEY = 'valorianNews';
 let posts = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
-/* ---------- simple markdown converter ---------- */
+/* ---------- gov check ---------- */
+const isGov = confirm('Are you a Government member?');
+if(isGov) document.getElementById('editorArea').style.display='block';
+
+/* ---------- smart wrap ---------- */
+function wrapStars(mark){
+  const ta=document.getElementById('bodyText');
+  const start=ta.selectionStart, end=ta.selectionEnd;
+  const selected=ta.value.slice(start,end);
+  const replacement=`${mark}${selected||''}${mark}`;
+  ta.value=ta.value.slice(0,start)+replacement+ta.value.slice(end);
+  ta.focus();
+  ta.setSelectionRange(start+mark.length, start+mark.length+(selected?selected.length:0));
+  preview();
+}
+
+/* ---------- preview ---------- */
+function preview(){
+  const t=document.getElementById('title').value.trim();
+  const b=document.getElementById('bodyText').value.trim();
+  document.getElementById('preview').innerHTML=
+    (t?`<h3>${escape(t)}</h3>`:'') + md(escape(b));
+}
+document.getElementById('title').addEventListener('input',preview);
+document.getElementById('bodyText').addEventListener('input',preview);
+
+/* ---------- simple md ---------- */
 function md(txt){
   return txt
     .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
     .replace(/\*(.+?)\*/g,'<em>$1</em>')
     .replace(/\n/g,'<br>');
 }
-
-/* ---------- gov check ---------- */
-const isGov = confirm('Are you a Government member?');
-if(isGov) document.getElementById('editorArea').style.display='block';
-
-/* ---------- editor helpers ---------- */
-function wrapSelected(mark){
-  const ta=document.getElementById('bodyText');
-  const [start,end]=[ta.selectionStart,ta.selectionEnd];
-  const selected=ta.value.slice(start,end);
-  const replacement=mark+selected+mark;
-  ta.value=ta.value.slice(0,start)+replacement+ta.value.slice(end);
-  ta.focus();
-  preview();
+function escape(str){
+  const d=document.createElement('div');
+  d.textContent=str;
+  return d.innerHTML;
 }
-function preview(){
-  const t=document.getElementById('title').value.trim();
-  const b=document.getElementById('bodyText').value.trim();
-  document.getElementById('preview').innerHTML=
-    (t?`<h2>${escape(t)}</h2>`:'') + md(escape(b));
-}
-document.getElementById('title').addEventListener('input',preview);
-document.getElementById('bodyText').addEventListener('input',preview);
 
 /* ---------- publish ---------- */
 function publish(){
@@ -111,14 +130,14 @@ function publish(){
     const reader=new FileReader();
     reader.onload=e=>{
       article.file={type:fileInput.files[0].type,data:e.target.result};
-      savePost(article);
+      saveArticle(article);
     };
     reader.readAsDataURL(fileInput.files[0]);
   }else{
-    savePost(article);
+    saveArticle(article);
   }
 }
-function savePost(article){
+function saveArticle(article){
   posts.unshift(article);
   localStorage.setItem(STORAGE_KEY,JSON.stringify(posts));
   document.getElementById('title').value='';
@@ -128,11 +147,6 @@ function savePost(article){
 }
 
 /* ---------- render ---------- */
-function escape(str){
-  const div=document.createElement('div');
-  div.textContent=str;
-  return div.innerHTML;
-}
 function renderFeed(){
   const feed=document.getElementById('feed');
   feed.innerHTML='';
@@ -149,10 +163,10 @@ function renderFeed(){
     }
     html+=`<div class="post-actions">
       <a onclick="toggleComments(${idx})">💬 Comment</a>
-      ${isGov?`<a onclick="delPost(${idx})" class="danger">Delete</a>`:''}
+      ${isGov?`<a onclick="delPost(${idx})" style="color:var(--accent)">Delete</a>`:''}
     </div>`;
     html+=`<div id="c${idx}" style="display:none">`;
-    p.comments.forEach(c=>html+=`<div style="margin-top:.3rem;font-size:.8rem;color:#8b949e">• ${escape(c)}</div>`);
+    p.comments.forEach(c=>html+=`<div style="margin-top:.3rem;font-size:.8rem;color:var(--sub)">• ${escape(c)}</div>`);
     html+=`<div class="comment-box"><input placeholder="comment…" id="inp${idx}"><button onclick="addComment(${idx})">➤</button></div></div>`;
     div.innerHTML=html;
     feed.appendChild(div);
@@ -169,7 +183,7 @@ function addComment(i){
   localStorage.setItem(STORAGE_KEY,JSON.stringify(posts));
   renderFeed();
 }
-function delPost(i){          // government only
+function delPost(i){
   if(!confirm('Delete this post?'))return;
   posts.splice(i,1);
   localStorage.setItem(STORAGE_KEY,JSON.stringify(posts));

@@ -1,84 +1,248 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<title>Valorian News</title>
+<meta charset="UTF-8">
+<title>Official News Feed</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="hub.css">
+<style>
+:root{
+    --bg:#f7f9fc;
+    --card:#fff;
+    --accent:#1d9bf0;
+    --danger:#f4212e;
+    --gray:#536471;
+    --border:#eff3f4;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+body{margin:0;background:var(--bg);color:#111;}
+a{color:var(--accent);text-decoration:none;}
+header{position:sticky;top:0;z-index:10;background:var(--card);border-bottom:1px solid var(--border);padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{margin:0;font-size:1.25rem;font-weight:700;}
+.btn{background:var(--accent);color:#fff;border:0;padding:.5rem .9rem;border-radius:999px;font-size:.9rem;cursor:pointer;}
+.btn:hover{filter:brightness(1.1);}
+.container{max-width:680px;margin:auto;padding:1rem;}
+.post{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:1rem;position:relative;}
+.post-header{display:flex;gap:.5rem;align-items:center;font-size:.9rem;color:var(--gray);}
+.post-header .username{font-weight:700;color:#111;}
+.post-time{font-size:.8rem;}
+.post-body{margin:.75rem 0;font-size:1rem;white-space:pre-wrap;}
+.post-footer{display:flex;gap:1.25rem;font-size:.9rem;color:var(--gray);}
+.post-footer span{cursor:pointer;display:flex;align-items:center;gap:.3rem;}
+.post-footer span:hover{color:var(--accent);}
+.post-footer .dislike:hover{color:var(--danger);}
+.post-options{position:absolute;top:.75rem;right:.75rem;font-size:1.2rem;cursor:pointer;color:var(--gray);}
+.post-options:hover{color:#111}
+/* modal & forms */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);align-items:center;justify-content:center;z-index:100;}
+.modal-content{background:var(--card);padding:1.5rem;border-radius:12px;width:90%;max-width:420px;}
+.modal-content h3{margin-top:0}
+.form-group{margin-bottom:1rem;}
+.form-group label{display:block;margin-bottom:.3rem;font-weight:600;font-size:.9rem;}
+.form-group input,.form-group textarea,.form-group select{width:100%;padding:.55rem;font-size:.9rem;border:1px solid var(--border);border-radius:6px;}
+.form-group textarea{resize:vertical;min-height:80px;}
+.toolbar{display:flex;gap:.5rem;margin-bottom:.5rem;}
+.toolbar button,.toolbar select{padding:.3rem .5rem;font-size:.8rem;border:1px solid var(--border);background:#fff;border-radius:4px;cursor:pointer;}
+#previewArea{border:1px dashed var(--border);padding:.5rem;border-radius:6px;min-height:60px;background:#fafafa;font-size:1rem;}
+.hidden{display:none}
+/* login badge */
+#adminBadge{position:fixed;bottom:1rem;right:1rem;background:var(--accent);color:#fff;padding:.4rem .8rem;border-radius:999px;font-size:.8rem;display:none;}
+</style>
 </head>
 <body>
-<div class="news-header">
-  <h1>Valorian News</h1>
-  <a href="hub.html">← Back to Hub</a>
-</div>
-<div class="news-main">
-  <div class="new-post">
-    <textarea id="postText" placeholder="What's happening? (Government accounts can attach files)"></textarea>
-    <input type="file" id="postFile" accept=".pdf,image/*">
-    <button onclick="submitPost()">Post</button>
-  </div>
-  <div id="feed"></div>
-</div>
-<script>
-const STORAGE_KEY = 'valorianNews';
-let posts = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-const isGov = confirm('Are you a Government member?'); // quick & dirty
 
-function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(posts)); }
-function escapeHtml(str){
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
-}
-function renderFeed(){
-  const feed = document.getElementById('feed');
-  feed.innerHTML = '';
-  posts.forEach((p,idx)=>{
-    const div = document.createElement('div'); div.className = 'post';
-    let html = `<small>${new Date(p.time).toLocaleString()}</small><p>${escapeHtml(p.text)}</p>`;
-    if(p.file){
-      const isPdf = p.file.type.includes('pdf');
-      html += isPdf
-        ? `<iframe src="${p.file.data}" width="100%" height="400px"></iframe>`
-        : `<img src="${p.file.data}" alt="image">`;
-    }
-    html += `<div class="post-actions"><a onclick="toggleComment(${idx})">💬 Comment</a></div>`;
-    html += `<div id="c${idx}" style="display:none">`;
-    p.comments.forEach(c=>{
-      html += `<div style="margin-top:.3rem;font-size:.8rem;color:#ccc">• ${escapeHtml(c)}</div>`;
+<header>
+    <h1>Official News</h1>
+    <div>
+        <button class="btn" onclick="showNewPost()">＋ New Post</button>
+        <a class="btn" href="index.html" style="margin-left:.5rem">🏠 Home</a>
+    </div>
+</header>
+
+<div class="container" id="feed"></div>
+
+<!-- ========== NEW POST MODAL ========== -->
+<div class="modal" id="newPostModal">
+    <div class="modal-content">
+        <h3>Create News Post</h3>
+        <div class="form-group">
+            <label>Username / Author</label>
+            <input id="npUsername" placeholder="e.g.  Reuters">
+        </div>
+        <div class="form-group">
+            <label>Text (with mini editor)</label>
+            <div class="toolbar">
+                <select id="fs" onchange="format()"><option>Size</option><option value="1">small</option><option value="3">normal</option><option value="5">large</option><option value="7">huge</option></select>
+                <select id="fc" onchange="format()"><option>Color</option><option value="red">Red</option><option value="blue">Blue</option><option value="green">Green</option><option value="black">Black</option></select>
+                <select id="ff" onchange="format()"><option>Font</option><option value="Arial">Arial</option><option value="Georgia">Georgia</option><option value="Courier">Courier</option></select>
+                <button onclick="setBold()"><b>B</b></button>
+                <button onclick="setItalic()"><i>I</i></button>
+            </div>
+            <div contenteditable id="richEditor" style="border:1px solid var(--border);padding:.5rem;border-radius:6px;min-height:100px;"></div>
+        </div>
+        <div class="form-group">
+            <label>Attach file (img/video/pdf)</label>
+            <input type="file" id="npFile">
+        </div>
+        <div class="form-group">
+            <label>Preview</label>
+            <div id="previewArea"></div>
+        </div>
+        <div style="display:flex;gap:.5rem;justify-content:flex-end">
+            <button class="btn" onclick="publishPost()">Publish</button>
+            <button class="btn" style="background:#999" onclick="closeModal('newPostModal')">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- ========== OPTIONS / SHARE / ADMIN ========== -->
+<div class="modal" id="optsModal">
+    <div class="modal-content">
+        <h3>Post Options</h3>
+        <button class="btn" style="width:100%;margin-bottom:.5rem" onclick="copyLink()">🔗 Copy link</button>
+        <button class="btn" style="width:100%;margin-bottom:.5rem" onclick="shareExternal()">📤 Share</button>
+        <button class="btn" id="adminBtn" style="width:100%;display:none" onclick="showAdminActions()">⚙️ Admin features</button>
+        <button class="btn" style="width:100%;background:#999" onclick="closeModal('optsModal')">Close</button>
+    </div>
+</div>
+
+<!-- ========== ADMIN LOGIN ========== -->
+<div class="modal" id="loginModal">
+    <div class="modal-content">
+        <h3>Admin Login</h3>
+        <div class="form-group">
+            <label>Username</label>
+            <input id="logUser">
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="logPass">
+        </div>
+        <div style="display:flex;gap:.5rem;justify-content:flex-end">
+            <button class="btn" onclick="doLogin()">Login</button>
+            <button class="btn" style="background:#999" onclick="closeModal('loginModal')">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- ========== ADMIN ACTIONS ========== -->
+<div class="modal" id="adminModal">
+    <div class="modal-content">
+        <h3>Admin Actions</h3>
+        <button class="btn" style="width:100%;margin-bottom:.5rem" onclick="pinPost()">📌 Pin / Unpin</button>
+        <button class="btn" style="width:100%;margin-bottom:.5rem;background:var(--danger)" onclick="deletePost()">🗑️ Delete Post</button>
+        <button class="btn" style="width:100%;background:#999" onclick="closeModal('adminModal')">Close</button>
+    </div>
+</div>
+
+<div id="adminBadge">👑 Admin mode</div>
+
+<script>
+/* ====== simple data store ====== */
+let posts=JSON.parse(localStorage.getItem("newsPosts")||"[]");
+let currentPostId=null; // which post is being acted upon
+let admin=false;
+
+/* ====== render feed ====== */
+function render(){
+    const f=document.getElementById("feed");
+    f.innerHTML="";
+    posts.sort((a,b)=> (b.pinned||0)-(a.pinned||0) || b.date-a.date );
+    posts.forEach(p=>{
+        const d=new Date(p.date);
+        const card=document.createElement("div");
+        card.className="post";
+        card.id="post-"+p.id;
+        card.innerHTML=`
+        <div class="post-options" onclick="openOpts('${p.id}')">⋯</div>
+        <div class="post-header">
+            <span class="username">${esc(p.username)}</span>
+            <span class="post-time">${d.toLocaleString()}</span>
+            ${p.pinned?'<span style="color:var(--accent);font-size:.75rem">📌 Pinned</span>':''}
+        </div>
+        <div class="post-body">${p.html||esc(p.text)}</div>
+        ${p.file?`<div style="margin:.5rem 0"><a href="${p.file}" target="_blank">📎 View attachment</a></div>`:''}
+        <div class="post-footer">
+            <span onclick="react('${p.id}','like')">🔥 ${p.likes||0}</span>
+            <span class="dislike" onclick="react('${p.id}','dislike')">❄️ ${p.dislikes||0}</span>
+        </div>`;
+        f.appendChild(card);
     });
-    html += `<div class="comment-box"><input placeholder="comment…" id="inp${idx}"><button onclick="addComment(${idx})">➤</button></div></div>`;
-    div.innerHTML = html;
-    feed.appendChild(div);
-  });
 }
-function submitPost(){
-  const text = document.getElementById('postText').value.trim(); if(!text)return;
-  const fileInput = document.getElementById('postFile');
-  const newPost = {text, time:Date.now(), comments:[], file:null};
-  if(fileInput.files[0] && isGov){
-    const reader = new FileReader();
-    reader.onload = e=>{
-      newPost.file = {type:fileInput.files[0].type, data:e.target.result};
-      posts.unshift(newPost); save(); renderFeed();
-      document.getElementById('postText').value=''; fileInput.value='';
-    };
-    reader.readAsDataURL(fileInput.files[0]);
-  } else {
-    posts.unshift(newPost); save(); renderFeed();
-    document.getElementById('postText').value=''; fileInput.value='';
-  }
+render();
+
+/* ====== new post ====== */
+function showNewPost(){ document.getElementById("newPostModal").style.display="flex"; }
+function closeModal(id){ document.getElementById(id).style.display="none"; }
+function esc(str){ return str.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function setBold(){ document.execCommand("bold"); }
+function setItalic(){ document.execCommand("italic"); }
+function format(){
+    const s=document.getElementById("fs").value;
+    const c=document.getElementById("fc").value;
+    const f=document.getElementById("ff").value;
+    if(s!=="Size") document.execCommand("fontSize",false,s);
+    if(c!=="Color") document.execCommand("foreColor",false,c);
+    if(f!=="Font") document.execCommand("fontName",false,f);
 }
-function toggleComment(i){
-  const box = document.getElementById('c'+i);
-  box.style.display = box.style.display==='none'?'block':'none';
+document.getElementById("richEditor").addEventListener("input",()=>{
+    document.getElementById("previewArea").innerHTML=document.getElementById("richEditor").innerHTML;
+});
+function publishPost(){
+    const user=document.getElementById("npUsername").value.trim();
+    const html=document.getElementById("richEditor").innerHTML;
+    const text=document.getElementById("richEditor").innerText.trim();
+    const fileInput=document.getElementById("npFile");
+    if(!user||!text){ alert("Username and text required");return; }
+    let fileURL="";
+    if(fileInput.files.length){
+        const file=fileInput.files[0];
+        fileURL=URL.createObjectURL(file); // demo only – in prod upload to server
+    }
+    posts.push({ id:Date.now(), username:user, text:text, html:html, file:fileURL, date:Date.now(), likes:0, dislikes:0, pinned:false });
+    save(); render(); closeModal("newPostModal");
+    // reset form
+    document.getElementById("npUsername").value="";
+    document.getElementById("richEditor").innerHTML="";
+    document.getElementById("previewArea").innerHTML="";
+    document.getElementById("npFile").value="";
 }
-function addComment(i){
-  const inp = document.getElementById('inp'+i);
-  const val = inp.value.trim(); if(!val)return;
-  posts[i].comments.push(val); inp.value=''; save(); renderFeed();
+/* ====== reactions ====== */
+function react(id,type){
+    const p=posts.find(x=>x.id==id);
+    if(!p) return;
+    p[type]=(p[type]||0)+1;
+    save(); render();
 }
-renderFeed();
+/* ====== options ====== */
+function openOpts(id){ currentPostId=id; document.getElementById("optsModal").style.display="flex"; document.getElementById("adminBtn").style.display=admin?"block":"none"; }
+function copyLink(){
+    const url=location.href.split("#")[0]+"#post-"+currentPostId;
+    navigator.clipboard.writeText(url).then(()=>alert("Link copied!"));
+}
+function shareExternal(){
+    if(navigator.share){ navigator.share({title:"Check this news",url:location.href.split("#")[0]+"#post-"+currentPostId}); }
+    else{ copyLink(); }
+}
+/* ====== admin ====== */
+function showAdminActions(){ closeModal("optsModal"); document.getElementById("adminModal").style.display="flex"; }
+function doLogin(){
+    const u=document.getElementById("logUser").value.trim();
+    const p=document.getElementById("logPass").value.trim();
+    if(u==="master"&&p==="M4sterP@ss"){ admin=true; localStorage.setItem("newsAdmin","1"); document.getElementById("adminBadge").style.display="block"; closeModal("loginModal"); alert("Admin mode ON"); }
+    else{ alert("Wrong credentials"); }
+}
+function pinPost(){
+    const p=posts.find(x=>x.id==currentPostId);
+    if(p){ p.pinned=!p.pinned; save(); render(); closeModal("adminModal"); }
+}
+function deletePost(){
+    if(!confirm("Delete this post?")) return;
+    posts=posts.filter(x=>x.id!=currentPostId);
+    save(); render(); closeModal("adminModal");
+}
+/* ====== init ====== */
+if(localStorage.getItem("newsAdmin")==="1"){ admin=true; document.getElementById("adminBadge").style.display="block"; }
+function save(){ localStorage.setItem("newsPosts",JSON.stringify(posts)); }
 </script>
 </body>
 </html>

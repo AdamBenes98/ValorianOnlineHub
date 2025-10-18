@@ -8,67 +8,101 @@
 
 
   <style>
-    /* centre the chat */
-    .ai-card{
-      background:rgba(10,10,10,.65);
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:2rem;
-      width:100%;
-      max-width:640px;
-      margin:auto;              
-      backdrop-filter:blur(6px);
-      box-shadow:0 12px 40px #0006;
-      display:flex;              
-      flex-direction:column;
-      align-items:center;
-    }
-    .ai-card h2{margin:0 0 1.2rem;font-size:1.4rem;letter-spacing:.5px}
+  :root {
+    --accent: #58a6ff;
+    --border: #444;
+  }
 
-    /* animated background */
-    .ai-wrapper{
-      flex:1;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:2rem;
-      position:relative;
-      overflow:hidden;
-    }
-    .bg-animation{
-      position:absolute;
-      inset:0;
-      z-index:1;
-      pointer-events:none;
-    }
-    .bg-animation span{
-      position:absolute;
-      width:120px;
-      height:120px;
-      background:var(--accent);
-      opacity:.04;
-      border-radius:50%;
-      animation:move 18s infinite ease-in-out;
-    }
-    .bg-animation span:nth-child(1){top:10%;left:15%;animation-delay:0s}
-    .bg-animation span:nth-child(2){top:70%;left:80%;animation-delay:3s}
-    .bg-animation span:nth-child(3){top:40%;left:50%;animation-delay:6s}
-    .bg-animation span:nth-child(4){top:80%;left:20%;animation-delay:9s}
-    .bg-animation span:nth-child(5){top:20%;left:70%;animation-delay:12s}
+  /* centre the chat */
+  .ai-card {
+    background: rgba(10,10,10,.65);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 640px;
+    margin: auto;              
+    backdrop-filter: blur(6px);
+    box-shadow: 0 12px 40px #0006;
+    display: flex;              
+    flex-direction: column;
+    align-items: center;
+    z-index: 3;
+  }
+  .ai-card h2 {
+    margin: 0 0 1.2rem;
+    font-size: 1.4rem;
+    letter-spacing: .5px;
+  }
 
-    @keyframes move{
-      0%,100%{transform:translate(0,0) scale(1)}
-      33%{transform:translate(30px,-40px) scale(1.15)}
-      66%{transform:translate(-20px,20px) scale(.9)}
-    }
+  /* animated background */
+  .ai-wrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
 
-    /* force Noupe box to stay centred */
-    #noupe-wrapper{  
-      width:100%;
-      display:flex;
-      justify-content:center;
-    }
-  </style>
+  .bg-animation {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    filter: blur(20px);
+  }
+
+  .bg-animation span {
+    position: absolute;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.05;
+    animation: move 20s infinite ease-in-out;
+    mix-blend-mode: screen;
+  }
+
+  /* Generate more shapes */
+  .bg-animation span:nth-child(1) { width: 160px; height: 160px; top: 10%; left: 15%; animation-delay: 0s; }
+  .bg-animation span:nth-child(2) { width: 120px; height: 120px; top: 70%; left: 80%; animation-delay: 3s; }
+  .bg-animation span:nth-child(3) { width: 200px; height: 200px; top: 40%; left: 50%; animation-delay: 6s; }
+  .bg-animation span:nth-child(4) { width: 100px; height: 100px; top: 80%; left: 20%; animation-delay: 9s; }
+  .bg-animation span:nth-child(5) { width: 180px; height: 180px; top: 20%; left: 70%; animation-delay: 12s; }
+  .bg-animation span:nth-child(6) { width: 220px; height: 220px; top: 60%; left: 10%; animation-delay: 5s; opacity:.03; }
+  .bg-animation span:nth-child(7) { width: 140px; height: 140px; top: 5%; left: 85%; animation-delay: 8s; }
+  .bg-animation span:nth-child(8) { width: 180px; height: 180px; top: 90%; left: 45%; animation-delay: 11s; opacity:.02; }
+
+  @keyframes move {
+    0%, 100% { transform: translate(0,0) scale(1) rotate(0deg); }
+    25% { transform: translate(40px,-30px) scale(1.1) rotate(45deg); }
+    50% { transform: translate(-20px,20px) scale(0.9) rotate(90deg); }
+    75% { transform: translate(10px,50px) scale(1.05) rotate(135deg); }
+  }
+
+  /* keep centred */
+  #noupe-wrapper {  
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  /* general aesthetic */
+  body {
+    background: radial-gradient(ellipse at center, #0d1117 0%, #000 100%);
+    color: #ddd;
+    font-family: system-ui, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header, footer {
+    text-align: center;
+    padding: 1rem;
+    opacity: 0.8;
+  }
+</style>
 </head>
 
 <body>

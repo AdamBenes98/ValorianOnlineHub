@@ -17,6 +17,17 @@
   --radius:8px;
   --font:"Inter",system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
 }
+#editor{
+  width:100%; min-height:90px;
+  background:#111; color:var(--text);
+  border:1px solid #333; border-radius:var(--radius);
+  padding:.7rem; font-family:inherit;
+  white-space:pre-wrap;           /* keep line-breaks */
+}
+#editor:empty:before{
+  content:attr(placeholder);
+  color:#666;
+}
 /* ----- format-bar ----- */
 #formatBar{display:flex;align-items:center}
 #formatBar button,#formatBar select{background:#222;color:#fff;border:1px solid #444;border-radius:4px;padding:.3rem .5rem;font-size:.9rem;cursor:pointer}
@@ -159,49 +170,57 @@ let posts=JSON.parse(localStorage.getItem('newsPosts')||'[]');
 let adminMode=false;
 const adminCreds={user:'master',pass:'M4sterP@ss'};
 
-/* ---------- RICH-EDITOR ---------- */
-const ta=qs('#draft');
-const bar=qs('#formatBar');
-const hidden=qs('#hiddenHTML');
+/* ---------- SIMPLE EDITOR ---------- */
+const editor = qs('#editor');
+const sizeSel= qs('#sizeSelect');
 
-ta.addEventListener('focus',_=>bar.style.display='flex');
-ta.addEventListener('blur',_=>setTimeout(_=>bar.style.display='none',200)); // hide when focus lost
-
-/* whenever the raw text changes we sync it into the hidden div */
-ta.addEventListener('input',_=>{
-  hidden.innerHTML=ta.value
-    .replace(/\*\*(.*?)\*\*/g,'<b>$1</b>')          // **bold**
-    .replace(/\*(.*?)\*/g,'<i>$1</i>')              // *italic*
-    .replace(/__(.*?)__/g,'<u>$1</u>')              // __underline__
-    .replace(/`(.*?)`/g,'<code>$1</code>')          // `code`
-    .replace(/\n/g,'<br>');
+/* bold / italic buttons */
+qs('#formatBar').addEventListener('click',e=>{
+  const cmd = e.target.closest('button')?.dataset.cmd;
+  if(cmd) document.execCommand(cmd,false,null);
 });
 
-bar.addEventListener('mousedown',e=>{
-  e.preventDefault();                       // keep focus in textarea
-  const cmd=e.target.dataset.cmd;
-  if(cmd==='foreColor'){
-    const colour=prompt('Colour (hex or name):','#ff004c');
-    if(colour) document.execCommand(cmd,false,colour);
-  }else if(cmd){
-    document.execCommand(cmd,false,null);
-  }else if(e.target.id==='sizeSelect'){
-    document.execCommand('fontSize',false,e.target.value);
+/* size selector */
+sizeSel.onchange = ()=>{
+  document.execCommand('fontSize',false,'7');          // use biggest tag
+  const sel = window.getSelection();
+  if(sel.rangeCount){
+    const span = sel.getRangeAt(0).commonAncestorContainer.parentElement;
+    span.style.fontSize = sizeSel.value+'px';          // override with real px
+    span.removeAttribute('size');                      // tidy up
   }
-  syncBack();
-});
-
-/* copy the HTML that the browser produced back into the textarea (as plain text) */
-function syncBack(){
-  ta.value=hidden.innerText;
-}
-hidden.addEventListener('input',syncBack);
-
-/* ---------- SORT / RENDER ---------- */
-const sortPosts=mode=>{
-  if(mode==='top') posts.sort((a,b)=>(b.likes||0)-(a.likes||0));
-  else posts.sort((a,b)=>b.date-a.date);
 };
+
+/* send post */
+qs('#postBtn').onclick = ()=>{
+  const html = editor.innerHTML.trim();
+  if(!html) return;
+
+  const fileInp = qs('#fileInp'), file = fileInp.files[0];
+  const attachment = file ? {name:file.name, type:file.type, url:URL.createObjectURL(file)} : null;
+
+  posts.unshift({
+    id:randId(),
+    html,
+    text: editor.innerText,          // plain-text fallback
+    user:qs('#userInp').value.trim(),
+    date:Date.now(),
+    likes:0, dislikes:0,
+    attachment,
+    admin:adminMode,
+    pinned:false, highlighted:false
+  });
+
+  save(); render();
+  editor.innerHTML='';
+  qs('#userInp').value='';
+  fileInp.value='';
+};
+
+/* auto-save draft */
+const draftKey='newsDraft';
+window.addEventListener('beforeunload',()=> localStorage.setItem(draftKey,editor.innerHTML));
+editor.innerHTML=localStorage.getItem(draftKey)||'';
 const render=_=>{
   sortPosts(qs('#sortBar span.active').dataset.sort);
   qs('#feed').innerHTML='';
@@ -347,35 +366,31 @@ function toggleHighlight(id){
   p.highlighted=!p.highlighted; save(); render();
 }
 
-/* ---------- COMPOSER ---------- */
-qs('#postBtn').onclick=_=>{
-  const raw=ta.value.trim();
-  if(!raw) return;
-  const fileInp=qs('#fileInp'), file=fileInp.files[0];
-  const attachment=file?{name:file.name, type:file.type, url:URL.createObjectURL(file)}:null;
-  const post={
-    id:randId(),
-    text:raw,
-    html:hidden.innerHTML,                 // store the coloured HTML
-    user:qs('#userInp').value.trim(),
-    date:Date.now(),
-    likes:0, dislikes:0,
-    attachment,
-    admin:adminMode,
-    pinned:false,
-    highlighted:false
-  };
-  posts.unshift(post);
-  save(); render();
-  /* reset */
-  ta.value=''; hidden.innerHTML='';
-  qs('#userInp').value='';
-  fileInp.value='';
-};
-/* auto-save draft */
-const draftKey='newsDraft';
-ta.value=localStorage.getItem(draftKey)||'';
-ta.addEventListener('input',_=>localStorage.setItem(draftKey,ta.value));
+
+<section id="composer">
+  <!-- visible, plain editor -->
+  <div id="editor" contenteditable="true" placeholder="What’s happening?"></div>
+
+  <!-- tiny format bar -->
+  <div id="formatBar" style="display:flex;gap:.4rem;margin:.4rem 0">
+    <button data-cmd="bold" title="bold"><b>B</b></button>
+    <button data-cmd="italic" title="italic"><i>I</i></button>
+
+    <select id="sizeSelect" title="size">
+      <option value="16">normal</option>
+      <option value="22">subtitle</option>
+      <option value="30">title</option>
+    </select>
+  </div>
+
+  <!-- file / user / post -->
+  <div id="composerOptions">
+    <input id="fileInp" type="file" accept="image/*,.pdf" />
+    <label for="fileInp">📎 Attach</label>
+    <input id="userInp" type="text" placeholder="Username (optional)" />
+    <button id="postBtn">Post</button>
+  </div>
+</section>
 
 /* ---------- SORT BAR ---------- */
 qsa('#sortBar span').forEach(el=>{

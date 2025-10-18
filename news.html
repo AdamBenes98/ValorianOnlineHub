@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<title>Official News Feed</title>
+<meta charset="UTF-8">
+<title>News Feed</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-/* =====  YOUR EXACT TOKENS  ===== */
+/* ---------- CSS VARIABLES ---------- */
 :root{
   --bg:#000;
   --card:#0a0a0a;
@@ -14,259 +14,302 @@
   --text:#fff;
   --sub:#aaa;
   --gap:1.2rem;
-  font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  --radius:8px;
+  --font:'Inter',system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
 }
-* {box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+/* ---------- RESET ---------- */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.4}
 a{color:var(--accent);text-decoration:none}
-header,footer{background:var(--card);border-bottom:2px solid var(--accent)}
-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem}
-header h1{margin:0;font-size:1.6rem;letter-spacing:1px}
-header span{font-weight:300;font-size:.9rem;color:var(--sub)}
-main{flex:1;padding:2rem;max-width:1100px;margin:auto;width:100%}
-button{cursor:pointer;border:none;border-radius:4px;padding:.5rem .9rem;font-weight:600;background:var(--accent);color:#fff}
-button:disabled{opacity:.45;cursor:not-allowed}
-small{color:var(--sub)}
-/* =====  FEED STYLES  ===== */
-.feed-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
-.feed-header h2{margin:0}
-#backToIndex{background:#333}
-#newPostBtn{background:#0c0}
-#adminBadge{display:none;background:#ff0;color:#000;padding:.2rem .5rem;border-radius:4px;font-size:.7rem;margin-left:.5rem}
-/* NEW-POST COMPOSER */
-.composer{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:1.5rem;display:none}
-.composer.active{display:block}
-.composer .toolbar{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.5rem}
-.composer input[type=color],
-.composer select,
-.composer input[type=file]{padding:.3rem;font-size:.8rem;background:#222;color:var(--text);border:1px solid #444;border-radius:4px}
-.composer textarea{width:100%;min-height:100px;padding:.6rem;background:#222;color:var(--text);border:1px solid #444;border-radius:4px;resize:vertical;font-family:inherit}
-.composer .preview{max-width:100%;max-height:200px;border-radius:4px;margin-top:.5rem}
-/* POST CARD */
-.post{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:1.2rem;position:relative}
-.post .head{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem}
-.post .head .avatar{width:36px;height:36px;border-radius:50%;background:var(--accent);display:grid;place-items:center;font-weight:700;font-size:1rem}
-.post .meta{font-size:.75rem;color:var(--sub)}
-.post .body{margin:.7rem 0;white-space:pre-wrap;word-break:break-word}
-.post .body img,.post .body video{max-width:100%;border-radius:6px;margin-top:.5rem}
-.post .actions{display:flex;align-items:center;gap:1rem;font-size:.85rem;margin-top:.5rem}
-.post .actions span{cursor:pointer}
-.post .actions .liked{color:#ff1744}
-.post .actions .disliked{color:#3b82f6}
-/* ADMIN ONLY */
-.post .adminMenu{position:absolute;top:.5rem;right:.5rem;font-size:.9rem;cursor:pointer}
-/* SHARE POPUP */
-.sharePop{display:none;position:absolute;background:#1b1b1b;border:1px solid #444;border-radius:6px;padding:.5rem .7rem;z-index:10;font-size:.8rem}
-.sharePop.active{display:block}
-.sharePop input{width:180px;padding:.3rem;background:#222;color:var(--text);border:1px solid #444;border-radius:4px;margin-left:.5rem}
-/* LOGIN MODAL */
-.modal{display:none;position:fixed;inset:0;background:#000a;z-index:100}
-.modal.active{display:flex;align-items:center;justify-content:center}
-.modalBox{background:var(--card);border:2px solid var(--accent);border-radius:8px;padding:1.5rem;width:300px}
-.modalBox h3{margin-top:0}
-.modalBox input{width:100%;padding:.5rem;margin:.4rem 0;background:#222;color:var(--text);border:1px solid #444;border-radius:4px}
-.modalBox .err{color:#f55;font-size:.8rem;margin-top:.3rem}
+img{max-width:100%;display:block;border-radius:var(--radius)}
+/* ---------- HEADER ---------- */
+header{background:var(--card);border-bottom:2px solid var(--accent);padding:.8rem 1.2rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+header h1{font-size:1.3rem;letter-spacing:.5px}
+#backBtn{background:transparent;border:1px solid var(--accent);color:var(--accent);padding:.4rem .8rem;border-radius:var(--radius);cursor:pointer;font-weight:bold;transition:.2s}
+#backBtn:hover{background:var(--accent);color:#fff}
+/* ---------- MAIN ---------- */
+main{max-width:680px;margin:auto;padding:1rem 1rem 4rem}
+/* ---------- NEW POST ---------- */
+.new-post{background:#111;border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:1.2rem}
+.new-post h2{margin-bottom:.6rem;font-size:1.1rem}
+.new-post input[type=text],.new-post textarea,.new-post select{width:100%;padding:.5rem;margin-top:.4rem;background:#1a1a1a;border:1px solid #333;border-radius:4px;color:var(--text);font-family:inherit}
+.new-post textarea{resize:vertical;min-height:70px}
+.new-post input[type=file]{margin-top:.4rem}
+.font-row{display:flex;gap:.5rem;margin-top:.4rem;flex-wrap:wrap}
+.font-row select,.font-row input{flex:1}
+.new-post button{margin-top:.6rem;padding:.5rem 1rem;border:none;border-radius:4px;background:var(--accent);color:#fff;font-weight:bold;cursor:pointer}
+/* ---------- POSTS ---------- */
+.post{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:1rem;position:relative;transition:.2s}
+.post.pinned{border-color:var(--accent)}
+.post.highlighted{background:#1c1c1c;border:1px solid #ffd700}
+.post-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem}
+.post-header .name{font-weight:bold}
+.post-header .time{font-size:.75rem;color:var(--sub)}
+.post-body{margin:.5rem 0;word-break:break-word}
+.post-body .attachment{margin-top:.5rem}
+.post-actions{display:flex;gap:1rem;font-size:.8rem;margin-top:.6rem}
+.post-actions span{cursor:pointer;user-select:none;display:flex;align-items:center;gap:.3rem;color:var(--sub);transition:.2s}
+.post-actions span:hover{color:var(--text)}
+.post-actions .options{position:relative}
+.post-actions .options-menu{display:none;position:absolute;top:1.4rem;right:0;background:#1a1a1a;border:1px solid #444;border-radius:4px;overflow:hidden;z-index:5}
+.post-actions .options-menu a{display:block;padding:.4rem .7rem;font-size:.75rem;color:var(--text);white-space:nowrap}
+.post-actions .options-menu a:hover{background:#222}
+/* ---------- MODALS ---------- */
+.modal{display:none;position:fixed;inset:0;background:#0008;z-index:20;align-items:center;justify-content:center}
+.modal.active{display:flex}
+.modal-content{background:#111;border:1px solid #444;border-radius:var(--radius);padding:1.2rem;min-width:260px}
+.modal-content h3{margin-bottom:.6rem}
+.modal-content input{width:100%;padding:.5rem;margin:.4rem 0;background:#1a1a1a;border:1px solid #333;border-radius:4px;color:var(--text)}
+.modal-buttons{display:flex;gap:.6rem;margin-top:.6rem}
+.modal-buttons button{flex:1;padding:.5rem;border:none;border-radius:4px;cursor:pointer;font-weight:bold}
+.modal-buttons .ok{background:var(--accent);color:#fff}
+.modal-buttons .cancel{background:#333;color:#fff}
+/* ---------- RESPONSIVE ---------- */
+@media(max-width:500px){
+  header h1{font-size:1.1rem}
+  .font-row{flex-direction:column}
+}
 </style>
 </head>
 <body>
 
 <header>
-  <h1>Official News</h1>
-  <div>
-    <button id="backToIndex" onclick="location.href='index.html'">← Back to main page</button>
-    <span id="adminBadge">ADMIN</span>
-  </div>
+  <h1>Official News Feed</h1>
+  <a href="index.html"><button id="backBtn">Back to Main Page</button></a>
 </header>
 
 <main>
-  <div class="feed-header">
-    <h2>Live Feed</h2>
-    <div>
-      <button id="newPostBtn">+ New post</button>
+  <!-- NEW POST -->
+  <section class="new-post">
+    <h2>Share Update</h2>
+    <input type="text" id="username" placeholder="Your name">
+    <textarea id="message" placeholder="What's happening?"></textarea>
+    <input type="file" id="fileInput" accept="image/*,.pdf">
+    <div class="font-row">
+      <select id="fontSize"><option value="">Font size</option><option>12px</option><option>14px</option><option>16px</option><option>18px</option><option>20px</option></select>
+      <input type="color" id="fontColor" value="#ffffff">
+      <select id="fontFamily"><option value="">Font family</option><option>Inter</option><option>Roboto</option><option>Lato</option><option>Georgia</option><option>Courier</option></select>
     </div>
-  </div>
-
-  <!-- COMPOSER -->
-  <section id="composer" class="composer">
-    <div class="toolbar">
-      <input type="color" id="fontColor" value="#ffffff" title="Text colour">
-      <select id="fontSize">
-        <option>12px</option><option>14px</option><option selected>16px</option>
-        <option>18px</option><option>22px</option><option>28px</option>
-      </select>
-      <select id="fontFamily">
-        <option>system-ui</option><option>Arial</option><option>Georgia</option><option>monospace</option>
-      </select>
-      <label title="Attach file"><input type="file" id="attach" accept="image/*,video/mp4,video/webm"></label>
-    </div>
-    <textarea id="editor" placeholder="What’s happening? …"></textarea>
-    <img class="preview" id="preview" style="display:none;">
-    <div style="margin-top:.5rem;display:flex;gap:.5rem">
-      <button id="publishBtn">Publish</button>
-      <button id="cancelBtn">Cancel</button>
-    </div>
+    <button id="postBtn">Post</button>
   </section>
 
   <!-- FEED -->
-  <section id="feed"></section>
+  <div id="feed"></div>
 </main>
 
-<!-- LOGIN MODAL -->
+<!-- MODALS -->
 <div id="loginModal" class="modal">
-  <div class="modalBox">
-    <h3>Admin login</h3>
-    <input id="userInp" placeholder="Username">
-    <input id="passInp" type="password" placeholder="Password">
-    <div class="err" id="loginErr"></div>
-    <button onclick="doLogin()">Log in</button>
-    <button onclick="closeLogin()">Cancel</button>
+  <div class="modal-content">
+    <h3>Admin Login</h3>
+    <input id="loginUser" placeholder="Username">
+    <input id="loginPass" type="password" placeholder="Password">
+    <div class="modal-buttons">
+      <button class="ok" id="loginOk">Login</button>
+      <button class="cancel" id="loginCancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="editModal" class="modal">
+  <div class="modal-content">
+    <h3>Edit Post</h3>
+    <textarea id="editText"></textarea>
+    <div class="modal-buttons">
+      <button class="ok" id="editOk">Save</button>
+      <button class="cancel" id="editCancel">Cancel</button>
+    </div>
   </div>
 </div>
 
 <script>
-/* =====  DATA STORE  ===== */
-let posts = JSON.parse(localStorage.getItem('newsPosts')||'[]');
-let nextId = posts.length ? Math.max(...posts.map(p=>p.id))+1 : 1;
-let adminMode = false;
-
-/* =====  UTILS  ===== */
-const $ = q=>document.querySelector(q);
-const save = ()=> localStorage.setItem('newsPosts',JSON.stringify(posts));
-const fmtDate = d=> new Date(d).toLocaleString();
-
-/* =====  RENDER  ===== */
-function renderFeed(){
-  const f = $('#feed');
-  f.innerHTML = posts.length ? posts.map(card).join('') : '<p style="text-align:center;color:var(--sub)">No news yet.</p>';
-}
-function card(p){
-  const liked = (p.likes||0)>0, disliked = (p.dislikes||0)>0;
-  return `
-  <article class="post" data-id="${p.id}">
-    <div class="head">
-      <div class="avatar">N</div>
-      <div>
-        <div><b>Newsroom</b></div>
-        <div class="meta">${fmtDate(p.date)}</div>
+/* ---------- UTILS ---------- */
+const qs=s=>document.querySelector(s);
+const qsa=s=>[...document.querySelectorAll(s)];
+const genId=_=>'_'+Math.random().toString(36).substr(2,9);
+const timeAgo=t=>{
+  const s=Math.floor((Date.now()-t)/1000);
+  if(s<60)return s+'s';
+  const m=Math.floor(s/60);
+  if(m<60)return m+'m';
+  const h=Math.floor(m/60);
+  if(h<24)return h+'h';
+  const d=Math.floor(h/24);
+  return d+'d';
+};
+/* ---------- STATE ---------- */
+let posts=JSON.parse(localStorage.getItem('newsPosts')||'[]');
+let isAdmin=false;
+let currentEditId=null;
+let draft=JSON.parse(localStorage.getItem('newsDraft')||'{}');
+/* ---------- DOM ---------- */
+const feed=qs('#feed');
+const username=qs('#username');
+const message=qs('#message');
+const fileInput=qs('#fileInput');
+const fontSize=qs('#fontSize');
+const fontColor=qs('#fontColor');
+const fontFamily=qs('#fontFamily');
+const postBtn=qs('#postBtn');
+const loginModal=qs('#loginModal');
+const editModal=qs('#editModal');
+/* ---------- LOAD DRAFT ---------- */
+if(draft.username)username.value=draft.username;
+if(draft.message)message.value=draft.message;
+if(draft.fontSize)fontSize.value=draft.fontSize;
+if(draft.fontColor)fontColor.value=draft.fontColor;
+if(draft.fontFamily)fontFamily.value=draft.fontFamily;
+/* ---------- SAVE DRAFT ---------- */
+const saveDraft=_=>{
+  localStorage.setItem('newsDraft',JSON.stringify({
+    username:username.value,
+    message:message.value,
+    fontSize:fontSize.value,
+    fontColor:fontColor.value,
+    fontFamily:fontFamily.value
+  }));
+};
+[username,message,fontSize,fontColor,fontFamily].forEach(el=>el.addEventListener('input',saveDraft));
+/* ---------- RENDER ---------- */
+function render(){
+  const sorted=[...posts].sort((a,b)=>{
+    if(a.pinned&&!b.pinned)return -1;
+    if(!a.pinned&&b.pinned)return 1;
+    return b.ts-a.ts;
+  });
+  feed.innerHTML='';
+  sorted.forEach(p=>{
+    const div=document.createElement('div');
+    div.className='post'+(p.pinned?' pinned':'')+(p.highlighted?' highlighted':'');
+    div.dataset.id=p.id;
+    const attachment=p.attachment?`<div class="attachment">${p.attachment.type.startsWith('image')?`<img src="${p.attachment.url}">`:`<a href="${p.attachment.url}" target="_blank">📄 ${p.attachment.name}</a>`}</div>`:'';
+    div.innerHTML=`
+      <div class="post-header">
+        <span class="name">${escape(p.username)} ${p.admin?'<span class="badge">ADMIN</span>':''}</span>
+        <span class="time">${timeAgo(p.ts)}</span>
       </div>
-    </div>
-    <div class="body" style="color:${p.color||''};font-size:${p.size||''};font-family:${p.family||''}">
-      ${p.text}
-      ${p.media ? (p.media.video?
-        `<video controls src="${p.media.url}"></video>`:
-        `<img src="${p.media.url}">`) : ''}
-    </div>
-    <div class="actions">
-      <span class="${liked?'liked':''}" onclick="like(${p.id})">❤ ${p.likes||0}</span>
-      <span class="${disliked?'disliked':''}" onclick="dislike(${p.id})">👎 ${p.dislikes||0}</span>
-      <span onclick="toggleShare(${p.id},event)">🔗 Share</span>
-    </div>
-    ${adminMode?`<span class="adminMenu" onclick="adminDel(${p.id})">🗑</span>`:''}
-    <div class="sharePop" id="sh-${p.id}">
-      <b>Link:</b><input readonly onclick="this.select()" value="${location.origin+location.pathname}#${p.id}">
-    </div>
-  </article>`;
+      <div class="post-body" style="${p.style||''}">${escape(p.message)}</div>
+      ${attachment}
+      <div class="post-actions">
+        <span data-act="like">👍 ${p.likes||0}</span>
+        <span data-act="dislike">👎 ${p.dislikes||0}</span>
+        <span data-act="share">🔗 Share</span>
+        <span class="options">
+          <span data-act="opts">⋮</span>
+          <div class="options-menu" style="display:none">
+            <a href="#" data-act="share-link">Copy link</a>
+            <a href="#" data-act="report">Report</a>
+            ${isAdmin?`
+            <a href="#" data-act="edit">Edit</a>
+            <a href="#" data-act="pin">${p.pinned?'Unpin':'Pin'}</a>
+            <a href="#" data-act="highlight">${p.highlighted?'Un-highlight':'Highlight'}</a>
+            <a href="#" data-act="delete">Delete</a>
+            `:'<a href="#" data-act="admin">Admin Features</a>'}
+          </div>
+        </span>
+      </div>
+    `;
+    feed.appendChild(div);
+  });
+  attachEvents();
 }
-/* =====  COMPOSER  ===== */
-$('#newPostBtn').onclick = ()=> $('#composer').classList.add('active');
-$('#cancelBtn').onclick = ()=> { $('#composer').classList.remove('active'); resetComposer(); };
-$('#attach').onchange = e=>{
-  const file = e.target.files[0];
-  if(!file) return;
-  const url = URL.createObjectURL(file);
-  const isVid = file.type.startsWith('video');
-  $('#preview').src=url; $('#preview').style.display='block';
-  $('#composer').dataset.media = url;
-  $('#composer').dataset.mediaType = isVid?'video':'image';
-};
-function resetComposer(){
-  $('#editor').value='';
-  $('#attach').value='';
-  $('#preview').style.display='none';
-  delete $('#composer').dataset.media;
+function attachEvents(){
+  qsa('.post-actions span[data-act]').forEach(btn=>{
+    btn.onclick=e=>{
+      e.stopPropagation();
+      const act=btn.dataset.act;
+      const postEl=btn.closest('.post');
+      const id=postEl.dataset.id;
+      const p=posts.find(x=>x.id===id);
+      if(!p)return;
+      if(act==='like'){p.likes=(p.likes||0)+1;save();render();}
+      if(act==='dislike'){p.dislikes=(p.dislikes||0)+1;save();render();}
+      if(act==='share'){copyLink(id);}
+      if(act==='opts'){toggleMenu(btn);}
+      if(act==='share-link'){copyLink(id);closeMenus();}
+      if(act==='report'){alert('Reported');closeMenus();}
+      if(act==='admin'){openLogin();closeMenus();}
+      if(act==='edit'){openEdit(id);closeMenus();}
+      if(act==='delete'){posts=posts.filter(x=>x.id!==id);save();render();}
+      if(act==='pin'){p.pinned=!p.pinned;save();render();}
+      if(act==='highlight'){p.highlighted=!p.highlighted;save();render();}
+    }
+  });
 }
-$('#publishBtn').onclick = ()=>{
-  const text = $('#editor').value.trim();
-  if(!text) return;
-  const post = {
-    id: nextId++,
-    text,
-    date: Date.now(),
-    color: $('#fontColor').value,
-    size: $('#fontSize').value,
-    family: $('#fontFamily').value,
-    likes:0, dislikes:0
+function toggleMenu(btn){
+  const menu=btn.querySelector('.options-menu');
+  const open=menu.style.display==='block';
+  closeMenus();
+  menu.style.display=open?'none':'block';
+}
+function closeMenus(){qsa('.options-menu').forEach(m=>m.style.display='none');}
+window.addEventListener('click',closeMenus);
+/* ---------- POST ---------- */
+postBtn.onclick=_=>{
+  if(!username.value.trim()||!message.value.trim())return alert('Fill name and message');
+  const file=fileInput.files[0];
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const attachment=file?{name:file.name,type:file.type,url:e.target.result}:null;
+    const style=`${fontSize.value?`font-size:${fontSize.value};`:''}${fontColor.value?`color:${fontColor.value};`:''}${fontFamily.value?`font-family:${fontFamily.value},sans-serif;`:''}`;
+    posts.unshift({
+      id:genId(),
+      username:username.value.trim(),
+      message:message.value.trim(),
+      attachment,
+      style,
+      ts:Date.now(),
+      admin:isAdmin,
+      likes:0,
+      dislikes:0,
+      pinned:false,
+      highlighted:false
+    });
+    save();
+    // reset
+    username.value=message.value='';fileInput.value='';
+    fontSize.value=fontColor.value=fontFamily.value='';
+    localStorage.removeItem('newsDraft');
+    render();
   };
-  if($('#composer').dataset.media){
-    post.media={url:$('#composer').dataset.media, video:$('#composer').dataset.mediaType=='video'};
-  }
-  posts.unshift(post);
-  save(); resetComposer(); $('#composer').classList.remove('active'); renderFeed();
+  if(file)reader.readAsDataURL(file);else reader.onload({target:{result:null}});
 };
-/* =====  LIKES / DISLIKES  ===== */
-function like(id){
-  const p = posts.find(x=>x.id==id);
-  if(!p) return;
-  p.likes = (p.likes||0)+1;
-  save(); renderFeed();
+/* ---------- SAVE / COPY ---------- */
+function save(){localStorage.setItem('newsPosts',JSON.stringify(posts));}
+function copyLink(id){
+  const url=`${location.origin}${location.pathname}#${id}`;
+  navigator.clipboard.writeText(url).then(_=>alert('Link copied!'));
 }
-function dislike(id){
-  const p = posts.find(x=>x.id==id);
-  if(!p) return;
-  p.dislikes = (p.dislikes||0)+1;
-  save(); renderFeed();
+/* ---------- LOGIN ---------- */
+function openLogin(){loginModal.classList.add('active');qs('#loginUser').focus();}
+qs('#loginCancel').onclick=_=>loginModal.classList.remove('active');
+qs('#loginOk').onclick=_=>{
+  const u=qs('#loginUser').value.trim();
+  const p=qs('#loginPass').value;
+  if(u==='master'&&p==='M4sterP@ss'){isAdmin=true;loginModal.classList.remove('active');render();alert('Admin mode unlocked');}
+  else alert('Wrong credentials');
+  qs('#loginPass').value='';
+};
+/* ---------- EDIT ---------- */
+function openEdit(id){
+  const p=posts.find(x=>x.id===id);
+  if(!p)return;
+  currentEditId=id;
+  qs('#editText').value=p.message;
+  editModal.classList.add('active');
 }
-/* =====  SHARE  ===== */
-function toggleShare(id,e){
-  e.stopPropagation();
-  const box = $(`#sh-${id}`);
-  box.classList.toggle('active');
-  const close = ()=> box.classList.remove('active');
-  document.addEventListener('click',close,{once:true});
-}
-/* =====  ADMIN  ===== */
-function adminDel(id){
-  if(!confirm('Delete this post?')) return;
-  posts = posts.filter(p=>p.id!==id);
-  save(); renderFeed();
-}
-function openLogin(){
-  $('#loginModal').classList.add('active');
-  $('#userInp').focus();
-}
-function closeLogin(){
-  $('#loginModal').classList.remove('active');
-  $('#loginErr').textContent='';
-}
-function doLogin(){
-  const u = $('#userInp').value, p = $('#passInp').value;
-  if(u==='master' && p==='M4sterP@ss'){
-    adminMode=true;
-    $('#adminBadge').style.display='inline-block';
-    closeLogin();
-    renderFeed();
-  } else {
-    $('#loginErr').textContent='Wrong credentials.';
-  }
-}
-/* =====  OPTIONS ON EACH POST  ===== */
-window.addEventListener('contextmenu',e=>{
-  const post = e.target.closest('.post');
-  if(!post) return;
-  e.preventDefault();
-  if(adminMode) return; // already shows bin icon
-  openLogin();
-});
-/* =====  DEEP-LINK  ===== */
+qs('#editCancel').onclick=_=>editModal.classList.remove('active');
+qs('#editOk').onclick=_=>{
+  const p=posts.find(x=>x.id===currentEditId);
+  if(p){p.message=qs('#editText').value;save();render();}
+  editModal.classList.remove('active');
+};
+/* ---------- INIT ---------- */
+render();
+/* ---------- HASH JUMP ---------- */
 if(location.hash){
-  const id = parseInt(location.hash.slice(1));
-  if(id) setTimeout(()=>{
-    const el = $(`[data-id="${id}"]`);
-    if(el){ el.style.border='2px solid var(--accent)'; el.scrollIntoView({block:'center'}); }
-  },200);
+  const id=location.hash.slice(1);
+  setTimeout(_=>qs(`[data-id="${id}"]`)?.scrollIntoView({behavior:'smooth'}),300);
 }
-/* =====  INIT  ===== */
-renderFeed();
 </script>
 </body>
 </html>

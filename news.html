@@ -53,12 +53,12 @@ main{flex:1;padding:2rem 1rem;max-width:700px;margin:auto;width:100%}
 .postActions .liked{color:#1da1f2}
 .postActions .disliked{color:#e0245e}
 
-/* ---------- OPTIONS DROPDOWN ---------- */
+/* ---------- OPTIONS DROPDOWN (FIXED) ---------- */
 .opts{position:relative}
-.optsMenu{position:absolute;top:1.4rem;right:0;background:#111;border:1px solid #333;border-radius:var(--radius);overflow:hidden;display:none;z-index:10}
+.optsMenu{position:absolute;top:1.4rem;right:0;background:#111;border:1px solid #333;border-radius:var(--radius);overflow:hidden;opacity:0;pointer-events:none;transition:opacity .15s;z-index:10}
+.opts:hover .optsMenu{opacity:1;pointer-events:auto}
 .optsMenu a{display:block;padding:.5rem .9rem;font-size:.8rem;color:var(--text);white-space:nowrap}
 .optsMenu a:hover{background:#222}
-.opts:hover .optsMenu{display:block}
 
 /* ---------- ADMIN LOGIN MODAL ---------- */
 .modal{display:none;position:fixed;inset:0;background:#000a;align-items:center;justify-content:center;z-index:100}
@@ -132,6 +132,18 @@ const randId=_=>Math.random().toString(36).slice(2)+Date.now().toString(36);
 let posts=JSON.parse(localStorage.getItem('newsPosts')||'[]');
 let adminMode=false;
 const adminCreds={user:'master',pass:'M4sterP@ss'};
+
+/* ---------- LIVE PREVIEW ---------- */
+function syncPreview(){
+  const ta=qs('#draft');
+  ta.style.fontFamily=qs('#fontFamily').value;
+  ta.style.fontSize=qs('#fontSize').value;
+  ta.style.color=qs('#fontColor').value;
+}
+qs('#fontFamily').onchange=syncPreview;
+qs('#fontSize').onchange=syncPreview;
+qs('#fontColor').oninput=syncPreview;
+syncPreview(); // initial
 
 /* ---------- DRAG-ORDER SORT ---------- */
 const sortPosts=mode=>{

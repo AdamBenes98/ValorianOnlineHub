@@ -1,0 +1,43 @@
+/* ===== YOUR EXISTING VARS (kept intact) ===== */
+:root{
+  --bg:#000;
+  --card:#0a0a0a;
+  --border:#222;
+  --accent:#dc143c;
+  --text:#fff;
+  --sub:#aaa;
+  --gap:1.2rem;
+  font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+}
+* {box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+a{color:var(--accent);text-decoration:none}
+header,footer{background:var(--card);border-bottom:2px solid var(--accent)}
+header{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem}
+header h1{margin:0;font-size:1.6rem;letter-spacing:1px}
+header span{font-weight:300;font-size:.9rem;color:var(--sub)}
+main{flex:1;padding:2rem;max-width:1100px;margin:auto;width:100%}
+footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-bottom:none;border-top:2px solid var(--accent)}
+
+/* ===== MAP STYLES ===== */
+#map-wrapper{position:relative;max-width:100%;margin:auto}
+#map-img{width:100%;display:block}
+#map-overlay{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none}
+#map-overlay polygon{pointer-events:all;cursor:pointer;fill:rgba(220,20,60,.15);stroke:var(--accent);stroke-width:2;transition:fill .2s}
+#map-overlay polygon:hover{fill:rgba(220,20,60,.35)}
+
+/* ===== INFO PANEL ===== */
+#info-panel{position:fixed;right:0;top:0;height:100%;width:min(380px,90vw);background:var(--card);border-left:2px solid var(--accent);padding:1.5rem;overflow-y:auto;transform:translateX(100%);transition:transform .3s}
+#info-panel.hidden{transform:translateX(100%)}
+#info-panel:not(.hidden){transform:translateX(0)}
+#close-btn{position:absolute;right:1rem;top:1rem;background:none;border:none;color:var(--accent);font-size:1.5rem;cursor:pointer}
+#panel-content h2{margin-top:0}
+#panel-content .price{font-size:1.2rem;color:var(--accent)}
+#panel-content .gallery{display:flex;gap:.5rem;overflow-x:auto;margin:.8rem 0}
+#panel-content .gallery img{height:120px;border-radius:4px;border:1px solid var(--border)}
+
+/* ===== SMALL SCREENS ===== */
+@media(max-width:600px){
+  header h1{font-size:1.2rem}
+  main{padding:1rem}
+}

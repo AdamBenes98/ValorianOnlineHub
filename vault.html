@@ -2,70 +2,191 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>GovVault – Login</title>
+<title>GovVault – Master Archive</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="hub.css">
+<style>
+:root{
+  --bg:#111;
+  --text:#ffffff;
+  --sub:#999;
+  --red:#ff5252;
+  --radius:4px;
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+@media (prefers-color-scheme:light){
+  :root{ --bg:#1e1e1e; --card:#1e1e1e; --text:#fff; --sub:#aaa; }
+}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);padding:2rem}
+a{color:var(--red)}
+.small{font-size:.8rem;color:var(--sub)}
+h1,h2{margin:0 0 .5rem}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem}
+.card{background:#1e1e1e;padding:1.2rem;border-radius:8px;margin-bottom:1.2rem}
+input,button{padding:.5rem;border:none;border-radius:var(--radius);font-size:1rem}
+input{background:#222;color:var(--text);width:100%}
+button{background:var(--red);color:#000;font-weight:bold;cursor:pointer;transition:filter .15s}
+button:hover{filter:brightness(1.15)}
+.barWrap{height:20px;background:#222;border-radius:var(--radius);overflow:hidden;margin:.5rem 0}
+.bar{height:100%;background:var(--red);transition:width .3s}
+.memo{margin-bottom:1rem}
+.memo small{display:block;margin-bottom:.3rem}
+pre{white-space:pre-wrap;margin:0}
+iframe,img{max-width:100%;border-radius:4px;margin-top:.5rem}
+.hidden{display:none}
+</style>
 </head>
 <body>
-<div class="news-header">
-  <h1>GovVault</h1>
-  <a href="hub.html">← Back to Hub</a>
+
+<div class="header">
+  <h1>GovVault – Master Archive</h1>
+  <a href="index.html">← Back to Hub</a>
 </div>
-<div class="vault-login">
-  <input id="pw" type="password" placeholder="Enter password">
-  <button onclick="check()">Unlock</button>
+
+<!-- ==========  GATE  ========== -->
+<div id="gate" class="card">
+  <h2>Master Login</h2>
+  <input id="user" type="text" placeholder="Username">
+  <input id="pass" type="password" placeholder="Password">
+  <button onclick="login()">Login</button>
 </div>
-<script>
-function check(){
-  if(document.getElementById('pw').value === 'Vavau4578'){
-    document.body.innerHTML = `
-<div class="news-header"><h1>GovVault – Archive</h1><a href="hub.html">← Back to Hub</a></div>
-<div class="news-main">
-  <div class="new-post">
-    <textarea id="memoText" placeholder="Internal memo…"></textarea>
-    <input type="file" id="memoFile">
-    <button onclick="submitMemo()">Save Memo</button>
+
+<!-- ==========  VAULT  ========== -->
+<div id="vault" class="hidden">
+  <div class="header">
+    <h2>Welcome, Master</h2>
+    <button onclick="logout()">Logout</button>
   </div>
-  <div id="memos"></div>
-</div>`;
+
+  <!-- Poll Manager -->
+  <div class="card">
+    <h2>Poll Manager</h2>
+    <input id="pollTitle" placeholder="Poll title">
+    <input id="pollEnd" type="datetime-local">
+    <button onclick="createPoll()">Create Poll</button>
+    <button onclick="downloadCsv()">Download CSV</button>
+    <div id="pollList"></div>
+  </div>
+
+  <!-- Memo Vault -->
+  <div class="card">
+    <h2>Internal Memos</h2>
+    <textarea id="memoText" rows="4" placeholder="Internal memo…"></textarea>
+    <input type="file" id="memoFile" accept="image/*,application/pdf">
+    <button onclick="submitMemo()">Save Memo</button>
+    <div id="memos"></div>
+  </div>
+</div>
+
+<script>
+/* ----------  CONFIG  ---------- */
+const MASTER_USER = 'master';   // change if you like
+const MASTER_PASS = 'M4sterP@ss'; // change if you like
+const ARCHIVE_KEY = 'archive';   // same key the voter page uses
+const MEMO_KEY    = 'govMemos';
+
+/* ----------  HELPERS  ---------- */
+const $ = q => document.querySelector(q);
+function storage(k,v){ return v===undefined ? JSON.parse(localStorage.getItem(k)||'null') : localStorage.setItem(k,JSON.stringify(v)); }
+
+/* ----------  GATE  ---------- */
+window.login = () => {
+  if(user.value === MASTER_USER && pass.value === MASTER_PASS){
+    gate.classList.add('hidden');
+    vault.classList.remove('hidden');
+    renderPolls();
     renderMemos();
   } else {
-    alert('Wrong password');
+    alert('Wrong credentials');
   }
+};
+window.logout = () => {
+  vault.classList.add('hidden');
+  gate.classList.remove('hidden');
+  user.value = ''; pass.value = '';
+};
+
+/* ----------  POLL MANAGER  ---------- */
+function renderPolls(){
+  const list = storage(ARCHIVE_KEY)||[];
+  const div = $('#pollList'); div.innerHTML='';
+  if(!list.length){ div.innerHTML='<p class="small">No archived polls yet.</p>'; return; }
+  list.forEach((p,idx) => {
+    const card = document.createElement('div'); card.className='card';
+    const y = p.results.yes, n = p.results.no, total = y+n;
+    const yP = (100*y/total||0).toFixed(1), nP = (100*n/total||0).toFixed(1);
+    card.innerHTML = `
+      <h3>${p.title}</h3>
+      <p class="small">Ended ${new Date(p.end).toLocaleString()}</p>
+      <div class="barWrap"><div class="bar" style="width:${yP}%"></div></div>
+      <p class="small">${y} Yes (${yP}%) · ${n} No (${nP}%)</p>
+      <button onclick="deletePoll(${idx})">Delete</button>
+    `;
+    div.appendChild(card);
+  });
 }
-const MEMO_KEY = 'govMemos';
-let memos = JSON.parse(localStorage.getItem(MEMO_KEY)) || [];
-function saveMemo(){ localStorage.setItem(MEMO_KEY, JSON.stringify(memos)); }
+window.createPoll = () => {
+  const title = pollTitle.value.trim(), end = pollEnd.value;
+  if(!title || !end){ alert('Fill both fields'); return; }
+  const poll = {title, end, labelYes:'Yes', labelNo:'No'};
+  storage('poll',poll);          // activate immediately
+  storage('votes',{});
+  storage('voted',[]);
+  alert('Poll created / activated!');
+  pollTitle.value=''; pollEnd.value='';
+};
+window.deletePoll = idx => {
+  if(!confirm('Delete this poll from archive?')) return;
+  const list = storage(ARCHIVE_KEY)||[];
+  list.splice(idx,1);
+  storage(ARCHIVE_KEY,list);
+  renderPolls();
+};
+window.downloadCsv = () => {
+  const list = storage(ARCHIVE_KEY)||[];
+  if(!list.length){ alert('Nothing to export'); return; }
+  let csv = 'title,end,yes,no,total\n';
+  list.forEach(p=> csv += `"${p.title}","${p.end}",${p.results.yes},${p.results.no},${p.results.total}\n`);
+  const a = Object.assign(document.createElement('a'),{
+    href: URL.createObjectURL(new Blob([csv],{type:'text/csv'})),
+    download: `archive-${today()}.csv`
+  });
+  a.click();
+};
+
+/* ----------  MEMO VAULT  (same as before, prettier)  ---------- */
+let memos = storage(MEMO_KEY)||[];
 function renderMemos(){
-  const div = document.getElementById('memos'); div.innerHTML='';
+  const div = $('#memos'); div.innerHTML='';
+  if(!memos.length){ div.innerHTML='<p class="small">No memos yet.</p>'; return; }
   memos.forEach(m=>{
-    const card=document.createElement('div'); card.className='post';
-    let html = `<small>${new Date(m.time).toLocaleString()}</small><pre style="white-space:pre-wrap">${m.text}</pre>`;
+    const card = document.createElement('div'); card.className='memo card';
+    let html = `<small>${new Date(m.time).toLocaleString()}</small><pre>${m.text}</pre>`;
     if(m.file){
       html += m.file.type.includes('pdf')
         ? `<iframe src="${m.file.data}" width="100%" height="400px"></iframe>`
         : `<img src="${m.file.data}" alt="image">`;
     }
-    card.innerHTML=html; div.appendChild(card);
+    card.innerHTML = html;
+    div.appendChild(card);
   });
 }
-function submitMemo(){
-  const text=document.getElementById('memoText').value.trim(); if(!text)return;
-  const fileInput=document.getElementById('memoFile');
-  const newMemo={text,time:Date.now(),file:null};
+window.submitMemo = () => {
+  const text = memoText.value.trim(); if(!text) return;
+  const fileInput = $('#memoFile');
+  const newMemo = {text, time:Date.now(), file:null};
   if(fileInput.files[0]){
-    const reader=new FileReader();
-    reader.onload=e=>{
-      newMemo.file={type:fileInput.files[0].type,data:e.target.result};
-      memos.unshift(newMemo); saveMemo(); renderMemos();
-      document.getElementById('memoText').value=''; fileInput.value='';
+    const reader = new FileReader();
+    reader.onload = e => {
+      newMemo.file = {type: fileInput.files[0].type, data: e.target.result};
+      memos.unshift(newMemo); storage(MEMO_KEY,memos); renderMemos();
+      memoText.value=''; fileInput.value='';
     };
     reader.readAsDataURL(fileInput.files[0]);
   } else {
-    memos.unshift(newMemo); saveMemo(); renderMemos();
-    document.getElementById('memoText').value=''; fileInput.value='';
+    memos.unshift(newMemo); storage(MEMO_KEY,memos); renderMemos();
+    memoText.value=''; fileInput.value='';
   }
-}
+};
 </script>
 </body>
 </html>

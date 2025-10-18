@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Assistant</title>
+
+  <!-- 1.  re-use the exact same stylesheet  -->
+  <link rel="stylesheet" href="hub.css">
+
+  <!-- 2.  page-specific tweaks  -->
+  <style>
+    /* ---- quick centre helper ---- */
+    .ai-wrapper{
+      flex:1;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:2rem;
+      position:relative;
+      overflow:hidden;               /* keep animation inside */
+    }
+
+    /* ---- glass-morphism card ---- */
+    .ai-card{
+      background:rgba(10,10,10,.65);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:2rem 2.5rem;
+      width:100%;
+      max-width:640px;
+      backdrop-filter:blur(6px);
+      box-shadow:0 12px 40px #0006;
+      z-index:2;                     /* above animated bg */
+    }
+    .ai-card h2{
+      margin:0 0 1.2rem;
+      font-size:1.4rem;
+      letter-spacing:.5px;
+      text-align:center;
+    }
+
+    /* ---- animated background ---- */
+    .bg-animation{
+      position:absolute;
+      inset:0;
+      z-index:1;
+      overflow:hidden;
+    }
+    .bg-animation span{
+      position:absolute;
+      width:120px;
+      height:120px;
+      background:var(--accent);
+      opacity:.04;
+      border-radius:50%;
+      animation:move 18s infinite ease-in-out;
+    }
+    .bg-animation span:nth-child(1){ top:10%; left:15%; animation-delay:0s; }
+    .bg-animation span:nth-child(2){ top:70%; left:80%; animation-delay:3s; }
+    .bg-animation span:nth-child(3){ top:40%; left:50%; animation-delay:6s; }
+    .bg-animation span:nth-child(4){ top:80%; left:20%; animation-delay:9s; }
+    .bg-animation span:nth-child(5){ top:20%; left:70%; animation-delay:12s; }
+
+    @keyframes move{
+      0%,100%{ transform:translate(0,0) scale(1); }
+      33%{     transform:translate(30px,-40px) scale(1.15); }
+      66%{     transform:translate(-20px,20px) scale(.9); }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- =====  header (same structure as index.html)  ===== -->
+  <header>
+    <h1>Your&nbsp;Site</h1>
+    <span>AI Assistant</span>
+  </header>
+
+  <!-- =====  main content  ===== -->
+  <main class="ai-wrapper">
+    <!-- animated background -->
+    <div class="bg-animation">
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+
+    <!-- ai card -->
+    <div class="ai-card">
+      <h2>Ask me anything</h2>
+      <!-- 3.  Noupe AI embed  -->
+      <script src="https://www.noupe.com/embed/0199f693e81872c8abde8f1a4d77198fb8fc.js"></script>
+    </div>
+  </main>
+
+  <!-- =====  footer (same structure as index.html)  ===== -->
+  <footer>
+    © <span id="yr"></span> &nbsp;·&nbsp; built with &#x2764; and caffeine
+  </footer>
+
+  <!-- tiny helper to keep the year current -->
+  <script>document.getElementById('yr').textContent=new Date().getFullYear()</script>
+</body>
+</html>

@@ -8,20 +8,6 @@
 */
 const REGION_DATA = [
   {
-    id: "valoria",
-    name: "Valoria",
-    owner: "House Crimson",
-    houses: [
-      {type: "Town-house", price: "12 000 g", available: true},
-      {type: "Estate", price: "45 000 g", available: false}
-    ],
-    funFacts: [
-      "Built on the ruins of an Elven sky-city.",
-      "The Crimson Fountain heals 1 hp per minute."
-    ],
-    images: ["https://i.imgur.com/fake1.jpg"]
-  },
-  {
     id: "altstadt",
     name: "Altstadt",
     owner: "Free Merchant Guild",
@@ -102,7 +88,7 @@ const REGION_DATA = [
     ]
   },
   {
-    id: "ostliche-insel",
+    id: "Grosse Mann Mienen",
     name: "Ostliche Insel",
     owner: "Circle of Magi",
     houses: [],
@@ -135,14 +121,4 @@ const REGION_DATA = [
       "Oldest tavern serves 200-year-old rum."
     ]
   },
-  {
-    id: "nicht-anerkanntes-gebiet",
-    name: "Nicht-anerkanntes-Gebiet",
-    owner: "None (lawless)",
-    houses: [],
-    funFacts: [
-      "Perfect place to disappear… forever.",
-      "Strange lights reported by travellers."
-    ]
-  }
 ];

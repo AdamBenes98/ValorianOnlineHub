@@ -48,11 +48,11 @@ footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-
 .new-post textarea{width:100%;min-height:80px;padding:.5rem;border:none;border-radius:4px;background:#222;color:var(--text);resize:vertical}
 .new-post input[type=file]{margin-top:.5rem}
 .new-post button{margin-top:.5rem;padding:.5rem 1rem;border:none;border-radius:4px;background:var(--accent);color:#fff;cursor:pointer;font-weight:bold}
-/* ---------- VAULT LOGIN ---------- */
+/* VAULT LOGIN */
 .vault-login{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh}
 .vault-login input{padding:.5rem;border:none;border-radius:4px;background:#222;color:var(--text);width:250px}
 .vault-login button{margin-top:1rem;padding:.5rem 1rem;border:none;border-radius:4px;background:var(--accent);color:#fff;cursor:pointer;font-weight:bold}
-/* ---------- IVCF STYLES (unchanged) ---------- */
+/* IVCF STYLES */
 .ivcf-page{background:var(--bg);color:var(--text);display:none}
 .ivcf-page.active{display:block}
 .ivcf-header{background:#1e1e1e;border-bottom:2px solid #00b4ff;padding:1rem 2rem;display:flex;align-items:center;gap:1.5rem}
@@ -93,8 +93,7 @@ footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-
 <footer>Kingdom of Valoria | &copy; <span id="yr"></span></footer>
 
 <script>
-/* ================= CONFIG ================= */
-/* ================= CONFIG ================= */
+/* CONFIG */
 const tiles = [
   {emoji:"🤖", title:"V.ai", desc:"Valorian Intelligence", url:"vai.html", external:false, beta:true},
   {emoji:"📰", title:"Valorian News", desc:"Public announcements & comments", url:"news.html", external:false, beta:false},
@@ -105,7 +104,7 @@ const tiles = [
   {emoji:"🔒", title:"GovVault", desc:"Government-only archive", url:"vault.html", external:false, beta:false}
 ];
 
-/* ================= RENDER TILES ================= */
+/* RENDER TILES */
 const grid = document.getElementById('grid');
 tiles.forEach(t=>{
   const div = document.createElement('div');
@@ -115,7 +114,7 @@ tiles.forEach(t=>{
   grid.appendChild(div);
 });
 
-/* ================= CLOCK & YEAR ================= */
+/* CLOCK */
 function tick(){
   const now = new Date();
   document.getElementById('clock').textContent =

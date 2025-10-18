@@ -21,10 +21,13 @@
     </nav>
   </div>
   <div class="ivcf-main">
+    <!--  HOME  -->
     <section id="ivcf-home" class="ivcf-section active">
       <h2>Welcome</h2>
       <p>Official portal of the Intergalactic Centralian Chess Federation (IVCF 2.0).</p>
     </section>
+
+    <!--  RANKINGS  -->
     <section id="ivcf-ranking" class="ivcf-section">
       <h2>Live Rankings</h2>
       <div class="ivcf-card"><input id="rankSearch" placeholder="Search player / team / nation"></div>
@@ -33,30 +36,31 @@
         <tbody></tbody>
       </table>
     </section>
+
+    <!--  EVENTS  -->
     <section id="ivcf-events" class="ivcf-section">
       <h2>Upcoming & Past Events</h2>
       <div class="ivcf-card"><h3>CCWT – Centralian Chess World Tournament</h3><p>Quarterly Swiss main event.  $200 k 1st prize.</p></div>
       <div class="ivcf-card"><h3>VCC – Valorian Chess 960 Cup</h3><p>Randomized starting positions.  Prestige bonus only.</p></div>
       <div class="ivcf-card"><h3>CIC – Centralian Invitational Cup</h3><p>Top 16 on rating list.  Single-elimination.</p></div>
     </section>
+
+    <!--  RULES  -->
     <section id="ivcf-rules" class="ivcf-section">
       <h2>Quick-Reference Rules</h2>
       <div class="ivcf-card">
         <h3>Licensing</h3><ul><li>One-time $20 k payment on licensing.</li><li>Grants access to all official events & CCR tracking.</li></ul>
       </div>
       <div class="ivcf-card">
-        <h3>CCR Formula</h3>
-      <div class="ivcf-card">
-  <h3>CCR Formula (IVCF 2.1 – faster climb)</h3>
-  <p class="mono">New = Old + K×(Result − E) + Bonus</p>
-  <p>K = 50 (&lt;1400), 40 (1400-1799), 32 (1800-2199), 24 (2200-2399), 10 (2400+)</p>
-  <p>E = 1 / (1 + 10^((Opp − Old) / 400))</p>
-  <p>Bonuses: <br>
-  +15 for beating +200 rating opponent<br>
-  +10 for beating +100 rating opponent<br>
-  +5  for beating +50  rating opponent<br>
-  No inactivity penalty.</p>
-</div>
+        <h3>CCR Formula (IVCF 2.1 – faster climb)</h3>
+        <p class="mono">New = Old + K×(Result − E) + Bonus</p>
+        <p>K = 50 (&lt;1400), 40 (1400-1799), 32 (1800-2199), 24 (2200-2399), 10 (2400+)</p>
+        <p>E = 1 / (1 + 10^((Opp − Old) / 400))</p>
+        <p>Bonuses: <br>
+        +15 for beating +200 rating opponent<br>
+        +10 for beating +100 rating opponent<br>
+        +5  for beating +50  rating opponent<br>
+        No inactivity penalty.</p>
       </div>
       <div class="ivcf-card">
         <h3>Title & Prestige (per tournament entry)</h3>
@@ -74,6 +78,8 @@
         </table>
       </div>
     </section>
+
+    <!--  CALCULATORS  -->
     <section id="ivcf-calc" class="ivcf-section">
       <h2>Rating Calculator</h2>
       <div class="ivcf-card">
@@ -89,7 +95,24 @@
         <button class="ivcf-button" onclick="calcRating()">Calculate new CCR</button>
         <p id="cOut"></p>
       </div>
+
+      <!--  FIRST-EVER CCR  -->
+      <div class="ivcf-card">
+        <h3>First-Ever CCR (vs 1000-bot)</h3>
+        <label>Chess.com estimated rating after game<br><input class="ivcf-input" id="est" type="number" value="1000"></label><br>
+        <label>Result vs bot<br>
+          <select class="ivcf-select" id="botRes">
+            <option value="1">Win</option>
+            <option value="0.5">Draw</option>
+            <option value="0">Loss</option>
+          </select>
+        </label><br>
+        <button class="ivcf-button" onclick="firstCCR()">Calculate starting CCR</button>
+        <p id="firstOut"></p>
+      </div>
     </section>
+
+    <!--  RESULTS  -->
     <section id="ivcf-results" class="ivcf-section">
       <h2>Event Results</h2>
       <p>Paste your own result tables here.  A starter template is provided.</p>
@@ -114,69 +137,14 @@
     </section>
   </div>
 </div>
+
 <script>
-const players = [{id:"test", name:"Test Player", team:"VSV", nation:"Centralia", ccr:2222}];
-const titleFromCCR = c=> c<1000?'IC':c<1400?'AC':c<1700?'SCM':c<2000?'CCM':c<2300?'CIM':c<2500?'CE':'CEC';
-function buildRanking(){
-  const list = players.map(p=>({...p,title:titleFromCCR(p.ccr)})).sort((a,b)=>b.ccr-a.ccr);
-  const tbody = document.querySelector('#rankTable tbody');
-  tbody.innerHTML='';
-  list.forEach((p,i)=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${i+1}</td><td>${p.name}</td><td>${p.team}</td><td>${p.nation}</td><td>${p.ccr}</td><td>${p.title}</td>`;
-    tbody.appendChild(tr);
-  });
-}
-buildRanking();
-document.getElementById('rankSearch').addEventListener('input',e=>{
-  const q=e.target.value.toLowerCase();
-  document.querySelectorAll('#rankTable tbody tr').forEach(row=>{
-    row.style.display=row.innerText.toLowerCase().includes(q)?'':'none';
-  });
-});
-document.querySelectorAll('.ivcf-nav a[data-ipage]').forEach(a=>{
-  a.addEventListener('click',ev=>{
-    ev.preventDefault();
-    document.querySelectorAll('.ivcf-section').forEach(s=>s.classList.remove('active'));
-    document.querySelectorAll('.ivcf-nav a').forEach(x=>x.classList.remove('active'));
-    const page=a.dataset.ipage;
-    document.getElementById('ivcf-'+page).classList.add('active');
-    a.classList.add('active');
-  });
-});
+/* ============================================================
+   RATING CALC  (fast progression)
+============================================================ */
 function calcRating(){
   const old = +document.getElementById('cOld').value;
   const opp = +document.getElementById('cOpp').value;
   const res = +document.getElementById('cRes').value;   // 1 / 0.5 / 0
 
-  // K-factor ladder
-  let k = 50;
-  if (old >= 2400) k = 10;
-  else if (old >= 2200) k = 24;
-  else if (old >= 1800) k = 32;
-  else if (old >= 1400) k = 40;
-
-  // expected score
-  const e = 1 / (1 + 10 ** ((opp - old) / 400));
-
-  // base change
-  let delta = k * (res - e);
-
-  // bonus for upset wins
-  if (res === 1){
-    const diff = opp - old;
-    if (diff >= 200) delta += 15;
-    else if (diff >= 100) delta += 10;
-    else if (diff >= 50) delta += 5;
-  }
-
-  const neu = Math.round(old + delta);
-  let bonus = '';
-  if (delta > k * 0.75) bonus = ' (big upset bonus)';
-  else if (delta > 0) bonus = ' (bonus)';
-
-  document.getElementById('cOut').textContent = `New CCR: ${neu}${bonus}`;
-}
-</script>
-</body>
-</html>
+  // K-factor

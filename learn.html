@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Valorian Citizenship Course</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+/* ---------- your requested dark theme ---------- */
+:root{
+  --bg:#000;
+  --card:#0a0a0a;
+  --border:#222;
+  --accent:#dc143c;
+  --text:#fff;
+  --sub:#aaa;
+  --gap:1.2rem;
+  font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+}
+* {box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+a{color:var(--accent);text-decoration:none}
+header,footer{background:var(--card);border-bottom:2px solid var(--accent)}
+header{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem}
+header h1{margin:0;font-size:1.6rem;letter-spacing:1px}
+header span{font-weight:300;font-size:.9rem;color:var(--sub)}
+main{flex:1;padding:2rem;max-width:900px;margin:auto;width:100%}
+.tile{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.5rem 1rem;text-align:center;transition:transform .15s,box-shadow .15s;cursor:pointer;position:relative}
+.tile:hover{transform:translateY(-4px);box-shadow:0 8px 24px #0008}
+.tile h3{margin:.4rem 0 .2rem;font-size:1.1rem}
+.tile p{font-size:.85rem;color:var(--sub);margin:0}
+footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-bottom:none;border-top:2px solid var(--accent)}
+
+/* ---------- course extras ---------- */
+.chapter-content{display:none;animation:fade .4s}
+.chapter-content.active{display:block}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+#quiz-wrapper{display:none}
+#quiz-wrapper.active{display:block}
+#scoreBoard{margin-top:1rem;font-size:1.2rem}
+.correct{color:#3c3}
+.wrong{color:var(--accent)}
+.progress-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin:1rem 0}
+.progress-bar div{height:100%;background:var(--accent);width:0%;transition:width .3s}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Valorian Citizenship Course</h1>
+  <span>Study → Quiz → Certify</span>
+</header>
+
+<main id="app">
+
+  <!-- 1. CHAPTER SELECT -->
+  <section id="chapterSelect">
+    <h2>Table of Contents</h2>
+    <div class="grid">
+      <div class="tile" onclick="openChapter(1)">
+        <h3>Book I – Sacred History</h3>
+        <p>Valthar, Detlef, Valseran, Adam, Priesthood</p>
+      </div>
+      <div class="tile" onclick="openChapter(2)">
+        <h3>Book II – Culture & Society</h3>
+        <p>Identity, Springerstiefel, Wine, Social codes</p>
+      </div>
+      <div class="tile" onclick="openChapter(3)">
+        <h3>Book III – Government & Law</h3>
+        <p>Constitution, VLC, Crimes, Ideology</p>
+      </div>
+      <div class="tile" id="quizTile" style="opacity:.4;pointer-events:none">
+        <h3>Final Quiz 🔒</h3>
+        <p>Complete all chapters to unlock</p>
+      </div>
+    </div>
+    <div class="progress-bar"><div id="progress"></div></div>
+  </section>
+
+  <!-- 2. CHAPTER CONTENT (re-used for each book) -->
+  <section id="chapterView" class="chapter-content">
+    <button onclick="backToIndex()">← Back to index</button>
+    <article id="chapterBody"></article>
+    <hr>
+    <button onclick="markRead()">Mark as read & continue</button>
+  </section>
+
+  <!-- 3. QUIZ -->
+  <section id="quiz-wrapper">
+    <h2>Official Citizenship Quiz</h2>
+    <p>Answer at least 8 / 10 to pass.</p>
+    <form id="quizForm"></form>
+    <button onclick="checkQuiz()">Submit answers</button>
+    <div id="scoreBoard"></div>
+  </section>
+
+</main>
+
+<footer>
+  © 2025 Valorian Bureau of Integration – all rights reserved
+</footer>
+
+<script>
+/* ========================= DATA ========================= */
+const books=[
+  {title:"Book I – Sacred History & Religion",html:`
+  <h3>Chapter 1 – Genesis: Valthar and the Founding of Valor</h3>
+  <p>Before memory, the land of Valmyra was ice, mountains and forests. An incorporeal consciousness—Valthar, the Silent Watcher—was intertwined with the land since its creation. He used the Fire of Valmyra, a geothermal wellspring, with infinite restraint to smooth ground, warm shelters and help the first humans found the city of Valor. When the people became self-sufficient he withdrew, vowing to return only against cataclysm.</p>
+
+  <h3>Chapter 2 – Age of Detlef: the Compassionate Martyr</h3>
+  <p>After Valthar’s withdrawal the land grew harsher. To give the people a spiritual bridge, Valthar formed a son from their courage and from the Fire: Detlef. He alone heard Valthar’s whispers. Detlef inspired cooperation and comforted the sorrowful. Guided by Valthar, he persuaded King and people to build into the Underground for warmth and resources. A tragic fire erupted in a new cavern; Detlef and twenty workers were trapped and perished, becoming the first martyrs. The shaft was sealed in sorrow.</p>
+
+  <h3>Chapter 3 – Dawn of Valseran: the Guiding Light</h3>
+  <p>Valthar reshaped Detlef’s refined spirit, adding greater knowledge and power, creating Valseran. On the first anniversary of the tragedy Valseran emerged from the sealed mine, declaring the work must be completed in light. He taught: Valthar is the land’s foundation, Detlef the eternal seed of service, the Fire the land’s life-blood. Core tenets: Knowledge over ignorance, Community over individualism, Resilience in adversity. His gifts were catalysts for independence: “The greatest gift is the knowledge to no longer need the giver for that same gift.”</p>
+
+  <h3>Chapter 4 – Imperial Revelation: Emperor Adam and the Reclamation</h3>
+  <p>Generations later faith was felt but unstructured. Emperor Adam, pious and visionary, was caught in a southern blizzard and sheltered in a cave. Valseran appeared: “Reclaim the depths—not as a tomb but as a heart of warmth and wisdom.” Adam pledged to obey. He launched the Great Reclamation, cleared the tunnels, and at the warmest cavern heart founded the Sanctum of the Deep Flame, first great Temple. Surface temples (Temples of the Ascendant Light) formed a national network, formalising Caninum and binding it to the state.</p>
+
+  <h3>Chapter 5 – Structure of Faith: Priesthood & Liturgy</h3>
+  <p><strong>Hierarchy</strong><br>
+  • First Flamekeeper – spiritual head at the Sanctum, one of only two persons (with Emperor) granted regular Elite Communion.<br>
+  • Illuminators – scholarly teachers, interpreters, sermonisers, compilers of the Book of Caninum.<br>
+  • Flamekeepers – ordained clergy managing daily rites.<br>
+  • Hearthtenders – lay guides in remote villages.<br>
+  • Keepers of the Ways – hermits guarding sacred peaks & caverns.</p>
+  <p><strong>Rite of Harmonious Observance</strong><br>
+  1. Call to Presence – temple flame lit/tended.<br>
+  2. Invocation of Threefold Guidance – prayers to Valthar (steadfastness), Detlef (compassion), Valseran (wisdom).<br>
+  3. Readings from Sacred Narratives.<br>
+  4. Sermon of Illumination.<br>
+  5. Litany of Needs & Gratitude.<br>
+  6. Ritual of Shared Offering – Light (candles), Water (purification), or Crafted Intent (hand-made tokens).<br>
+  7. Elite Communion – on high holy days Emperor & First Flamekeeper seek direct communion; results later announced.<br>
+  8. Closing Blessing – “Go forth in the strength of the Fire Within.”</p>
+  `},
+  {title:"Book II – Culture & Society",html:`
+  <h3>Chapter 1 – Valorian Identity</h3>
+  <p>Modern identity was forged during Emperor Adam’s authoritarian era (unofficially “Valorian Reich”). Citizens greeted: “Sieg Valoria.” Valorians are Brothers & Sisters; this bond can be revoked for acting against national interest. Arguments are normal but forgiveness is valued: “Hello, care and forgiveness … over hate and revenge.” Betrayal is not lightly forgiven. “Con-Valo” (Contra-Valoria) denotes those who hate, discriminate or mock traditional Valoria; they face ostracism. Displaying the flag is proud unless done by Con-Valo. Royal Family and Nobility enjoy deep respect; hierarchy is culturally ingrained despite democracy.</p>
+
+  <h3>Chapter 2 – Cultural Staples</h3>
+  <p><strong>Springerstiefel</strong> – netherite boots first decorated by VIS-Agent BobDolf, gifted to Emperor Adam. During the “Rüstungs-Phase” they were issued under “Our Citizens are our Soldiers.” Now all Valorian netherite boots are Springerstiefel, symbolising strength & resilience.<br>
+  <strong>Wine</strong> – Valoria is among the largest wine producers. Signature sweet wine “Valorka” uses only domestic resources, boosted by Astari trade & state support.<br>
+  <strong>Cuisine</strong> – daily staples are fish & bread, supplied through the port of Noah.</p>
+
+  <h3>Chapter 3 – Social Codes</h3>
+  <p>Welcome those who genuinely seek integration. Grave offences:<br>
+  • Recreational drugs (only alcohol embraced).<br>
+  • “Wild people/animals” slur – deemed racist after Elytherian insults.<br>
+  • Foreign propaganda (except allies) – illegal since Adam era.<br>
+  • Communism – utterly despised; banned by 100 % popular vote.</p>
+  `},
+  {title:"Book III – Government & Law",html:`
+  <h3>Chapter 1 – Constitutional Framework (VRC)</h3>
+  <p>Valoria = sovereign realm inside Union of United Realms (UUR). Domestic name: Valorian Republican Kingdom (VRC). Constitution establishes: King (Head of State, currently Emperor Adam); Lord of Valoria (Deputy, currently Lord MineKid who is also King of Centralia); elected Valorian Representative Council (VRC); fundamental rights (safety, limited speech, property, fair trial) suspendable in emergency; VIS under National Defense Initiative (NDI).</p>
+
+  <h3>Chapter 2 – Governance: Democracy with Royal Authority</h3>
+  <p>Citizen → complaint/proposal → VRC devises solution → vote tier:<br>
+  • International concern → People’s Representative Council (PRC) → CBU vote.<br>
+  • National concern → VRC vote.<br>
+  • Popular issue → citizen-wide vote.<br>
+  King & Lord have final say only inside PRC. King’s combined power must never exceed rest of PRC; majority of citizens can force re-vote.</p>
+
+  <h3>Chapter 3 – Valorian Law Codex (VLC) highlights</h3>
+  <p><strong>Treason & Rebellion</strong> – 10-30 days imprisonment, exile or loss of citizenship.<br>
+  <strong>Symbolic Disloyalty</strong> (“Con-Valo” activity, insulting flag/anthem/King) – fines $500-$3 000 or up to 7 days imprisonment.<br>
+  <strong>Theft</strong> – return goods + 125 % repayment or up to 10 days jail.<br>
+  <strong>Drugs</strong> – 5-18 days imprisonment + confiscation (medical/scientific licences exempt).<br>
+  <strong>Cultural Protection</strong> – vandalising monuments: up to $5 000 fine or restoration duty.</p>
+
+  <h3>Chapter 4 – National Ideology</h3>
+  <p>Valorism: traditional Germanic-rooted culture is primary; others respected if they do not undermine Valorian identity. Free speech allowed but must not strongly deviate from official stance. Religion respected but must not influence science/politics. Communism & violent nationalist revivals banned. Capitalism embraced with social responsibility. Integration encouraged—those who adopt culture are welcomed as Valorians.</p>
+  `}
+];
+
+const quiz=[
+  {q:"Who is the Silent Watcher intertwined with Valmyra since creation?",a:["Valthar"],opts:["Valthar","Detlef","Valseran","Emperor Adam"]},
+  {q:"What did Detlef persuade the people to build?",a:["the Underground","Underground"],opts:["Sky castles","the Underground","Surface walls","Wooden ships"]},
+  {q:"Who emerged from the sealed mine one year after Detlef’s death?",a:["Valseran"],opts:["Valthar","Valseran","Emperor Adam","BobDolf"]},
+  {q:"Which boots symbolise Valorian resilience?",a:["Springerstiefel"],opts:["Levi’s 501","Springerstiefel","Crocs","Galoshes"]},
+  {q:"Valoria’s signature sweet wine is called?",a:["Valorka"],opts:["Astari Noir","Valorka","Chardonnay","Port"]},
+  {q:"What everyday foods are dietary staples?",a:["fish and bread"],opts:["Beef & rice","Fish & bread","Pizza & fries","Apples & cheese"]},
+  {q:"Which ideology is banned by 100 % popular vote?",a:["Communism"],opts:["Capitalism","Communism","Feudalism","Liberalism"]},
+  {q:"Who is Deputy to the King?",a:["Lord of Valoria","Lord MineKid"],opts:["Prime Minister","Lord of Valoria","Speaker of VRC","First Flamekeeper"]},
+  {q:"Punishment for high treason can include?",a:["loss of citizenship"],opts:["A hug","Loss of citizenship","Free dinner","Knighthood"]},
+  {q:"Offering candles during liturgy is called?",a:["Offering of Light"],opts:["Offering of Light","Offering of Water","Crafted Intent","Deep Flame"]}
+];
+
+/* ========================= STATE ========================= */
+let readStatus=[false,false,false]; // one per book
+const STORAGE_KEY='valoria_read';
+
+/* ========================= INIT ========================= */
+function init(){
+  const saved=localStorage.getItem(STORAGE_KEY);
+  if(saved) readStatus=JSON.parse(saved);
+  updateUI();
+}
+function updateUI(){
+  let done=readStatus.filter(Boolean).length;
+  document.getElementById('progress').style.width=(done/3*100)+'%';
+  if(done===3){
+    const tile=document.getElementById('quizTile');
+    tile.style.opacity='1';
+    tile.style.pointerEvents='auto';
+    tile.innerHTML='<h3>Final Quiz ✓</h3><p>Click to start the 10-question test</p>';
+    tile.onclick=()=>startQuiz();
+  }
+}
+function backToIndex(){
+  document.getElementById('chapterSelect').style.display='block';
+  document.getElementById('chapterView').classList.remove('active');
+  document.getElementById('quiz-wrapper').classList.remove('active');
+}
+
+/* ========================= CHAPTERS ========================= */
+function openChapter(n){
+  document.getElementById('chapterSelect').style.display='none';
+  document.getElementById('chapterView').classList.add('active');
+  document.getElementById('chapterBody').innerHTML=
+    `<h2>${books[n-1].title}</h2>`+books[n-1].html;
+  window.currentBook=n;
+}
+function markRead(){
+  readStatus[currentBook-1]=true;
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(readStatus));
+  updateUI();
+  backToIndex();
+}
+
+/* ========================= QUIZ ========================= */
+function startQuiz(){
+  document.getElementById('chapterSelect').style.display='none';
+  document.getElementById('quiz-wrapper').classList.add('active');
+  const form=document.getElementById('quizForm');
+  form.innerHTML='';
+  quiz.forEach((Q,i)=>{
+    const div=document.createElement('div');
+    div.style.marginBottom='1rem';
+    div.innerHTML=`<p><strong>${i+1}. ${Q.q}</strong></p>`+
+      Q.opts.map(o=>`<label><input type="radio" name="q${i}" value="${o}"> ${o}</label><br>`).join('');
+    form.appendChild(div);
+  });
+  document.getElementById('scoreBoard').innerHTML='';
+}
+function checkQuiz(){
+  let score=0;
+  quiz.forEach((Q,i)=>{
+    const sel=document.querySelector(`input[name="q${i}"]:checked`);
+    if(sel&&Q.a.includes(sel.value)) score++;
+  });
+  const pct=score/quiz.length*100;
+  const pass=pct>=80;
+  document.getElementById('scoreBoard').innerHTML=
+    `<div class="${pass?'correct':'wrong'}">
+      You scored ${score} / ${quiz.length} (${pct.toFixed(0)} %)
+      ${pass?'<br>Congratulations – you may now request citizenship!':'<br>Review the material and try again.'}
+    </div>`;
+}
+
+/* ---------- boot ---------- */
+init();
+</script>
+</body>
+</html>

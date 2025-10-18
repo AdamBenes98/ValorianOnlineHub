@@ -10,6 +10,13 @@
   <!-- 2.  page-specific tweaks  -->
   <style>
     /* ---- quick centre helper ---- */
+     /* ---------- centre the Noupe chat widget ---------- */
+.ai-card > div[data-noupe-chat] /* the outer box Noupe creates */
+{
+  margin: 0 auto !important;   /* horizontal centre */
+  width: 100% !important;
+  max-width: 420px;            /* keeps it readable on wide screens */
+}
     .ai-wrapper{
       flex:1;
       display:flex;

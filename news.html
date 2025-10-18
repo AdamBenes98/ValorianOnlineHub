@@ -45,6 +45,12 @@ main{flex:1;padding:2rem;max-width:1100px;margin:auto;width:100%}
 #preview{min-height:100px;border:1px dashed var(--border);padding:.6rem;border-radius:4px;background:#0f0f0f;margin-top:.6rem}
 .new-post input[type=file]{margin-top:.6rem}
 .new-post button{margin-top:.6rem;padding:.5rem 1rem;border:none;border-radius:4px;background:var(--accent);color:#fff;cursor:pointer;font-weight:bold}
+
+/* ---------- login / admin bar ---------- */
+#loginBar{background:#111;border-bottom:1px solid var(--border);padding:.6rem 2rem;display:flex;gap:.8rem;align-items:center;font-size:.8rem}
+#loginBar input{padding:.4rem .6rem;border:none;border-radius:4px;background:#222;color:var(--text)}
+#loginBar button{padding:.4rem .8rem;border:none;border-radius:4px;background:var(--accent);color:#fff;cursor:pointer}
+#adminBar{display:none;background:#111;border-bottom:1px solid var(--border);padding:.6rem 2rem;font-size:.8rem;justify-content:space-between;align-items:center}
 </style>
 </head>
 <body>
@@ -54,9 +60,24 @@ main{flex:1;padding:2rem;max-width:1100px;margin:auto;width:100%}
   <a href="index.html">← Back to Hub</a>
 </header>
 
+<!-- LOGIN BAR -->
+<div id="loginBar">
+  <span style="color:var(--sub)">Admin login:</span>
+  <input id="userInp" placeholder="user" autocomplete="off">
+  <input id="passInp" type="password" placeholder="password" autocomplete="off">
+  <button onclick="tryLogin()">Login</button>
+  <span id="loginMsg" style="color:var(--accent);margin-left:.5rem"></span>
+</div>
+
+<!-- ADMIN BAR -->
+<div id="adminBar">
+  <span>MASTER</span>
+  <a href="#" onclick="logout()" style="color:var(--accent)">Logout</a>
+</div>
+
 <main class="news-main">
 
-  <!-- EDITOR (gov only) -->
+  <!-- EDITOR (admin only) -->
   <div id="editorArea" class="editor" style="display:none">
     <input id="title" placeholder="Headline / Title" maxlength="120">
     <div class="toolbar">
@@ -78,10 +99,29 @@ main{flex:1;padding:2rem;max-width:1100px;margin:auto;width:100%}
 /* ---------- storage ---------- */
 const STORAGE_KEY = 'valorianNews';
 let posts = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+let master = false; // admin flag
 
-/* ---------- gov check ---------- */
-const isGov = confirm('Are you a Government member?');
-if(isGov) document.getElementById('editorArea').style.display='block';
+/* ---------- login / logout ---------- */
+function tryLogin(){
+  const u=document.getElementById('userInp').value.trim();
+  const p=document.getElementById('passInp').value.trim();
+  if(u==='master' && p==='M4asterP@ss'){
+    master=true;
+    document.getElementById('loginBar').style.display='none';
+    document.getElementById('adminBar').style.display='flex';
+    document.getElementById('editorArea').style.display='block';
+    renderFeed();
+  }else{
+    document.getElementById('loginMsg').textContent='Invalid credentials';
+  }
+}
+function logout(){
+  master=false;
+  document.getElementById('loginBar').style.display='flex';
+  document.getElementById('adminBar').style.display='none';
+  document.getElementById('editorArea').style.display='none';
+  renderFeed();
+}
 
 /* ---------- smart wrap ---------- */
 function wrapStars(mark){
@@ -163,7 +203,7 @@ function renderFeed(){
     }
     html+=`<div class="post-actions">
       <a onclick="toggleComments(${idx})">💬 Comment</a>
-      ${isGov?`<a onclick="delPost(${idx})" style="color:var(--accent)">Delete</a>`:''}
+      ${master?`<a onclick="delPost(${idx})" style="color:var(--accent)">Delete</a>`:''}
     </div>`;
     html+=`<div id="c${idx}" style="display:none">`;
     p.comments.forEach(c=>html+=`<div style="margin-top:.3rem;font-size:.8rem;color:var(--sub)">• ${escape(c)}</div>`);

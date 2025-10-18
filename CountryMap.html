@@ -1,68 +1,35 @@
-<style>
-:root{
-  --bg:#000;
-  --card:#0a0a0a;
-  --border:#222;
-  --accent:#dc143c;
-  --text:#fff;
-  --sub:#aaa;
-  --gap:1.2rem;
-  font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-}
-* {box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
-a{color:var(--accent);text-decoration:none}
-header,footer{background:var(--card);border-bottom:2px solid var(--accent)}
-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem}
-header h1{margin:0;font-size:1.6rem;letter-spacing:1px}
-header span{font-weight:300;font-size:.9rem;color:var(--sub)}
-main{flex:1;padding:2rem;max-width:1100px;margin:auto;width:100%}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:var(--gap)}
-.tile{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.5rem 1rem;text-align:center;transition:transform .15s,box-shadow .15s;cursor:pointer;position:relative}
-.tile:hover{transform:translateY(-4px);box-shadow:0 8px 24px #0008}
-.tile .emoji{font-size:2.2rem;margin-bottom:.5rem}
-.tile h3{margin:.4rem 0 .2rem;font-size:1.1rem}
-.tile p{font-size:.85rem;color:var(--sub);margin:0}
-.tile.external::after{content:"⧉";position:absolute;top:.5rem;right:.7rem;font-size:.8rem;opacity:.6}
-footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-bottom:none;border-top:2px solid var(--accent)}
-.badge{display:inline-block;background:var(--accent);color:#fff;padding:.15rem .35rem;border-radius:4px;font-size:.65rem;margin-left:.4rem}
-.mono{font-family:monospace}
-/* NEWS PAGE */
-.news-header{background:#111;border-bottom:2px solid var(--accent);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between}
-.news-header h1{margin:0;font-size:1.5rem}
-.news-main{max-width:700px;margin:2rem auto;padding:0 1rem}
-.post{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:1rem;margin-bottom:1rem}
-.post img,.post iframe{max-width:100%;border-radius:4px;margin-top:.5rem}
-.post small{color:var(--sub);font-size:.75rem}
-.post-actions{margin-top:.5rem;display:flex;gap:1rem;font-size:.8rem}
-.post-actions a{cursor:pointer}
-.comment-box{margin-top:.5rem;display:flex;gap:.5rem}
-.comment-box input{flex:1;padding:.4rem;border:none;border-radius:4px;background:#222;color:var(--text)}
-.comment-box button{padding:.4rem .8rem;border:none;border-radius:4px;background:var(--accent);color:#fff;cursor:pointer}
-.new-post textarea{width:100%;min-height:80px;padding:.5rem;border:none;border-radius:4px;background:#222;color:var(--text);resize:vertical}
-.new-post input[type=file]{margin-top:.5rem}
-.new-post button{margin-top:.5rem;padding:.5rem 1rem;border:none;border-radius:4px;background:var(--accent);color:#fff;cursor:pointer;font-weight:bold}
-/* VAULT LOGIN */
-.vault-login{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh}
-.vault-login input{padding:.5rem;border:none;border-radius:4px;background:#222;color:var(--text);width:250px}
-.vault-login button{margin-top:1rem;padding:.5rem 1rem;border:none;border-radius:4px;background:var(--accent);color:#fff;cursor:pointer;font-weight:bold}
-/* IVCF STYLES */
-.ivcf-page{background:var(--bg);color:var(--text);display:none}
-.ivcf-page.active{display:block}
-.ivcf-header{background:#1e1e1e;border-bottom:2px solid #00b4ff;padding:1rem 2rem;display:flex;align-items:center;gap:1.5rem}
-.ivcf-header h1{margin:0;font-size:1.6rem}
-.ivcf-nav{display:flex;gap:1rem;flex-wrap:wrap}
-.ivcf-nav a{padding:.4rem .7rem;border-radius:4px;background:#0003}
-.ivcf-nav a.active{background:#00b4ff;color:#000;font-weight:bold}
-.ivcf-main{padding:2rem;max-width:1200px;margin:auto}
-.ivcf-section{display:none}
-.ivcf-section.active{display:block}
-.ivcf-table{width:100%;border-collapse:collapse;margin-top:1rem}
-.ivcf-table th,.ivcf-table td{padding:.5rem;text-align:left;border-bottom:1px solid #333}
-.ivcf-table th{color:#00b4ff}
-.ivcf-card{background:#1e1e1e;padding:1.2rem;border-radius:8px;margin-bottom:1.2rem}
-.ivcf-input,.ivcf-select,.ivcf-button{padding:.5rem;border:none;border-radius:4px}
-.ivcf-input,.ivcf-select{background:#222;color:var(--text);width:100%}
-.ivcf-button{background:#00b4ff;color:#000;cursor:pointer;font-weight:bold}
-.ivcf-button:hover{filter:brightness(1.15)}
-</style>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Interactive Valoria Map</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <h1>Valoria <span>Interactive Atlas</span></h1>
+  <span id="coords" class="mono"></span>
+</header>
+
+<main>
+  <figure id="map-wrapper">
+    <img id="map-img" src="image.png" alt="Valoria map">
+    <svg id="map-overlay" viewBox="0 0 1200 800"></svg>
+  </figure>
+
+  <!-- Modal that pops up when a region is clicked -->
+  <aside id="info-panel" class="hidden">
+    <button id="close-btn">&times;</button>
+    <div id="panel-content"></div>
+  </aside>
+</main>
+
+<footer>
+  Built for role-players &copy; <span id="year"></span>
+</footer>
+
+<script src="regions-data.js"></script>
+<script src="map.js"></script>
+</body>
+</html>

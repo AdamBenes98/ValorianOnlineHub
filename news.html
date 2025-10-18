@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>News Feed</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Official News Feed</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-/* ---------- THEME VARIABLES (exactly the ones you gave) ---------- */
+/* =====  YOUR EXACT TOKENS  ===== */
 :root{
   --bg:#000;
   --card:#0a0a0a;
@@ -16,608 +16,257 @@
   --gap:1.2rem;
   font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
 }
-/* ---------- RESET & BASE ---------- */
-*,*::before,*::after{box-sizing:border-box}
+* {box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
 a{color:var(--accent);text-decoration:none}
-img,svg,video,iframe{max-width:100%;display:block}
-input,button,textarea,select{font:inherit;color:inherit;background:transparent;border:1px solid var(--border);border-radius:4px;padding:.4rem .6rem}
-button{cursor:pointer;background:var(--accent);color:#fff;border:none}
-button:disabled{opacity:.45;cursor:not-allowed}
-/* ---------- HEADER ---------- */
-header{background:var(--card);border-bottom:2px solid var(--accent);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between}
+header,footer{background:var(--card);border-bottom:2px solid var(--accent)}
+header{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem}
 header h1{margin:0;font-size:1.6rem;letter-spacing:1px}
 header span{font-weight:300;font-size:.9rem;color:var(--sub)}
-header nav{display:flex;align-items:center;gap:1rem}
-header nav button{background:none;border:1px solid var(--accent);color:var(--accent);padding:.4rem .7rem;border-radius:4px}
-/* ---------- MAIN ---------- */
 main{flex:1;padding:2rem;max-width:1100px;margin:auto;width:100%}
-/* ---------- POST CARD ---------- */
-.post{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:1.2rem;position:relative;display:flex;flex-direction:column;gap:.5rem}
-.post.pinned{border-color:var(--accent)}
-.post-header{display:flex;align-items:center;gap:.6rem;font-size:.85rem;color:var(--sub)}
-.post-header .name{font-weight:600;color:var(--text)}
-.post-body{line-height:1.55;white-space:pre-wrap}
-.post-body img,.post-body video{margin:.5rem 0;border-radius:6px}
-.post-body .attachment audio{width:100%}
-.post-footer{display:flex;align-items:center;gap:1rem;font-size:.8rem}
-.post-footer .stats{margin-left:auto;display:flex;gap:.8rem;color:var(--sub)}
-.post-actions{display:flex;gap:.8rem}
-.post-actions button{background:none;border:none;color:var(--sub);display:flex;align-items:center;gap:.3rem;transition:color .15s}
-.post-actions button:hover{color:var(--accent)}
-.post-actions button.liked,.post-actions button.disliked{color:var(--accent)}
-.post-options{margin-left:auto;position:relative}
-.post-options>button{background:none;border:none;color:var(--sub);font-size:1.2rem}
-.post-options .menu{position:absolute;top:100%;right:0;background:#111;border:1px solid var(--border);border-radius:6px;min-width:160px;z-index:10;display:none;flex-direction:column}
-.post-options .menu.show{display:flex}
-.post-options .menu button{background:none;border:none;text-align:left;padding:.6rem 1rem;font-size:.8rem;color:var(--text)}
-.post-options .menu button:hover{background:#dc143c22}
-/* ---------- COMMENTS ---------- */
-.comments{margin-top:.8rem;padding-left:1rem;border-left:2px solid var(--border)}
-.comment{background:#0003;padding:.6rem;border-radius:4px;margin-bottom:.6rem;font-size:.8rem}
-.comment-header{display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem;color:var(--sub)}
-.comment-body{line-height:1.4}
-/* ---------- EDITOR ---------- */
-.editor-toolbar{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.4rem}
-.editor-toolbar button,.editor-toolbar select{background:#111;border:1px solid var(--border);padding:.3rem .5rem;font-size:.8rem}
-.new-post textarea{width:100%;min-height:120px;padding:.6rem;resize:vertical}
-.new-post .counters{font-size:.7rem;color:var(--sub);display:flex;gap:.8rem;margin-top:.3rem}
-.attachments{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.5rem}
-.attachments .thumb{position:relative;width:100px;height:100px;border-radius:6px;overflow:hidden;border:1px solid var(--border)}
-.attachments .thumb img,.attachments .thumb video{width:100%;height:100%;object-fit:cover}
-.attachments .thumb button{position:absolute;top:2px;right:2px;background:#0008;border:none;color:#fff;font-size:1rem;border-radius:50%;width:22px;height:22px;display:grid;place-items:center}
-/* ---------- MODALS ---------- */
-.modal{position:fixed;inset:0;background:#000c;display:none;align-items:center;justify-content:center;z-index:100}
-.modal.show{display:flex}
-.modal-content{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.5rem;max-width:500px;width:90%;max-height:90vh;overflow:auto;display:flex;flex-direction:gap:1rem}
-.modal-header{display:flex;align-items:center;justify-content:space-between}
-.modal-header h2{margin:0}
-/* ---------- UTILS ---------- */
-.hidden{display:none}
-.muted{color:var(--sub)}
-.mono{font-family:monospace}
-badge{display:inline-block;background:var(--accent);color:#fff;padding:.15rem .35rem;border-radius:4px;font-size:.65rem;margin-left:.4rem}
-/* ---------- DARK MODE TOGGLE ---------- */
-#themeToggle{background:none;border:none;color:var(--accent);font-size:1.2rem}
-/* ---------- RESPONSIVE ---------- */
-@media(max-width:600px){
-  header{flex-direction:column;align-items:flex-start;gap:.5rem}
-  main{padding:1rem}
-}
+button{cursor:pointer;border:none;border-radius:4px;padding:.5rem .9rem;font-weight:600;background:var(--accent);color:#fff}
+button:disabled{opacity:.45;cursor:not-allowed}
+small{color:var(--sub)}
+/* =====  FEED STYLES  ===== */
+.feed-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+.feed-header h2{margin:0}
+#backToIndex{background:#333}
+#newPostBtn{background:#0c0}
+#adminBadge{display:none;background:#ff0;color:#000;padding:.2rem .5rem;border-radius:4px;font-size:.7rem;margin-left:.5rem}
+/* NEW-POST COMPOSER */
+.composer{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:1.5rem;display:none}
+.composer.active{display:block}
+.composer .toolbar{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.5rem}
+.composer input[type=color],
+.composer select,
+.composer input[type=file]{padding:.3rem;font-size:.8rem;background:#222;color:var(--text);border:1px solid #444;border-radius:4px}
+.composer textarea{width:100%;min-height:100px;padding:.6rem;background:#222;color:var(--text);border:1px solid #444;border-radius:4px;resize:vertical;font-family:inherit}
+.composer .preview{max-width:100%;max-height:200px;border-radius:4px;margin-top:.5rem}
+/* POST CARD */
+.post{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:1.2rem;position:relative}
+.post .head{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem}
+.post .head .avatar{width:36px;height:36px;border-radius:50%;background:var(--accent);display:grid;place-items:center;font-weight:700;font-size:1rem}
+.post .meta{font-size:.75rem;color:var(--sub)}
+.post .body{margin:.7rem 0;white-space:pre-wrap;word-break:break-word}
+.post .body img,.post .body video{max-width:100%;border-radius:6px;margin-top:.5rem}
+.post .actions{display:flex;align-items:center;gap:1rem;font-size:.85rem;margin-top:.5rem}
+.post .actions span{cursor:pointer}
+.post .actions .liked{color:#ff1744}
+.post .actions .disliked{color:#3b82f6}
+/* ADMIN ONLY */
+.post .adminMenu{position:absolute;top:.5rem;right:.5rem;font-size:.9rem;cursor:pointer}
+/* SHARE POPUP */
+.sharePop{display:none;position:absolute;background:#1b1b1b;border:1px solid #444;border-radius:6px;padding:.5rem .7rem;z-index:10;font-size:.8rem}
+.sharePop.active{display:block}
+.sharePop input{width:180px;padding:.3rem;background:#222;color:var(--text);border:1px solid #444;border-radius:4px;margin-left:.5rem}
+/* LOGIN MODAL */
+.modal{display:none;position:fixed;inset:0;background:#000a;z-index:100}
+.modal.active{display:flex;align-items:center;justify-content:center}
+.modalBox{background:var(--card);border:2px solid var(--accent);border-radius:8px;padding:1.5rem;width:300px}
+.modalBox h3{margin-top:0}
+.modalBox input{width:100%;padding:.5rem;margin:.4rem 0;background:#222;color:var(--text);border:1px solid #444;border-radius:4px}
+.modalBox .err{color:#f55;font-size:.8rem;margin-top:.3rem}
 </style>
 </head>
 <body>
-<!-- ---------- HEADER ---------- -->
+
 <header>
+  <h1>Official News</h1>
   <div>
-    <h1>News Feed</h1>
-    <span>Official news &amp; updates</span>
+    <button id="backToIndex" onclick="location.href='index.html'">← Back to main page</button>
+    <span id="adminBadge">ADMIN</span>
   </div>
-  <nav>
-    <button id="backBtn" onclick="location.href='index.html'">← Main Page</button>
-    <button id="themeToggle" title="Toggle dark/light">🌗</button>
-  </nav>
 </header>
 
-<!-- ---------- MAIN ---------- -->
 <main>
-  <!-- Controls bar -->
-  <section style="display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;align-items:center">
-    <input id="searchInput" placeholder="Search posts…" style="flex:1;min-width:220px">
-    <select id="sortSelect">
-      <option value="new">Newest first</option>
-      <option value="old">Oldest first</option>
-      <option value="likes">Most liked</option>
-      <option value="comments">Most discussed</option>
-    </select>
-    <select id="filterSelect">
-      <option value="all">All posts</option>
-      <option value="media">Media only</option>
-      <option value="text">Text only</option>
-    </select>
-    <button id="newPostBtn">✍️ New Post</button>
-  </section>
+  <div class="feed-header">
+    <h2>Live Feed</h2>
+    <div>
+      <button id="newPostBtn">+ New post</button>
+    </div>
+  </div>
 
-  <!-- New post editor (hidden by default) -->
-  <section id="editor" class="new-post hidden">
-    <div class="editor-toolbar">
-      <button data-cmd="bold" title="Bold"><b>B</b></button>
-      <button data-cmd="italic" title="Italic"><i>I</i></button>
-      <button data-cmd="underline" title="Underline"><u>U</u></button>
-      <button data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
-      <select data-cmd="fontSize" title="Font size">
-        <option value="1">Small</option>
-        <option value="3" selected>Normal</option>
-        <option value="5">Large</option>
-        <option value="7">X-Large</option>
+  <!-- COMPOSER -->
+  <section id="composer" class="composer">
+    <div class="toolbar">
+      <input type="color" id="fontColor" value="#ffffff" title="Text colour">
+      <select id="fontSize">
+        <option>12px</option><option>14px</option><option selected>16px</option>
+        <option>18px</option><option>22px</option><option>28px</option>
       </select>
-      <select data-cmd="fontName" title="Font family">
-        <option value="system-ui">System</option>
-        <option value="Arial">Arial</option>
-        <option value="Georgia">Georgia</option>
-        <option value="Times New Roman">Times</option>
-        <option value="Courier New">Courier</option>
-        <option value="Verdana">Verdana</option>
-        <option value="Comic Sans MS">Comic</option>
-        <option value="Impact">Impact</option>
+      <select id="fontFamily">
+        <option>system-ui</option><option>Arial</option><option>Georgia</option><option>monospace</option>
       </select>
-      <input type="color" data-cmd="foreColor" value="#ffffff" title="Text color">
-      <input type="color" data-cmd="hiliteColor" value="#dc143c" title="Highlight">
-      <button data-cmd="insertUnorderedList" title="Bullet list">• List</button>
-      <button data-cmd="insertOrderedList" title="Numbered list">1. List</button>
-      <button data-cmd="removeFormat" title="Clear format">Clear</button>
-      <button id="emojiBtn" title="Emoji">😊</button>
+      <label title="Attach file"><input type="file" id="attach" accept="image/*,video/mp4,video/webm"></label>
     </div>
-    <div contenteditable id="editorArea" style="background:#111;border:1px solid var(--border);border-radius:4px;padding:.6rem;min-height:120px;max-height:300px;overflow:auto"></div>
-    <div class="counters">
-      <span id="charCount">0</span> / 5 000 chars
-      <span id="wordCount">0 words</span>
-      <span id="readTime">0 min read</span>
-    </div>
-    <input type="file" id="attachFiles" accept="image/*,video/*,audio/*" multiple>
-    <div id="attachPreview" class="attachments"></div>
-    <div style="display:flex;gap:.5rem;margin-top:.5rem">
+    <textarea id="editor" placeholder="What’s happening? …"></textarea>
+    <img class="preview" id="preview" style="display:none;">
+    <div style="margin-top:.5rem;display:flex;gap:.5rem">
       <button id="publishBtn">Publish</button>
       <button id="cancelBtn">Cancel</button>
     </div>
   </section>
 
-  <!-- Posts container -->
+  <!-- FEED -->
   <section id="feed"></section>
 </main>
 
-<!-- ---------- ADMIN LOGIN MODAL ---------- -->
+<!-- LOGIN MODAL -->
 <div id="loginModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>Admin Login</h2>
-      <button onclick="closeModal('loginModal')">✕</button>
-    </div>
-    <label>Username
-      <input id="loginUser" autocomplete="off">
-    </label>
-    <label>Password
-      <input type="password" id="loginPass" autocomplete="off">
-    </label>
-    <button onclick="doLogin()">Login</button>
-    <p id="loginErr" class="muted"></p>
+  <div class="modalBox">
+    <h3>Admin login</h3>
+    <input id="userInp" placeholder="Username">
+    <input id="passInp" type="password" placeholder="Password">
+    <div class="err" id="loginErr"></div>
+    <button onclick="doLogin()">Log in</button>
+    <button onclick="closeLogin()">Cancel</button>
   </div>
 </div>
 
-<!-- ---------- ADMIN TOOLS MODAL ---------- -->
-<div id="adminModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>Admin Tools</h2>
-      <button onclick="closeModal('adminModal')">✕</button>
-    </div>
-    <div id="adminPanel"></div>
-  </div>
-</div>
-
-<!-- ---------- EMOJI PALETTE ---------- -->
-<div id="emojiModal" class="modal">
-  <div class="modal-content" style="max-width:360px">
-    <div class="modal-header">
-      <h2>Pick an emoji</h2>
-      <button onclick="closeModal('emojiModal')">✕</button>
-    </div>
-    <div id="emojiGrid" style="display:grid;grid-template-columns:repeat(9,1fr);gap:.3rem;font-size:1.4rem"></div>
-  </div>
-</div>
-
-<!-- ---------- SCRIPTS ---------- -->
 <script>
-/* ========== CONFIG ========== */
-const ADMIN_USER = 'master';
-const ADMIN_PASS = 'M4sterP@ss';
-const POST_LIMIT = 5000;
-const SPAM_POST = 3000; // ms
-const SPAM_COMMENT = 3000;
-
-/* ========== STATE ========== */
+/* =====  DATA STORE  ===== */
 let posts = JSON.parse(localStorage.getItem('newsPosts')||'[]');
-let nextId = posts.length ? Math.max(...posts.map(p=>p.id)) + 1 : 1;
-let deviceId = localStorage.getItem('deviceId') || crypto.randomUUID();
-localStorage.setItem('deviceId', deviceId);
-let adminToken = sessionStorage.getItem('adminToken') || null;
-let editingId = null;
-let lastPost = 0;
-let lastComment = 0;
+let nextId = posts.length ? Math.max(...posts.map(p=>p.id))+1 : 1;
+let adminMode = false;
 
-/* ========== THEME ========== */
-const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-if (!localStorage.theme) localStorage.theme = prefersDark ? 'dark' : 'light';
-document.documentElement.setAttribute('data-theme', localStorage.theme);
-themeToggle.textContent = localStorage.theme==='dark'?'🌙':'☀️';
-themeToggle.onclick = ()=>{
-  const t = localStorage.theme === 'dark' ? 'light' : 'dark';
-  localStorage.theme = t;
-  document.documentElement.setAttribute('data-theme', t);
-  themeToggle.textContent = t==='dark'?'🌙':'☀️';
-};
+/* =====  UTILS  ===== */
+const $ = q=>document.querySelector(q);
+const save = ()=> localStorage.setItem('newsPosts',JSON.stringify(posts));
+const fmtDate = d=> new Date(d).toLocaleString();
 
-/* ========== UTILS ========== */
-const qs = q=>document.querySelector(q);
-const qsa = q=>[...document.querySelectorAll(q)];
-const stamp = ()=>Date.now();
-const uuid = ()=>crypto.randomUUID();
-const escapeHTML = str=>str.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const formatTime = t=>{
-  const s = (Date.now()-t)/1000;
-  if (s<60) return 'now';
-  const m = Math.floor(s/60);
-  if (m<60) return m+' min ago';
-  const h = Math.floor(m/60);
-  if (h<24) return h+' h ago';
-  const d = Math.floor(h/24);
-  return d+' d ago';
+/* =====  RENDER  ===== */
+function renderFeed(){
+  const f = $('#feed');
+  f.innerHTML = posts.length ? posts.map(card).join('') : '<p style="text-align:center;color:var(--sub)">No news yet.</p>';
+}
+function card(p){
+  const liked = (p.likes||0)>0, disliked = (p.dislikes||0)>0;
+  return `
+  <article class="post" data-id="${p.id}">
+    <div class="head">
+      <div class="avatar">N</div>
+      <div>
+        <div><b>Newsroom</b></div>
+        <div class="meta">${fmtDate(p.date)}</div>
+      </div>
+    </div>
+    <div class="body" style="color:${p.color||''};font-size:${p.size||''};font-family:${p.family||''}">
+      ${p.text}
+      ${p.media ? (p.media.video?
+        `<video controls src="${p.media.url}"></video>`:
+        `<img src="${p.media.url}">`) : ''}
+    </div>
+    <div class="actions">
+      <span class="${liked?'liked':''}" onclick="like(${p.id})">❤ ${p.likes||0}</span>
+      <span class="${disliked?'disliked':''}" onclick="dislike(${p.id})">👎 ${p.dislikes||0}</span>
+      <span onclick="toggleShare(${p.id},event)">🔗 Share</span>
+    </div>
+    ${adminMode?`<span class="adminMenu" onclick="adminDel(${p.id})">🗑</span>`:''}
+    <div class="sharePop" id="sh-${p.id}">
+      <b>Link:</b><input readonly onclick="this.select()" value="${location.origin+location.pathname}#${p.id}">
+    </div>
+  </article>`;
+}
+/* =====  COMPOSER  ===== */
+$('#newPostBtn').onclick = ()=> $('#composer').classList.add('active');
+$('#cancelBtn').onclick = ()=> { $('#composer').classList.remove('active'); resetComposer(); };
+$('#attach').onchange = e=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const url = URL.createObjectURL(file);
+  const isVid = file.type.startsWith('video');
+  $('#preview').src=url; $('#preview').style.display='block';
+  $('#composer').dataset.media = url;
+  $('#composer').dataset.mediaType = isVid?'video':'image';
 };
-const readingTime = txt=>{
-  const w = txt.trim().split(/\s+/).length;
-  return Math.ceil(w/200)||1;
-};
-
-/* ========== EMOJI ========== */
-const EMOJIS = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','🤤','😪','😵','🤐','🥴','🤢','🤮','🤧','😷','🤒','🤕','🤑','🤠','😈','👿','👹','👺','🤡','💩','👻','💀','☠️','👽','👾','🤖','🎃','😺','😸','😹','😻','😼','😽','🙀','😿','😾','❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','💟','☮️','✝️','☪️','🕉️','☸️','✡️','🔯','🕎','☯️','☦️','🛐','⛎','♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓','🆔','⚛️','🉑','☢️','☣️','📴','📳','🈶','🈚','🈸','🈺','🈷️','✴️','🆚','💮','🉐','㊙️','㊗️','🈴','🈵','🈹','🈲','🅰️','🅱️','🆎','🆑','🅾️','🆘','❌','⭕','🛑','⛔','📛','🚫','💯','💢','♨️','🚷','🚯','🚳','🚱','🔞','📵','🚭','❗','❕','❓','❔','‼️','⁉️','🔅','🔆','〽️','⚠️','🚸','🔱','⚜️','🔰','♻️','✅','🈯','💹','❇️','✳️','❎','🌐','💠','Ⓜ️','🌀','💤','🏧','🚾','♿','🅿️','🈳','🈂️','🛂','🛃','🛄','🛅','🚹','🚺','🚼','🚻','🚮','🎦','📶','🈁','🔣','ℹ️','🔤','🔡','🔠','🆖','🆗','🆙','🆒','🆕','🆓','0️⃣','1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟','🔢','#️⃣','*️⃣','⏏️','▶️','⏸️','⏯️','⏹️','⏺️','⏭️','⏮️','⏩','⏪','⏫','⏬','◀️','🔼','🔽','➡️','⬅️','⬆️','⬇️','↗️','↘️','↙️','↖️','↕️','↔️','↪️','↩️','⤴️','⤵️','🔀','🔁','🔂','🔄','🔃','🎵','🎶','➕','➖','➗','✖️','♾','💲','💱','™️','©️','®️','〰️','➰','➿','🔚','🔙','🔛','🔝','🔜','✔️','☑️','🔘','🔴','🟠','🟡','🟢','🔵','🟣','⚫','⚪','🟤','🔺','🔻','🔸','🔹','🔶','🔷','🔳','🔲','▪️','▫️','◾','◽','◼️','◻️','🟥','🟧','🟨','🟩','🟦','🟪','⬛','⬜','🟫','🔈','🔇','🔉','🔊','🔔','🔕','📣','📢','👁‍🗨','💬','💭','🗯️','♠️','♣️','♥️','♦️','🃏','🎴','🀄','🕐','🕑','🕒','🕓','🕔','🕕','🕖','🕗','🕘','🕙','🕚','🕛','🕜','🕝','🕞','🕟','🕠','🕡','🕢','🕣','🕤','🕥','🕦','🕧'];
-EMOJIS.forEach(e=>{
-  const b = document.createElement('button');
-  b.textContent = e;
-  b.onclick = ()=>{ document.execCommand('insertText',false,e); closeModal('emojiModal'); };
-  emojiGrid.appendChild(b);
-});
-emojiBtn.onclick = ()=>showModal('emojiModal');
-
-/* ========== EDITOR ========== */
-editorArea.oninput = ()=>{
-  const txt = editorArea.innerText;
-  charCount.textContent = txt.length;
-  wordCount.textContent = txt.trim().split(/\s+/).filter(Boolean).length;
-  readTime.textContent = readingTime(txt);
-};
-editorToolbar.onclick = e=>{
-  const cmd = e.target.dataset.cmd;
-  if (!cmd) return;
-  if (cmd==='hiliteColor') document.execCommand('backColor',false,e.target.value);
-  else if (cmd==='foreColor') document.execCommand('foreColor',false,e.target.value);
-  else if (cmd==='fontSize'||cmd==='fontName') document.execCommand(cmd,false,e.target.value);
-  else document.execCommand(cmd,false,null);
-  editorArea.focus();
-};
-attachFiles.onchange = e=>{
-  [...e.target.files].forEach(file=>{
-    if (file.size>5e6){ alert('Max 5 MB per file'); return; }
-    const reader = new FileReader();
-    reader.onload = ev=>{
-      const url = ev.target.result;
-      const wrap = document.createElement('div');
-      wrap.className='thumb';
-      if (file.type.startsWith('image/')){
-        const img = new Image();
-        img.src = url;
-        wrap.appendChild(img);
-      } else if (file.type.startsWith('video/')){
-        const vid = document.createElement('video');
-        vid.src = url; vid muted = true; vid.loop = true; vid.onclick = ()=>vid.play();
-        wrap.appendChild(vid);
-      } else if (file.type.startsWith('audio/')){
-        const aud = document.createElement('audio');
-        aud.src = url; aud.controls = true; aud.style.width='100%';
-        wrap.appendChild(aud);
-      }
-      const del = document.createElement('button');
-      del.innerHTML='✕'; del.onclick = ()=>wrap.remove();
-      wrap.appendChild(del);
-      attachPreview.appendChild(wrap);
-    };
-    reader.readAsDataURL(file);
-  });
-  e.target.value='';
-};
-publishBtn.onclick = ()=>{
-  if (stamp()-lastPost<SPAM_POST){ alert('Please wait a few seconds before posting.'); return; }
-  const body = editorArea.innerHTML.trim();
-  if (!body){ alert('Write something…'); return; }
-  if (body.length>POST_LIMIT){ alert('Too long'); return; }
-  const attachments = [...attachPreview.querySelectorAll('img,video,audio')].map(el=>{
-    const src = el.src;
-    const type = el.tagName==='IMG'?'image':el.tagName==='VIDEO'?'video':'audio';
-    return {type,src};
-  });
-  const name = prompt('Your name (optional):')||'Anonymous';
-  const color = prompt('Name color (hex, optional):')||'';
+function resetComposer(){
+  $('#editor').value='';
+  $('#attach').value='';
+  $('#preview').style.display='none';
+  delete $('#composer').dataset.media;
+}
+$('#publishBtn').onclick = ()=>{
+  const text = $('#editor').value.trim();
+  if(!text) return;
   const post = {
-    id: editingId||nextId++,
-    title: '',
-    body,
-    author: {name,color},
-    attachments,
-    likes:new Set(),
-    dislikes:new Set(),
-    comments:[],
-    pinned:false,
-    locked:false,
-    created: editingId ? posts.find(p=>p.id===editingId).created : stamp(),
-    edited: editingId ? stamp() : null,
-    views:0
+    id: nextId++,
+    text,
+    date: Date.now(),
+    color: $('#fontColor').value,
+    size: $('#fontSize').value,
+    family: $('#fontFamily').value,
+    likes:0, dislikes:0
   };
-  if (editingId){
-    const idx = posts.findIndex(p=>p.id===editingId);
-    posts[idx] = {...posts[idx],...post};
-    editingId = null;
-  } else posts.unshift(post);
-  save();
-  render();
-  cancelBtn.click();
-  lastPost = stamp();
-};
-cancelBtn.onclick = ()=>{
-  editorArea.innerHTML='';
-  attachPreview.innerHTML='';
-  editor.classList.add('hidden');
-  newPostBtn.disabled = false;
-  editingId = null;
-};
-newPostBtn.onclick = ()=>{
-  editor.classList.remove('hidden');
-  newPostBtn.disabled = true;
-  editorArea.focus();
-};
-
-/* ========== RENDER ========== */
-function render(){
-  const s = searchInput.value.trim().toLowerCase();
-  const sort = sortSelect.value;
-  const filter = filterSelect.value;
-  let list = posts.slice();
-  if (s) list = list.filter(p=> (p.body+p.author.name).toLowerCase().includes(s));
-  if (filter==='media') list = list.filter(p=>p.attachments.length);
-  if (filter==='text') list = list.filter(p=>!p.attachments.length);
-  if (sort==='old') list.reverse();
-  if (sort==='likes') list.sort((a,b)=>b.likes.size - a.likes.size);
-  if (sort==='comments') list.sort((a,b)=>b.comments.length - a.comments.length);
-  list.sort((a,b)=> (b.pinned?1:0) - (a.pinned?1:0));
-  feed.innerHTML = '';
-  list.forEach(p=>feed.appendChild(createPostEl(p)));
-}
-function createPostEl(p){
-  const div = document.createElement('div');
-  div.className='post'+(p.pinned?' pinned':'');
-  div.dataset.id = p.id;
-  div.innerHTML = `
-    <div class="post-header">
-      <span class="name" ${p.author.color?`style="color:${p.author.color}"`:''}>${escapeHTML(p.author.name)}</span>
-      <span class="muted">• ${formatTime(p.created)}</span>
-      ${p.pinned?'<span class="badge">Pinned</span>':''}
-      ${p.locked?'<span class="badge">Locked</span>':''}
-    </div>
-    <div class="post-body">${p.body}</div>
-    ${p.attachments.map(a=>{
-      if (a.type==='image') return `<img src="${a.src}" loading="lazy">`;
-      if (a.type==='video') return `<video src="${a.src}" controls muted loop></video>`;
-      if (a.type==='audio') return `<div class="attachment"><audio src="${a.src}" controls></audio></div>`;
-    }).join('')}
-    <div class="post-footer">
-      <div class="post-actions">
-        <button class="like ${p.likes.has(deviceId)?'liked':''}" onclick="toggleLike(${p.id},'like')">👍 ${p.likes.size}</button>
-        <button class="dislike ${p.dislikes.has(deviceId)?'disliked':''}" onclick="toggleLike(${p.id},'dislike')">👎 ${p.dislikes.size}</button>
-        ${p.locked?'<span class="muted">Locked</span>':'<button onclick="showCommentBox('+p.id+')">💬 Reply</button>'}
-      </div>
-      <div class="stats muted">${readingTime(p.body)} min read • ${p.views} views</div>
-      <div class="post-options">
-        <button>⋯</button>
-        <div class="menu">
-          <button onclick="sharePost(${p.id})">Share</button>
-          <button onclick="copyText(${p.id})">Copy text</button>
-          <button onclick="copyLink(${p.id})">Copy link</button>
-          <button onclick="reportPost(${p.id})">Report</button>
-          <button onclick="showAdmin(${p.id})">Admin features</button>
-        </div>
-      </div>
-    </div>
-    <div id="comments-${p.id}" class="comments"></div>
-  `;
-  // render comments
-  const cdiv = div.querySelector(`#comments-${p.id}`);
-  p.comments.forEach(c=>{
-    const cd = document.createElement('div');
-    cd.className='comment';
-    cd.innerHTML = `
-      <div class="comment-header">
-        <span class="name" ${c.author.color?`style="color:${c.author.color}"`:''}>${escapeHTML(c.author.name)}</span>
-        <span class="muted">• ${formatTime(c.created)}</span>
-      </div>
-      <div class="comment-body">${c.body}</div>
-    `;
-    cdiv.appendChild(cd);
-  });
-  // inc view
-  if (!p.views) p.views=0;
-  if (!p.lastView||stamp()-p.lastView>60_000){
-    p.views++;
-    p.lastView = stamp();
-    save();
+  if($('#composer').dataset.media){
+    post.media={url:$('#composer').dataset.media, video:$('#composer').dataset.mediaType=='video'};
   }
-  return div;
+  posts.unshift(post);
+  save(); resetComposer(); $('#composer').classList.remove('active'); renderFeed();
+};
+/* =====  LIKES / DISLIKES  ===== */
+function like(id){
+  const p = posts.find(x=>x.id==id);
+  if(!p) return;
+  p.likes = (p.likes||0)+1;
+  save(); renderFeed();
 }
-/* ========== POST ACTIONS ========== */
-function toggleLike(pid,type){
-  const p = posts.find(x=>x.id===pid);
-  if (!p) return;
-  const set = type==='like'?p.likes:p.dislikes;
-  const other = type==='like'?p.dislikes:p.likes;
-  if (set.has(deviceId)) set.delete(deviceId);
-  else { set.add(deviceId); other.delete(deviceId); }
-  save(); render();
+function dislike(id){
+  const p = posts.find(x=>x.id==id);
+  if(!p) return;
+  p.dislikes = (p.dislikes||0)+1;
+  save(); renderFeed();
 }
-function showCommentBox(pid){
-  const p = posts.find(x=>x.id===pid);
-  if (p.locked) return;
-  const box = qs(`#comments-${pid}`);
-  if (box.querySelector('.comment-box')) return;
-  const cbox = document.createElement('div');
-  cbox.className='comment-box';
-  cbox.innerHTML = `<input placeholder="Write a reply…"><button>Post</button>`;
-  const inp = cbox.querySelector('input');
-  const btn = cbox.querySelector('button');
-  btn.onclick = ()=>{
-    if (stamp()-lastComment<SPAM_COMMENT){ alert('Wait a bit…'); return; }
-    const v = inp.value.trim();
-    if (!v) return;
-    const name = prompt('Your name (optional):')||'Anonymous';
-    const color = prompt('Name color (hex, optional):')||'';
-    p.comments.push({
-      id: uuid(),
-      body: escapeHTML(v),
-      author:{name,color},
-      created: stamp()
-    });
-    save(); render();
-    lastComment = stamp();
-  };
-  box.appendChild(cbox);
-  inp.focus();
+/* =====  SHARE  ===== */
+function toggleShare(id,e){
+  e.stopPropagation();
+  const box = $(`#sh-${id}`);
+  box.classList.toggle('active');
+  const close = ()=> box.classList.remove('active');
+  document.addEventListener('click',close,{once:true});
 }
-function sharePost(pid){
-  const p = posts.find(x=>x.id===pid);
-  const url = location.href.split('#')[0]+'#post-'+pid;
-  const text = `Check this: ${p.body.slice(0,100)}…`;
-  if (navigator.share) navigator.share({title:'News post',text,url});
-  else alert('Share:\n'+url);
+/* =====  ADMIN  ===== */
+function adminDel(id){
+  if(!confirm('Delete this post?')) return;
+  posts = posts.filter(p=>p.id!==id);
+  save(); renderFeed();
 }
-function copyText(pid){
-  const p = posts.find(x=>x.id===pid);
-  navigator.clipboard.writeText(p.body);
-  alert('Text copied');
+function openLogin(){
+  $('#loginModal').classList.add('active');
+  $('#userInp').focus();
 }
-function copyLink(pid){
-  const url = location.href.split('#')[0]+'#post-'+pid;
-  navigator.clipboard.writeText(url);
-  alert('Link copied');
-}
-function reportPost(pid){ alert('Reported – admins will review.'); }
-
-/* ========== ADMIN ========== */
-function showAdmin(pid){
-  showModal('loginModal');
-  loginModal.dataset.pid = pid;
+function closeLogin(){
+  $('#loginModal').classList.remove('active');
+  $('#loginErr').textContent='';
 }
 function doLogin(){
-  const u = loginUser.value.trim();
-  const p = loginPass.value.trim();
-  if (u===ADMIN_USER && p===ADMIN_PASS){
-    adminToken = uuid();
-    sessionStorage.setItem('adminToken', adminToken);
-    closeModal('loginModal');
-    showAdminTools(+loginModal.dataset.pid);
+  const u = $('#userInp').value, p = $('#passInp').value;
+  if(u==='master' && p==='M4sterP@ss'){
+    adminMode=true;
+    $('#adminBadge').style.display='inline-block';
+    closeLogin();
+    renderFeed();
   } else {
-    loginErr.textContent = 'Wrong credentials';
+    $('#loginErr').textContent='Wrong credentials.';
   }
 }
-function showAdminTools(pid){
-  const p = posts.find(x=>x.id===pid);
-  if (!p) return;
-  showModal('adminModal');
-  adminPanel.innerHTML = `
-    <p><b>Post #${p.id}</b></p>
-    <button onclick="pinPost(${pid})">${p.pinned?'Unpin':'Pin'} post</button>
-    <button onclick="lockPost(${pid})">${p.locked?'Unlock':'Lock'} post</button>
-    <button onclick="editPost(${pid})">Edit post</button>
-    <button onclick="deletePost(${pid})">Delete post</button>
-    <hr>
-    <button onclick="exportJSON()">Export all posts (JSON)</button>
-    <input type="file" id="importFile" accept=".json" onchange="importJSON(event)">
-    <button onclick="document.getElementById('importFile').click()">Import JSON</button>
-  `;
-}
-function pinPost(pid){
-  const p = posts.find(x=>x.id===pid);
-  p.pinned = !p.pinned;
-  save(); render(); closeModal('adminModal');
-}
-function lockPost(pid){
-  const p = posts.find(x=>x.id===pid);
-  p.locked = !p.locked;
-  save(); render(); closeModal('adminModal');
-}
-function editPost(pid){
-  const p = posts.find(x=>x.id===pid);
-  editingId = pid;
-  editorArea.innerHTML = p.body;
-  attachPreview.innerHTML = p.attachments.map(a=>{
-    if (a.type==='image') return `<div class="thumb"><img src="${a.src}"><button onclick="this.parentElement.remove()">✕</button></div>`;
-    if (a.type==='video') return `<div class="thumb"><video src="${a.src}"></video><button onclick="this.parentElement.remove()">✕</button></div>`;
-    if (a.type==='audio') return `<div class="thumb"><audio src="${a.src}" controls></audio><button onclick="this.parentElement.remove()">✕</button></div>`;
-  }).join('');
-  editor.classList.remove('hidden');
-  newPostBtn.disabled = true;
-  closeModal('adminModal');
-}
-function deletePost(pid){
-  if (!confirm('Delete forever?')) return;
-  posts = posts.filter(p=>p.id!==pid);
-  save(); render(); closeModal('adminModal');
-}
-function exportJSON(){
-  const data = JSON.stringify(posts,null,2);
-  const blob = new Blob([data],{type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'news-backup.json'; a.click();
-  URL.revokeObjectURL(url);
-}
-function importJSON(e){
-  const file = e.target.files[0];
-  if (!file) return;
-  const r = new FileReader();
-  r.onload = ()=>{
-    try {
-      const arr = JSON.parse(r.result);
-      if (!Array.isArray(arr)) throw 0;
-      posts = arr;
-      nextId = posts.length ? Math.max(...posts.map(p=>p.id)) + 1 : 1;
-      save(); render();
-      alert('Imported');
-    } catch {
-      alert('Invalid file');
-    }
-  };
-  r.readAsText(file);
-}
-
-/* ========== MODALS ========== */
-function showModal(id){ qs('#'+id).classList.add('show'); }
-function closeModal(id){ qs('#'+id).classList.remove('show'); }
-
-/* ========== SEARCH / SORT / FILTER ========== */
-searchInput.oninput = ()=>render();
-sortSelect.onchange = ()=>render();
-filterSelect.onchange = ()=>render();
-
-/* ========== SAVE / LOAD ========== */
-function save(){
-  // convert Sets to Arrays for JSON
-  const data = posts.map(p=>({...p, likes:[...p.likes], dislikes:[...p.dislikes]}));
-  localStorage.setItem('newsPosts', JSON.stringify(data));
-}
-/* migrate old format */
-posts.forEach(p=>{
-  if (!p.likes) p.likes = [];
-  if (!p.dislikes) p.dislikes = [];
-  p.likes = new Set(p.likes);
-  p.dislikes = new Set(p.dislikes);
-  if (!p.attachments) p.attachments = [];
-  if (!p.comments) p.comments = [];
-  if (!p.views) p.views = 0;
+/* =====  OPTIONS ON EACH POST  ===== */
+window.addEventListener('contextmenu',e=>{
+  const post = e.target.closest('.post');
+  if(!post) return;
+  e.preventDefault();
+  if(adminMode) return; // already shows bin icon
+  openLogin();
 });
-
-/* ========== INIT ========== */
-render();
-setInterval(render, 60_000); // update timestamps
-window.onkeydown = e=>{
-  if (e.key==='Escape') qsa('.modal').forEach(m=>m.classList.remove('show'));
-  if (e.key==='/' && e.ctrlKey===false && document.activeElement!==searchInput){ searchInput.focus(); e.preventDefault(); }
-};
+/* =====  DEEP-LINK  ===== */
+if(location.hash){
+  const id = parseInt(location.hash.slice(1));
+  if(id) setTimeout(()=>{
+    const el = $(`[data-id="${id}"]`);
+    if(el){ el.style.border='2px solid var(--accent)'; el.scrollIntoView({block:'center'}); }
+  },200);
+}
+/* =====  INIT  ===== */
+renderFeed();
 </script>
 </body>
 </html>

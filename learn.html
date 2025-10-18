@@ -171,19 +171,58 @@ const books=[
   `}
 ];
 
-const quiz=[
-  {q:"Who is the Silent Watcher intertwined with Valmyra since creation?",a:["Valthar"],opts:["Valthar","Detlef","Valseran","Emperor Adam"]},
-  {q:"What did Detlef persuade the people to build?",a:["the Underground","Underground"],opts:["Sky castles","the Underground","Surface walls","Wooden ships"]},
-  {q:"Who emerged from the sealed mine one year after Detlef’s death?",a:["Valseran"],opts:["Valthar","Valseran","Emperor Adam","BobDolf"]},
-  {q:"Which boots symbolise Valorian resilience?",a:["Springerstiefel"],opts:["Levi’s 501","Springerstiefel","Crocs","Galoshes"]},
-  {q:"Valoria’s signature sweet wine is called?",a:["Valorka"],opts:["Astari Noir","Valorka","Chardonnay","Port"]},
-  {q:"What everyday foods are dietary staples?",a:["fish and bread"],opts:["Beef & rice","Fish & bread","Pizza & fries","Apples & cheese"]},
-  {q:"Which ideology is banned by 100 % popular vote?",a:["Communism"],opts:["Capitalism","Communism","Feudalism","Liberalism"]},
-  {q:"Who is Deputy to the King?",a:["Lord of Valoria","Lord MineKid"],opts:["Prime Minister","Lord of Valoria","Speaker of VRC","First Flamekeeper"]},
-  {q:"Punishment for high treason can include?",a:["loss of citizenship"],opts:["A hug","Loss of citizenship","Free dinner","Knighthood"]},
-  {q:"Offering candles during liturgy is called?",a:["Offering of Light"],opts:["Offering of Light","Offering of Water","Crafted Intent","Deep Flame"]}
+const quiz = [
+  {
+    q: "During the Great Dig, Detlef’s workforce originally descended in search of what PRIMARY resource that the surface had lost?",
+    a: ["geothermal warmth", "warmth"],
+    opts: ["Precious metals", "Geothermal warmth", "Underground rivers", "Coal seams"]
+  },
+  {
+    q: "Which liturgical offering is CORRECTLY paired with its symbolic meaning inside the Rite of Harmonious Observance?",
+    a: ["Offering of Water – purification"],
+    opts: ["Offering of Light – obedience", "Offering of Water – purification", "Crafted Intent – atonement", "Deep Flame – sovereignty"]
+  },
+  {
+    q: "Under the VLC, which crime carries a MANDATORY 125 % restitution clause on top of the base penalty?",
+    a: ["Theft"],
+    opts: ["Fraud", "Symbolic disloyalty", "Theft", "Destruction of property"]
+  },
+  {
+    q: "Who is the ONLY civilian office-holder, besides the Emperor, authorised to enter Elite Communion with Valseran on high holy days?",
+    a: ["First Flamekeeper"],
+    opts: ["Lord of Valoria", "First Flamekeeper", "Senior Illuminator", "Speaker of the VRC"]
+  },
+  {
+    q: "Which specific cultural artefact, originally a humorous gift from Agent BobDolf, became compulsory wear during the Rüstungs-Phase?",
+    a: ["Springerstiefel"],
+    opts: ["Obsidian crown", "Springerstiefel", "Deep-flame tabard", "Adamite pickaxe"]
+  },
+  {
+    q: "According to constitutional checks, the King’s combined voting power inside the PRC must NEVER exceed what numerical limit?",
+    a: ["the combined power of all other PRC members", "all other PRC members", "remaining members"],
+    opts: ["Fifty-one percent", "Two-thirds majority", "The combined power of all other PRC members", "Simple plurality"]
+  },
+  {
+    q: "Which act is EXPLICITLY listed under ‘Anti-Traditionalist Activity’ (Art. 6.3 VLC)?",
+    a: ["displaying the pre-reform Valorian flag"],
+    opts: ["Public drunkenness", "Displaying the pre-reform Valorian flag", "Refusing to wear Springerstiefel", "Speaking Elytherian in public"]
+  },
+  {
+    q: "Valorka wine is REQUIRED by royal decree to be produced using what origin-specific constraint?",
+    a: ["exclusively Valorian resources"],
+    opts: ["At least 50 % imported grapes", "Exclusively Valorian resources", "Astari fermentation yeast only", "Deep-Flame-blessed water"]
+  },
+  {
+    q: "In the event of war, which TWO bodies share joint command over the Valorian Army according to Art. VI of the Constitution?",
+    a: ["Valoria and the UUR"],
+    opts: ["King & Lord of Valoria", "VRC & PRC", "Valoria & the UUR", "VIS & NDI"]
+  },
+  {
+    q: "The sealed cavern where Detlef died was later transformed into which primary sacred site?",
+    a: ["Sanctum of the Deep Flame"],
+    opts: ["Temple of the Ascendant Light", "Cavern of the Silent Watcher", "Sanctum of the Deep Flame", "Monument of the Kind"]
+  }
 ];
-
 /* ========================= STATE ========================= */
 let readStatus=[false,false,false]; // one per book
 const STORAGE_KEY='valoria_read';
@@ -242,20 +281,30 @@ function startQuiz(){
   document.getElementById('scoreBoard').innerHTML='';
 }
 function checkQuiz(){
-  let score=0;
+  let score = 0;
   quiz.forEach((Q,i)=>{
-    const sel=document.querySelector(`input[name="q${i}"]:checked`);
-    if(sel&&Q.a.includes(sel.value)) score++;
+    const sel = document.querySelector(`input[name="q${i}"]:checked`);
+    if(sel && Q.a.some(ans=>ans.toLowerCase()===sel.value.toLowerCase())) score++;
   });
-  const pct=score/quiz.length*100;
-  const pass=pct>=80;
-  document.getElementById('scoreBoard').innerHTML=
-    `<div class="${pass?'correct':'wrong'}">
-      You scored ${score} / ${quiz.length} (${pct.toFixed(0)} %)
-      ${pass?'<br>Congratulations – you may now request citizenship!':'<br>Review the material and try again.'}
-    </div>`;
+  const pct = score/quiz.length*100;
+  const board = document.getElementById('scoreBoard');
+  if(pct >= 80){
+    board.innerHTML =
+     `<div class="correct">
+         You scored ${score} / ${quiz.length} (${pct.toFixed(0)} %) – PASS<br>
+         <a href="https://docs.google.com/forms/d/e/1FAIpQLSdgO28bKI6dltnzdrJAC2pfm5c0bZdPFEnFf_XC903rVwkq6Q/viewform?usp=header"
+            target="_blank" style="display:inline-block;margin-top:1rem;padding:.6rem 1.2rem;background:var(--accent);color:#fff;border-radius:6px;">
+            Proceed to official citizenship request form →
+         </a>
+      </div>`;
+  }else{
+    board.innerHTML =
+     `<div class="wrong">
+         You scored ${score} / ${quiz.length} (${pct.toFixed(0)} %) – FAIL<br>
+         Review the material and retake the quiz.
+      </div>`;
+  }
 }
-
 /* ---------- boot ---------- */
 init();
 </script>

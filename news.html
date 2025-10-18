@@ -159,7 +159,7 @@ main{flex:1;padding:2rem 1rem;max-width:700px;margin:auto;width:100%}
   </div>
 </div>
 
-<script> 
+<script>
 /* ---------- UTILS ---------- */
 const qs=s=>document.querySelector(s);
 const qsa=s=>[...document.querySelectorAll(s)];
@@ -174,53 +174,32 @@ const adminCreds={user:'master',pass:'M4sterP@ss'};
 const editor = qs('#editor');
 const sizeSel= qs('#sizeSelect');
 
-/* bold / italic buttons */
+/* bold / italic */
 qs('#formatBar').addEventListener('click',e=>{
-  const cmd = e.target.closest('button')?.dataset.cmd;
-  if(cmd) document.execCommand(cmd,false,null);
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  const cmd = btn.dataset.cmd;
+  document.execCommand(cmd,false,null);
+  editor.focus();
 });
 
 /* size selector */
 sizeSel.onchange = ()=>{
-  document.execCommand('fontSize',false,'7');          // use biggest tag
+  document.execCommand('fontSize',false,'7');   // biggest <font> tag
   const sel = window.getSelection();
   if(sel.rangeCount){
     const span = sel.getRangeAt(0).commonAncestorContainer.parentElement;
-    span.style.fontSize = sizeSel.value+'px';          // override with real px
-    span.removeAttribute('size');                      // tidy up
+    span.style.fontSize = sizeSel.value+'px';
+    span.removeAttribute('size');
   }
+  editor.focus();
 };
 
-/* send post */
-qs('#postBtn').onclick = ()=>{
-  const html = editor.innerHTML.trim();
-  if(!html) return;
-
-  const fileInp = qs('#fileInp'), file = fileInp.files[0];
-  const attachment = file ? {name:file.name, type:file.type, url:URL.createObjectURL(file)} : null;
-
-  posts.unshift({
-    id:randId(),
-    html,
-    text: editor.innerText,          // plain-text fallback
-    user:qs('#userInp').value.trim(),
-    date:Date.now(),
-    likes:0, dislikes:0,
-    attachment,
-    admin:adminMode,
-    pinned:false, highlighted:false
-  });
-
-  save(); render();
-  editor.innerHTML='';
-  qs('#userInp').value='';
-  fileInp.value='';
+/* ---------- SORT / RENDER ---------- */
+const sortPosts=mode=>{
+  if(mode==='top') posts.sort((a,b)=>(b.likes||0)-(a.likes||0));
+  else posts.sort((a,b)=>b.date-a.date);
 };
-
-/* auto-save draft */
-const draftKey='newsDraft';
-window.addEventListener('beforeunload',()=> localStorage.setItem(draftKey,editor.innerHTML));
-editor.innerHTML=localStorage.getItem(draftKey)||'';
 const render=_=>{
   sortPosts(qs('#sortBar span.active').dataset.sort);
   qs('#feed').innerHTML='';
@@ -268,7 +247,6 @@ function buildPostEl(p){
   document.addEventListener('click',e=>{
     if(!opts.contains(e.target)) opts.classList.remove('open');
   });
-
   /* likes */
   d.querySelector('.like').onclick=e=>toggleLike(p.id,true);
   d.querySelector('.dislike').onclick=e=>toggleLike(p.id,false);
@@ -366,31 +344,35 @@ function toggleHighlight(id){
   p.highlighted=!p.highlighted; save(); render();
 }
 
+/* ---------- COMPOSER POST ---------- */
+qs('#postBtn').onclick=()=>{
+  const html=editor.innerHTML.trim();
+  if(!html) return;
 
-<section id="composer">
-  <!-- visible, plain editor -->
-  <div id="editor" contenteditable="true" placeholder="What’s happening?"></div>
+  const fileInp=qs('#fileInp'), file=fileInp.files[0];
+  const attachment=file?{name:file.name, type:file.type, url:URL.createObjectURL(file)}:null;
 
-  <!-- tiny format bar -->
-  <div id="formatBar" style="display:flex;gap:.4rem;margin:.4rem 0">
-    <button data-cmd="bold" title="bold"><b>B</b></button>
-    <button data-cmd="italic" title="italic"><i>I</i></button>
+  posts.unshift({
+    id:randId(),
+    html,
+    text:editor.innerText,
+    user:qs('#userInp').value.trim(),
+    date:Date.now(),
+    likes:0, dislikes:0,
+    attachment,
+    admin:adminMode,
+    pinned:false, highlighted:false
+  });
+  save(); render();
+  editor.innerHTML='';
+  qs('#userInp').value='';
+  fileInp.value='';
+};
 
-    <select id="sizeSelect" title="size">
-      <option value="16">normal</option>
-      <option value="22">subtitle</option>
-      <option value="30">title</option>
-    </select>
-  </div>
-
-  <!-- file / user / post -->
-  <div id="composerOptions">
-    <input id="fileInp" type="file" accept="image/*,.pdf" />
-    <label for="fileInp">📎 Attach</label>
-    <input id="userInp" type="text" placeholder="Username (optional)" />
-    <button id="postBtn">Post</button>
-  </div>
-</section>
+/* auto-save draft */
+const draftKey='newsDraft';
+editor.innerHTML=localStorage.getItem(draftKey)||'';
+editor.addEventListener('input',()=>localStorage.setItem(draftKey,editor.innerHTML));
 
 /* ---------- SORT BAR ---------- */
 qsa('#sortBar span').forEach(el=>{
@@ -403,7 +385,6 @@ qsa('#sortBar span').forEach(el=>{
 
 /* ---------- BOOTSTRAP ---------- */
 render();
-/* deep-link scroll */
 if(location.hash){
   const id=location.hash.slice(1);
   setTimeout(_=>qs(`[data-id="${id}"]`)?.scrollIntoView({behavior:'smooth'}),300);

@@ -66,7 +66,25 @@ const ADMIN_PASS = 'M4sterP@ss';
 
 /* HELPERS */
 const $ = q => document.querySelector(q);
-const storage = (k,v) => v===undefined ? JSON.parse(localStorage.getItem(k)||'null') : localStorage.setItem(k,JSON.stringify(v));
+/* ----------  remote storage  ---------- */
+let poll   = null;   // {title,end,votes:{}}
+let votes  = {};     // votes[user] = true/false
+
+async function loadPoll(){
+  const obj = await fetch('/api/votes').then(r => r.json());
+  poll  = {title: obj.title, end: obj.end};
+  votes = obj.votes || {};
+  renderBallot();          // your existing render
+}
+
+async function sendVote(user, voteBool){
+  await fetch('/api/votes', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({user, vote: voteBool})
+  });
+  await loadPoll();
+}
 const today = () => new Date().toISOString().slice(0,10);
 
 /* DATA */

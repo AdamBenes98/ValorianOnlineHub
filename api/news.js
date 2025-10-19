@@ -1,30 +1,18 @@
-// read / write the news array inside data/db.json
-import { readFile, writeFile } from 'fs/promises'
-import { join } from 'path'
+import { kv } from '@vercel/kv'
 
-const DB = join(process.cwd(),'data','db.json')
-
-async function getDb(){
-  try{
-    return JSON.parse(await readFile(DB,'utf8'))
-  }catch{ return {news:[], polls:{}, vault:[]} }
-}
-
-async function saveDb(obj){
-  await writeFile(DB, JSON.stringify(obj,null,2))
-}
-
-export default async function handler(req, res){
-  const db = await getDb()
-  if(req.method==='GET'){
-    res.status(200).json(db.news||[])
-  }else if(req.method==='POST'){
-    const post = req.body
-    post.time = Date.now()
-    db.news = [post, ...(db.news||[])]
-    await saveDb(db)
-    res.status(201).json({ok:true})
-  }else{
-    res.status(405).end()
+export default async function handler(req, res) {
+  if (req.method === 'GET') {
+    const news = (await kv.get('news')) || []
+    return res.status(200).json(news)
   }
+
+  if (req.method === 'POST') {
+    const news = (await kv.get('news')) || []
+    const post = { ...req.body, time: Date.now() }
+    news.unshift(post)
+    await kv.set('news', news)
+    return res.status(201).json({ ok: true })
+  }
+
+  res.status(405).end()
 }

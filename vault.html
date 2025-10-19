@@ -57,11 +57,23 @@ function openVault(){
   renderMemos();
 }
 
-/* ----------  existing GovVault logic (unchanged)  ---------- */
-const MEMO_KEY = 'govMemos';
-let memos = JSON.parse(localStorage.getItem(MEMO_KEY)) || [];
+/* ----------  remote storage  ---------- */
+let memos = [];
 
-function saveMemo(){ localStorage.setItem(MEMO_KEY, JSON.stringify(memos)); }
+async function loadMemos(){
+  memos = await fetch('/api/vault').then(r => r.json());
+  renderMemos();
+}
+
+async function storeMemo(text, file=null){
+  const memo = {text, time: Date.now(), file};
+  await fetch('/api/vault', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(memo)
+  });
+  await loadMemos();        // refresh screen
+}
 
 function renderMemos(){
   const div = document.getElementById('memos'); div.innerHTML='';

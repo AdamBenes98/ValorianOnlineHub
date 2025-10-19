@@ -60,6 +60,11 @@ a{color:var(--red)}
 <div id="app"></div>
 
 <script type="module">
+/* ----------  helper  ---------- */
+const storage = (k, v) => {
+  if (v === undefined) return JSON.parse(localStorage.getItem(k) || 'null');
+  localStorage.setItem(k, JSON.stringify(v));
+};
 /* CONFIG */
 const ADMIN_USER = 'master';
 const ADMIN_PASS = 'M4sterP@ss';

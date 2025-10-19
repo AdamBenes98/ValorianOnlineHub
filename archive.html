@@ -30,20 +30,18 @@ h1{margin:0 0 1rem}
 <div id="list"></div>
 
 <script>
-/*  key must match the voter script  */
-const ARCHIVE_KEY = 'archive';
+/*  fetch archived polls from server  */
+const box = document.getElementById('list');
 
-function load(k,def=[]){try{return JSON.parse(localStorage.getItem(k))}catch{return def}}
-
-const list = load(ARCHIVE_KEY);
-const box  = document.getElementById('list');
-
-if (!list.length){
-  box.innerHTML = '<p>No archived votes yet.</p>';
-}else{
-  list.forEach(p=>{
-    const yesP = (100*p.results.yes/(p.results.total)||0).toFixed(1);
-    const noP  = (100*p.results.no /(p.results.total)||0).toFixed(1);
+(async () => {
+  const archive = await fetch('/api/votes/archive').then(r => r.json()).catch(() => []);
+  if (!archive.length) {
+    box.innerHTML = '<p>No archived votes yet.</p>';
+    return;
+  }
+  archive.forEach(p => {
+    const yesP = (100 * p.results.yes / p.results.total || 0).toFixed(1);
+    const noP  = (100 * p.results.no  / p.results.total || 0).toFixed(1);
     const div  = document.createElement('div');
     div.className = 'poll';
     div.innerHTML = `
@@ -54,7 +52,7 @@ if (!list.length){
     `;
     box.appendChild(div);
   });
-}
+})();
 </script>
 </body>
 </html>

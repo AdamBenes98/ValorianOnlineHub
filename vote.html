@@ -101,13 +101,16 @@ const DB = {
 };
 
 /* ARCHIVE */
-function archiveThisPoll(){
+async function archiveThisPoll(){
   const p = DB.poll(), v = DB.votes(), r = DB.results();
   if(!p) return;
   const entry = { ...p, results:r, votes:v, archivedAt:new Date().toISOString() };
-  const list = DB.archive(); list.push(entry); storage('archive',list);
+  await fetch('/api/votes/archive', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(entry)
+  });
 }
-
 /* ROUTER */
 function start(){
   const p = DB.poll();

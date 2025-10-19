@@ -96,10 +96,23 @@ main{flex:1;padding:2rem;max-width:1100px;margin:auto;width:100%}
 </main>
 
 <script>
-/* ---------- storage ---------- */
-const STORAGE_KEY = 'valorianNews';
-let posts = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-let master = false; // admin flag
+/* ----------  storage → remote  ---------- */
+let posts = [];          // will be filled on start
+let master = false;
+
+async function loadPosts(){
+  posts = await fetch('/api/news').then(r => r.json());
+  renderFeed();
+}
+
+async function savePost(article){
+  await fetch('/api/news', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(article)
+  });
+  await loadPosts();     // refresh from server
+}
 
 /* ---------- login / logout ---------- */
 function tryLogin(){
@@ -230,8 +243,8 @@ function delPost(i){
   renderFeed();
 }
 
-/* ---------- init ---------- */
-renderFeed();
+/* ----------  init  ---------- */
+loadPosts();
 </script>
 </body>
 </html>

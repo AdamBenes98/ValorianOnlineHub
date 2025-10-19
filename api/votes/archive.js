@@ -1,16 +1,17 @@
-import { readFile } from 'fs/promises'
-import { join } from 'path'
+iimport { kv } from '@vercel/kv'
 
-const DB = join(process.cwd(),'data','db.json')
+export default async function handler(req, res) {
+  if (req.method === 'POST') {
+    const archive = (await kv.get('archive')) || []
+    archive.unshift(req.body)          // the full poll object
+    await kv.set('archive', archive)
+    return res.status(201).json({ ok: true })
+  }
 
-async function getDb(){
-  try{
-    return JSON.parse(await readFile(DB,'utf8'))
-  }catch{ return {archive:[]} }
-}
+  if (req.method === 'GET') {
+    const archive = (await kv.get('archive')) || []
+    return res.status(200).json(archive)
+  }
 
-export default async function handler(req, res){
-  if(req.method!=='GET') return res.status(405).end()
-  const db = await getDb()
-  res.status(200).json(db.archive||[])
+  res.status(405).end()
 }

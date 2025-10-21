@@ -26,8 +26,11 @@ class VaOSFirebase {
         });
     }
 
-    async register(email, password, username) {
+    async register(username, password) {
         try {
+            // Generate fake email from username
+            const email = `${username}@vaos.local`;
+            
             const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
             const user = userCredential.user;
             
@@ -50,15 +53,27 @@ class VaOSFirebase {
         }
     }
 
-    async login(email, password) {
+    async login(username, password) {
         try {
+            // Convert username to fake email
+            const email = `${username}@vaos.local`;
+            
             const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
             const user = userCredential.user;
             this.currentUser = user;
             await this.loadUserData(user.uid);
             return { success: true };
         } catch (error) {
-            return { success: false, error: error.message };
+            // Provide user-friendly error messages
+            let errorMessage = error.message;
+            if (error.code === 'auth/user-not-found') {
+                errorMessage = 'Username not found';
+            } else if (error.code === 'auth/wrong-password') {
+                errorMessage = 'Incorrect password';
+            } else if (error.code === 'auth/invalid-email') {
+                errorMessage = 'Invalid username format';
+            }
+            return { success: false, error: errorMessage };
         }
     }
 

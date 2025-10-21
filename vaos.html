@@ -602,9 +602,9 @@
 
   <script type="module">
     // Import Firebase functionality
-    import { vaosFirebase } from './vaos-firebase.js';
+    import './vaos-firebase.js';
 
-    // Update the VaOS class to use Firebase
+    // Complete VaOS class implementation
     class VaOS {
         constructor() {
             this.currentUser = null;
@@ -615,14 +615,13 @@
         }
 
         async init() {
-            await vaosFirebase.init();
+            await window.vaosFirebase.init();
             this.setupEventListeners();
             this.updateClock();
             setInterval(() => this.updateClock(), 1000);
         }
 
         setupEventListeners() {
-            // Login/Register forms
             document.getElementById('login-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 await this.login();
@@ -638,7 +637,7 @@
             const email = document.getElementById('login-username').value;
             const password = document.getElementById('login-password').value;
             
-            const result = await vaosFirebase.login(email, password);
+            const result = await window.vaosFirebase.login(email, password);
             if (!result.success) {
                 this.showError(result.error);
             }
@@ -654,14 +653,14 @@
                 return;
             }
 
-            const result = await vaosFirebase.register(email, password, email.split('@')[0]);
+            const result = await window.vaosFirebase.register(email, password, email.split('@')[0]);
             if (!result.success) {
                 this.showError(result.error);
             }
         }
 
         logout() {
-            vaosFirebase.logout();
+            window.vaosFirebase.logout();
         }
 
         showLogin() {
@@ -670,14 +669,13 @@
         }
 
         showDesktop() {
-            this.currentUser = vaosFirebase.currentUser;
-            this.userData = vaosFirebase.userData;
+            this.currentUser = window.vaosFirebase.currentUser;
+            this.userData = window.vaosFirebase.userData;
             
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('desktop').classList.add('active');
             document.getElementById('current-user').textContent = this.userData?.username || 'User';
             
-            // Show admin features if admin
             if (this.userData?.role === 'admin') {
                 document.getElementById('admin-icon').style.display = 'flex';
                 document.getElementById('admin-menu').style.display = 'block';
@@ -696,12 +694,371 @@
             document.getElementById('system-time').textContent = now.toLocaleTimeString();
         }
 
+        toggleStartMenu() {
+            document.getElementById('start-menu').classList.toggle('active');
+        }
+
+        openApp(appName) {
+            if (!this.checkAppPermission(appName)) {
+                alert('You do not have permission to access this application.');
+                return;
+            }
+
+            const windowId = `window-${this.windowId++}`;
+            const window = this.createWindow(windowId, appName);
+            document.getElementById('windows-container').appendChild(window);
+            this.windows.set(windowId, { element: window, app: appName });
+            this.addToTaskbar(windowId, appName);
+            this.makeWindowActive(windowId);
+            document.getElementById('start-menu').classList.remove('active');
+        }
+
+        checkAppPermission(appName) {
+            if (!this.userData) return false;
+            if (this.userData.role === 'admin') return true;
+            
+            const appPermissions = {
+                'calculator': 'calculator',
+                'text-editor': 'textEditor',
+                'terminal': 'terminal',
+                'settings': 'settings',
+                'admin': 'admin'
+            };
+
+            return this.userData.apps[appPermissions[appName]] || false;
+        }
+
+        createWindow(windowId, appName) {
+            const window = document.createElement('div');
+            window.className = 'window';
+            window.id = windowId;
+            window.style.top = '50px';
+            window.style.left = '50px';
+            window.style.width = '500px';
+            window.style.height = '400px';
+
+            const title = this.getAppTitle(appName);
+            const icon = this.getAppIcon(appName);
+
+            window.innerHTML = `
+                <div class="window-header">
+                    <div class="window-title">
+                        <span>${icon}</span>
+                        <span>${title}</span>
+                    </div>
+                    <div class="window-controls">
+                        <div class="window-control minimize" onclick="vaos.minimizeWindow('${windowId}')"></div>
+                        <div class="window-control maximize" onclick="vaos.maximizeWindow('${windowId}')"></div>
+                        <div class="window-control close" onclick="vaos.closeWindow('${windowId}')"></div>
+                    </div>
+                </div>
+                <div class="window-content">
+                    ${this.createAppContent(appName)}
+                </div>
+            `;
+
+            this.makeWindowDraggable(window);
+            return window;
+        }
+
+        createAppContent(appName) {
+            switch(appName) {
+                case 'calculator':
+                    return this.createCalculator();
+                case 'text-editor':
+                    return this.createTextEditor();
+                case 'terminal':
+                    return this.createTerminal();
+                case 'settings':
+                    return this.createSettings();
+                case 'admin':
+                    return this.createAdminPanel();
+                default:
+                    return '<div>Application not found</div>';
+            }
+        }
+
+        createCalculator() {
+            return `
+                <div class="app-calculator">
+                    <div class="calc-display" id="calc-display-${this.windowId}">0</div>
+                    <button class="calc-btn" onclick="vaos.calcPress('7', ${this.windowId})">7</button>
+                    <button class="calc-btn" onclick="vaos.calcPress('8', ${this.windowId})">8</button>
+                    <button class="calc-btn" onclick="vaos.calcPress('9', ${this.windowId})">9</button>
+                    <button class="calc-btn operator" onclick="vaos.calcPress('/', ${this.windowId})">÷</button>
+                    <button class="calc-btn" onclick="vaos.calcPress('4', ${this.windowId})">4</button>
+                    <button class="calc-btn" onclick="vaos.calcPress('5', ${this.windowId})">5</button>
+                    <button class="calc-btn" onclick="vaos.calcPress('6', ${this.windowId})">6</button>
+                    <button class="calc-btn operator" onclick="vaos.calcPress('*', ${this.windowId})">×</button>
+                    <button class="calc-btn" onclick="vaos.calcPress('1', ${this.windowId})">1</button>
+                    <button class="calc-btn" onclick="vaos.calcPress('2', ${this.windowId})">2</button>
+                    <button class="calc-btn" onclick="vaos.calcPress('3', ${this.windowId})">3</button>
+                    <button class="calc-btn operator" onclick="vaos.calcPress('-', ${this.windowId})">-</button>
+                    <button class="calc-btn" onclick="vaos.calcPress('0', ${this.windowId})">0</button>
+                    <button class="calc-btn" onclick="vaos.calcPress('.', ${this.windowId})">.</button>
+                    <button class="calc-btn operator" onclick="vaos.calcPress('=', ${this.windowId})">=</button>
+                    <button class="calc-btn operator" onclick="vaos.calcPress('+', ${this.windowId})">+</button>
+                </div>
+            `;
+        }
+
+        createTextEditor() {
+            return `<textarea class="app-text-editor" id="text-editor-${this.windowId}" placeholder="Start typing...">${this.userData?.notes || ''}</textarea>`;
+        }
+
+        createTerminal() {
+            return `
+                <div class="app-terminal">
+                    <div>VaOS Terminal v1.0</div>
+                    <div>Type 'help' for available commands</div>
+                    <div id="terminal-output-${this.windowId}"></div>
+                    <div style="display: flex;">
+                        <span>${this.userData?.username}@vaos:~$ </span>
+                        <input type="text" class="terminal-input" id="terminal-input-${this.windowId}" onkeypress="vaos.terminalCommand(event, ${this.windowId})">
+                    </div>
+                </div>
+            `;
+        }
+
+        createSettings() {
+            return `
+                <div class="settings-grid">
+                    <div class="settings-item">
+                        <label>Theme</label>
+                        <select onchange="vaos.updateSetting('theme', this.value)">
+                            <option value="dark" ${this.userData?.settings?.theme === 'dark' ? 'selected' : ''}>Dark</option>
+                            <option value="light" ${this.userData?.settings?.theme === 'light' ? 'selected' : ''}>Light</option>
+                        </select>
+                    </div>
+                    <div class="settings-item">
+                        <label>Animations</label>
+                        <select onchange="vaos.updateSetting('animations', this.value === 'true')">
+                            <option value="true" ${this.userData?.settings?.animations ? 'selected' : ''}>Enabled</option>
+                            <option value="false" ${!this.userData?.settings?.animations ? 'selected' : ''}>Disabled</option>
+                        </select>
+                    </div>
+                    <div class="settings-item">
+                        <label>Auto-save notes</label>
+                        <button class="admin-btn" onclick="vaos.saveNotes()">Save Notes</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        createAdminPanel() {
+            return `
+                <div class="admin-panel">
+                    <h2>👑 Admin Panel</h2>
+                    <div class="admin-section">
+                        <h3>User Management</h3>
+                        <div class="user-list" id="user-list">
+                            <div class="user-item">
+                                <div>
+                                    <strong>${this.userData?.username}</strong>
+                                    <span class="badge">admin</span>
+                                </div>
+                                <div>
+                                    <button class="admin-btn" disabled>Calc: ✓</button>
+                                    <button class="admin-btn" disabled>Editor: ✓</button>
+                                    <button class="admin-btn danger" disabled>Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="admin-section">
+                        <h3>System Settings</h3>
+                        <button class="admin-btn" disabled>Refresh User List</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        makeWindowDraggable(window) {
+            const header = window.querySelector('.window-header');
+            let isDragging = false;
+            let startX, startY, initialX, initialY;
+
+            header.addEventListener('mousedown', (e) => {
+                if (e.target.closest('.window-controls')) return;
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                initialX = window.offsetLeft;
+                initialY = window.offsetTop;
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const deltaX = e.clientX - startX;
+                const deltaY = e.clientY - startY;
+                window.style.left = (initialX + deltaX) + 'px';
+                window.style.top = (initialY + deltaY) + 'px';
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+        }
+
+        addToTaskbar(windowId, appName) {
+            const taskbar = document.getElementById('taskbar-apps');
+            const taskbarApp = document.createElement('button');
+            taskbarApp.className = 'taskbar-app';
+            taskbarApp.innerHTML = `${this.getAppIcon(appName)} ${this.getAppTitle(appName)}`;
+            taskbarApp.onclick = () => this.toggleWindow(windowId);
+            taskbar.appendChild(taskbarApp);
+        }
+
+        makeWindowActive(windowId) {
+            document.querySelectorAll('.window').forEach(w => w.style.zIndex = '100');
+            document.querySelectorAll('.taskbar-app').forEach(t => t.classList.remove('active'));
+            
+            const window = document.getElementById(windowId);
+            if (window) {
+                window.style.zIndex = '101';
+                const taskbarApps = document.querySelectorAll('.taskbar-app');
+                const index = Array.from(this.windows.keys()).indexOf(windowId);
+                if (taskbarApps[index]) {
+                    taskbarApps[index].classList.add('active');
+                }
+            }
+        }
+
+        toggleWindow(windowId) {
+            const window = document.getElementById(windowId);
+            if (window.style.display === 'none') {
+                window.style.display = 'flex';
+                this.makeWindowActive(windowId);
+            } else {
+                window.style.display = 'none';
+            }
+        }
+
+        minimizeWindow(windowId) {
+            document.getElementById(windowId).style.display = 'none';
+        }
+
+        maximizeWindow(windowId) {
+            const window = document.getElementById(windowId);
+            window.classList.toggle('maximized');
+        }
+
+        closeWindow(windowId) {
+            const window = document.getElementById(windowId);
+            if (window) {
+                window.remove();
+                this.windows.delete(windowId);
+                
+                const taskbarApps = document.querySelectorAll('.taskbar-app');
+                const index = Array.from(this.windows.keys()).indexOf(windowId);
+                if (taskbarApps[index]) {
+                    taskbarApps[index].remove();
+                }
+            }
+        }
+
+        getAppTitle(appName) {
+            const titles = {
+                'calculator': 'Calculator',
+                'text-editor': 'Text Editor',
+                'terminal': 'Terminal',
+                'settings': 'Settings',
+                'admin': 'Admin Panel'
+            };
+            return titles[appName] || 'Unknown App';
+        }
+
+        getAppIcon(appName) {
+            const icons = {
+                'calculator': '🧮',
+                'text-editor': '📝',
+                'terminal': '💻',
+                'settings': '⚙️',
+                'admin': '👑'
+            };
+            return icons[appName] || '📄';
+        }
+
+        calcPress(value, windowId) {
+            const display = document.getElementById(`calc-display-${windowId}`);
+            let current = display.textContent;
+
+            if (value === '=') {
+                try {
+                    const result = eval(current.replace(/×/g, '*').replace(/÷/g, '/'));
+                    display.textContent = result;
+                } catch (e) {
+                    display.textContent = 'Error';
+                }
+            } else if (value === 'C') {
+                display.textContent = '0';
+            } else {
+                if (current === '0' || current === 'Error') {
+                    display.textContent = value;
+                } else {
+                    display.textContent = current + value;
+                }
+            }
+        }
+
+        terminalCommand(event, windowId) {
+            if (event.key === 'Enter') {
+                const input = event.target;
+                const command = input.value;
+                const output = document.getElementById(`terminal-output-${windowId}`);
+                
+                output.innerHTML += `<div>${this.userData?.username}@vaos:~$ ${command}</div>`;
+                
+                const response = this.processTerminalCommand(command);
+                if (response) {
+                    output.innerHTML += `<div>${response}</div>`;
+                }
+                
+                input.value = '';
+                output.scrollTop = output.scrollHeight;
+            }
+        }
+
+        processTerminalCommand(command) {
+            const parts = command.split(' ');
+            const cmd = parts[0];
+            
+            switch(cmd) {
+                case 'help':
+                    return 'Available commands:\n- help: Show this help\n- clear: Clear the screen\n- date: Show current date\n- time: Show current time\n- echo <text>: Echo text\n- whoami: Show current user\n- logout: Logout from system';
+                case 'clear':
+                    const windowId = parts[1] || '';
+                    const output = document.getElementById(`terminal-output-${windowId}`);
+                    if (output) output.innerHTML = '';
+                    return '';
+                case 'date':
+                    return new Date().toLocaleDateString();
+                case 'time':
+                    return new Date().toLocaleTimeString();
+                case 'echo':
+                    return parts.slice(1).join(' ');
+                case 'whoami':
+                    return this.userData?.username || 'unknown';
+                case 'logout':
+                    this.logout();
+                    return 'Logging out...';
+                default:
+                    return `Command not found: ${cmd}. Type 'help' for available commands.`;
+            }
+        }
+
+        updateSetting(setting, value) {
+            if (!this.currentUser || !this.userData) return;
+            this.userData.settings[setting] = value;
+            console.log(`Setting ${setting} updated to ${value}`);
+        }
+
         async saveNotes() {
             if (!this.currentUser) return;
             const textEditor = document.querySelector('.app-text-editor');
             if (textEditor) {
                 this.userData.notes = textEditor.value;
-                const result = await vaosFirebase.saveUserData();
+                const result = await window.vaosFirebase.saveUserData();
                 if (result.success) {
                     alert('Notes saved successfully!');
                 } else {
@@ -709,26 +1066,38 @@
                 }
             }
         }
-
-        // ... rest of your existing methods remain the same ...
-        // Just remove the hardcoded authentication logic
     }
 
-    // Global functions (keep these as they were)
-    function toggleAuthForm() {
-        // ... existing code ...
+    // Global functions
+    window.toggleAuthForm = function() {
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const toggleText = document.getElementById('form-toggle-text');
+        const toggleLink = document.getElementById('form-toggle');
+        
+        if (loginForm.classList.contains('hidden')) {
+            loginForm.classList.remove('hidden');
+            registerForm.classList.add('hidden');
+            toggleText.textContent = "Don't have an account?";
+            toggleLink.textContent = "Register here";
+        } else {
+            loginForm.classList.add('hidden');
+            registerForm.classList.remove('hidden');
+            toggleText.textContent = "Already have an account?";
+            toggleLink.textContent = "Login here";
+        }
     }
 
-    function toggleStartMenu() {
-        // ... existing code ...
+    window.toggleStartMenu = function() {
+        document.getElementById('start-menu').classList.toggle('active');
     }
 
-    function openApp(appName) {
-        vaos.openApp(appName);
+    window.openApp = function(appName) {
+        window.vaos.openApp(appName);
     }
 
-    function logout() {
-        vaos.logout();
+    window.logout = function() {
+        window.vaos.logout();
     }
 
     // Initialize VaOS

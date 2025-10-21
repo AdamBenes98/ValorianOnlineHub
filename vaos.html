@@ -600,9 +600,8 @@
         </div>
     </div>
 
-    <script type="module">
-        import { auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, getDocs } from './firebase-config.js';
-
+    <script>
+        // Simple VaOS implementation without Firebase for now
         class VaOS {
             constructor() {
                 this.currentUser = null;
@@ -613,24 +612,10 @@
             }
 
             init() {
-                this.setupAuthListeners();
                 this.setupEventListeners();
                 this.updateClock();
                 setInterval(() => this.updateClock(), 1000);
-            }
-
-            setupAuthListeners() {
-                onAuthStateChanged(auth, async (user) => {
-                    if (user) {
-                        this.currentUser = user;
-                        await this.loadUserData();
-                        this.showDesktop();
-                    } else {
-                        this.currentUser = null;
-                        this.userData = null;
-                        this.showLogin();
-                    }
-                });
+                this.showLogin();
             }
 
             setupEventListeners() {
@@ -646,24 +631,37 @@
                 });
             }
 
-            async login() {
+            login() {
                 const username = document.getElementById('login-username').value;
                 const password = document.getElementById('login-password').value;
                 
-                try {
-                    this.showLoading(true);
-                    const userCredential = await signInWithEmailAndPassword(auth, `${username}@vaos.com`, password);
-                    this.currentUser = userCredential.user;
-                    await this.loadUserData();
+                // Simple authentication (replace with Firebase later)
+                if (username === 'AdamekBns' && password === 'Adben-0987') {
+                    this.currentUser = { username: 'AdamekBns', role: 'admin' };
+                    this.userData = {
+                        username: 'AdamekBns',
+                        role: 'admin',
+                        settings: { theme: 'dark', animations: true },
+                        apps: { calculator: true, textEditor: true, terminal: true, settings: true },
+                        notes: 'Welcome to VaOS!'
+                    };
                     this.showDesktop();
-                } catch (error) {
-                    this.showError(error.message);
-                } finally {
-                    this.showLoading(false);
+                } else if (username && password) {
+                    this.currentUser = { username: username, role: 'user' };
+                    this.userData = {
+                        username: username,
+                        role: 'user',
+                        settings: { theme: 'dark', animations: true },
+                        apps: { calculator: true, textEditor: true, terminal: true, settings: true },
+                        notes: ''
+                    };
+                    this.showDesktop();
+                } else {
+                    this.showError('Invalid credentials');
                 }
             }
 
-            async register() {
+            register() {
                 const username = document.getElementById('register-username').value;
                 const password = document.getElementById('register-password').value;
                 const confirm = document.getElementById('register-confirm').value;
@@ -673,68 +671,28 @@
                     return;
                 }
 
-                try {
-                    this.showLoading(true);
-                    const userCredential = await createUserWithEmailAndPassword(auth, `${username}@vaos.com`, password);
-                    this.currentUser = userCredential.user;
-
-                    // Create user data
-                    const userData = {
+                if (username && password) {
+                    this.currentUser = { username: username, role: 'user' };
+                    this.userData = {
                         username: username,
-                        role: username === 'AdamekBns' ? 'admin' : 'user',
-                        settings: {
-                            theme: 'dark',
-                            animations: true
-                        },
-                        apps: {
-                            calculator: true,
-                            textEditor: true,
-                            terminal: true,
-                            settings: true
-                        },
-                        createdAt: new Date().toISOString(),
-                        lastLogin: new Date().toISOString()
+                        role: 'user',
+                        settings: { theme: 'dark', animations: true },
+                        apps: { calculator: true, textEditor: true, terminal: true, settings: true },
+                        notes: ''
                     };
-
-                    await setDoc(doc(db, 'users', this.currentUser.uid), userData);
-                    this.userData = userData;
                     this.showDesktop();
-                } catch (error) {
-                    this.showError(error.message);
-                } finally {
-                    this.showLoading(false);
+                } else {
+                    this.showError('Please fill in all fields');
                 }
             }
 
-            async loadUserData() {
-                if (!this.currentUser) return;
-
-                const userDoc = await getDoc(doc(db, 'users', this.currentUser.uid));
-                if (userDoc.exists()) {
-                    this.userData = userDoc.data();
-                    
-                    // Update last login
-                    await updateDoc(doc(db, 'users', this.currentUser.uid), {
-                        lastLogin: new Date().toISOString()
-                    });
-
-                    // Check if user is admin
-                    if (this.userData.role === 'admin') {
-                        document.getElementById('admin-icon').style.display = 'flex';
-                        document.getElementById('admin-menu').style.display = 'block';
-                    }
-                }
-            }
-
-            async logout() {
-                try {
-                    await signOut(auth);
-                    this.windows.clear();
-                    document.getElementById('windows-container').innerHTML = '';
-                    document.getElementById('taskbar-apps').innerHTML = '';
-                } catch (error) {
-                    console.error('Logout error:', error);
-                }
+            logout() {
+                this.currentUser = null;
+                this.userData = null;
+                this.windows.clear();
+                document.getElementById('windows-container').innerHTML = '';
+                document.getElementById('taskbar-apps').innerHTML = '';
+                this.showLogin();
             }
 
             showLogin() {
@@ -746,10 +704,12 @@
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('desktop').classList.add('active');
                 document.getElementById('current-user').textContent = this.userData?.username || 'User';
-            }
-
-            showLoading(show) {
-                document.getElementById('loading-screen').classList.toggle('hidden', !show);
+                
+                // Show admin features if admin
+                if (this.userData?.role === 'admin') {
+                    document.getElementById('admin-icon').style.display = 'flex';
+                    document.getElementById('admin-menu').style.display = 'block';
+                }
             }
 
             showError(message) {
@@ -922,12 +882,22 @@
                         <div class="admin-section">
                             <h3>User Management</h3>
                             <div class="user-list" id="user-list">
-                                Loading users...
+                                <div class="user-item">
+                                    <div>
+                                        <strong>AdamekBns</strong>
+                                        <span class="badge">admin</span>
+                                    </div>
+                                    <div>
+                                        <button class="admin-btn" disabled>Calc: ✓</button>
+                                        <button class="admin-btn" disabled>Editor: ✓</button>
+                                        <button class="admin-btn danger" disabled>Delete</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="admin-section">
                             <h3>System Settings</h3>
-                            <button class="admin-btn" onclick="vaos.refreshUserList()">Refresh User List</button>
+                            <button class="admin-btn" disabled>Refresh User List</button>
                         </div>
                     </div>
                 `;
@@ -1110,101 +1080,19 @@
             }
 
             // Settings functionality
-            async updateSetting(setting, value) {
+            updateSetting(setting, value) {
                 if (!this.currentUser || !this.userData) return;
-
                 this.userData.settings[setting] = value;
-                
-                try {
-                    await updateDoc(doc(db, 'users', this.currentUser.uid), {
-                        settings: this.userData.settings
-                    });
-                } catch (error) {
-                    console.error('Error updating setting:', error);
-                }
+                console.log(`Setting ${setting} updated to ${value}`);
             }
 
-            async saveNotes() {
+            saveNotes() {
                 if (!this.currentUser) return;
-
                 const textEditor = document.querySelector('.app-text-editor');
                 if (textEditor) {
-                    const notes = textEditor.value;
-                    
-                    try {
-                        await updateDoc(doc(db, 'users', this.currentUser.uid), {
-                            notes: notes
-                        });
-                        this.userData.notes = notes;
-                        alert('Notes saved successfully!');
-                    } catch (error) {
-                        console.error('Error saving notes:', error);
-                        alert('Error saving notes');
-                    }
+                    this.userData.notes = textEditor.value;
+                    alert('Notes saved successfully!');
                 }
-            }
-
-            // Admin functionality
-            async loadUserList() {
-                if (!this.currentUser || this.userData?.role !== 'admin') return;
-
-                try {
-                    const usersSnapshot = await getDocs(collection(db, 'users'));
-                    const userList = document.getElementById('user-list');
-                    
-                    userList.innerHTML = '';
-                    
-                    usersSnapshot.forEach((doc) => {
-                        const user = doc.data();
-                        const userItem = document.createElement('div');
-                        userItem.className = 'user-item';
-                        userItem.innerHTML = `
-                            <div>
-                                <strong>${user.username}</strong>
-                                <span class="badge">${user.role}</span>
-                            </div>
-                            <div>
-                                <button class="admin-btn" onclick="vaos.toggleUserApp('${doc.id}', 'calculator')">Calc: ${user.apps?.calculator ? '✓' : '✗'}</button>
-                                <button class="admin-btn" onclick="vaos.toggleUserApp('${doc.id}', 'textEditor')">Editor: ${user.apps?.textEditor ? '✓' : '✗'}</button>
-                                <button class="admin-btn danger" onclick="vaos.deleteUser('${doc.id}')">Delete</button>
-                            </div>
-                        `;
-                        userList.appendChild(userItem);
-                    });
-                } catch (error) {
-                    console.error('Error loading users:', error);
-                }
-            }
-
-            async toggleUserApp(userId, appName) {
-                try {
-                    const userDoc = await getDoc(doc(db, 'users', userId));
-                    if (userDoc.exists()) {
-                        const userData = userDoc.data();
-                        const apps = userData.apps || {};
-                        apps[appName] = !apps[appName];
-                        
-                        await updateDoc(doc(db, 'users', userId), { apps });
-                        this.loadUserList();
-                    }
-                } catch (error) {
-                    console.error('Error toggling app:', error);
-                }
-            }
-
-            async deleteUser(userId) {
-                if (!confirm('Are you sure you want to delete this user?')) return;
-                
-                try {
-                    await deleteDoc(doc(db, 'users', userId));
-                    this.loadUserList();
-                } catch (error) {
-                    console.error('Error deleting user:', error);
-                }
-            }
-
-            refreshUserList() {
-                this.loadUserList();
             }
         }
 

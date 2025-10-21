@@ -634,26 +634,59 @@
         }
 
         async login() {
-            const email = document.getElementById('login-username').value;
+            const username = document.getElementById('login-username').value;
             const password = document.getElementById('login-password').value;
             
-            const result = await window.vaosFirebase.login(email, password);
+            // Basic validation
+            if (!username || !password) {
+                this.showError('Please enter username and password');
+                return;
+            }
+            
+            // Validate username format (no special characters that would break email)
+            if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+                this.showError('Username can only contain letters, numbers, - and _');
+                return;
+            }
+            
+            const result = await window.vaosFirebase.login(username, password);
             if (!result.success) {
                 this.showError(result.error);
             }
         }
 
         async register() {
-            const email = document.getElementById('register-username').value;
+            const username = document.getElementById('register-username').value;
             const password = document.getElementById('register-password').value;
             const confirm = document.getElementById('register-confirm').value;
+
+            // Validation
+            if (!username || !password) {
+                this.showError('Please fill in all fields');
+                return;
+            }
+
+            if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+                this.showError('Username can only contain letters, numbers, - and _');
+                return;
+            }
 
             if (password !== confirm) {
                 this.showError('Passwords do not match');
                 return;
             }
 
-            const result = await window.vaosFirebase.register(email, password, email.split('@')[0]);
+            if (password.length < 6) {
+                this.showError('Password must be at least 6 characters');
+                return;
+            }
+
+            if (username.length < 3) {
+                this.showError('Username must be at least 3 characters');
+                return;
+            }
+
+            const result = await window.vaosFirebase.register(username, password);
             if (!result.success) {
                 this.showError(result.error);
             }

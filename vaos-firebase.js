@@ -10,17 +10,19 @@ class VaOSFirebase {
     }
 
     async init() {
-        // Listen for auth state changes
-        onAuthStateChanged(this.auth, async (user) => {
-            if (user) {
-                this.currentUser = user;
-                await this.loadUserData(user.uid);
-                vaos.showDesktop();
-            } else {
-                this.currentUser = null;
-                this.userData = null;
-                vaos.showLogin();
-            }
+        return new Promise((resolve) => {
+            onAuthStateChanged(this.auth, async (user) => {
+                if (user) {
+                    this.currentUser = user;
+                    await this.loadUserData(user.uid);
+                    if (window.vaos) vaos.showDesktop();
+                } else {
+                    this.currentUser = null;
+                    this.userData = null;
+                    if (window.vaos) vaos.showLogin();
+                }
+                resolve();
+            });
         });
     }
 
@@ -29,7 +31,6 @@ class VaOSFirebase {
             const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
             const user = userCredential.user;
             
-            // Create user document in Firestore
             const userData = {
                 uid: user.uid,
                 email: email,
@@ -38,14 +39,13 @@ class VaOSFirebase {
                 settings: { theme: 'dark', animations: true },
                 apps: { calculator: true, textEditor: true, terminal: true, settings: true },
                 notes: '',
-                createdAt: new Date()
+                createdAt: new Date().toISOString()
             };
             
             await setDoc(doc(this.db, 'users', user.uid), userData);
             this.userData = userData;
             return { success: true };
         } catch (error) {
-            console.error('Registration error:', error);
             return { success: false, error: error.message };
         }
     }
@@ -58,7 +58,6 @@ class VaOSFirebase {
             await this.loadUserData(user.uid);
             return { success: true };
         } catch (error) {
-            console.error('Login error:', error);
             return { success: false, error: error.message };
         }
     }
@@ -72,7 +71,6 @@ class VaOSFirebase {
                 throw new Error('User data not found');
             }
         } catch (error) {
-            console.error('Error loading user data:', error);
             throw error;
         }
     }
@@ -84,7 +82,6 @@ class VaOSFirebase {
             await updateDoc(doc(this.db, 'users', this.currentUser.uid), this.userData);
             return { success: true };
         } catch (error) {
-            console.error('Error saving user data:', error);
             return { success: false, error: error.message };
         }
     }
@@ -92,26 +89,9 @@ class VaOSFirebase {
     async logout() {
         try {
             await signOut(this.auth);
-            this.currentUser = null;
-            this.userData = null;
             return { success: true };
         } catch (error) {
-            console.error('Logout error:', error);
             return { success: false, error: error.message };
-        }
-    }
-
-    async getAllUsers() {
-        if (this.userData?.role !== 'admin') {
-            throw new Error('Admin access required');
-        }
-        
-        try {
-            const usersSnapshot = await getDocs(collection(this.db, 'users'));
-            return usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        } catch (error) {
-            console.error('Error getting users:', error);
-            throw error;
         }
     }
 
@@ -120,5 +100,4 @@ class VaOSFirebase {
     }
 }
 
-// Create global instance
 window.vaosFirebase = new VaOSFirebase();

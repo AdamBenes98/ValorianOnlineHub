@@ -12,362 +12,96 @@
       --accent: #dc143c;
       --text: #fff;
       --sub: #aaa;
+      --gap: 1.2rem;
       font-family: system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
     }
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
+    body { margin: 0; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+    a { color: var(--accent); text-decoration: none; }
 
     /* Login Screen */
-    .login-screen {
-      position: fixed;
-      inset: 0;
-      background: var(--bg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 10000;
-    }
-    .login-container {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 2rem;
-      width: 90%;
-      max-width: 400px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-    }
-    .login-container h2 {
-      text-align: center;
-      margin-bottom: 1.5rem;
-      color: var(--accent);
-    }
-    .login-form input,
-    .login-form button {
-      width: 100%;
-      padding: 0.75rem;
-      margin-bottom: 1rem;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      background: #111;
-      color: var(--text);
-      font-size: 1rem;
-    }
-    .login-form button {
-      background: var(--accent);
-      border: none;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    .login-form button:hover {
-      background: #ff1744;
-      transform: translateY(-2px);
-    }
-    .error-message {
-      color: var(--accent);
-      text-align: center;
-      margin-bottom: 1rem;
-      padding: 0.5rem;
-      background: rgba(220, 20, 60, 0.1);
-      border-radius: 6px;
-    }
-    .hidden {
-      display: none !important;
-    }
+    .login-screen { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 10000; }
+    .login-container { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; width: 90%; max-width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+    .login-container h2 { text-align: center; margin-bottom: 1.5rem; color: var(--accent); font-size: 2rem; }
+    .login-form input { width: 100%; padding: 0.75rem; margin-bottom: 1rem; border: 1px solid var(--border); border-radius: 6px; background: #111; color: var(--text); font-size: 1rem; }
+    .login-form button { width: 100%; padding: 0.75rem; border: none; border-radius: 6px; background: var(--accent); color: white; font-size: 1rem; font-weight: bold; cursor: pointer; transition: all 0.3s ease; }
+    .login-form button:hover { background: #ff1744; transform: translateY(-2px); }
+    .login-toggle { text-align: center; margin-top: 1rem; color: var(--sub); }
+    .error-message { color: var(--accent); text-align: center; margin-bottom: 1rem; padding: 0.5rem; background: rgba(220, 20, 60, 0.1); border-radius: 6px; }
 
     /* Desktop */
-    .desktop {
-      position: fixed;
-      inset: 0;
-      background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
-      display: none;
-    }
-    .desktop.active {
-      display: block;
-    }
+    .desktop { position: fixed; inset: 0; background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%); display: none; }
+    .desktop.active { display: block; }
 
     /* Taskbar */
-    .taskbar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 48px;
-      background: var(--card);
-      border-top: 2px solid var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 1rem;
-      z-index: 1000;
-    }
-    .start-button {
-      background: var(--accent);
-      border: none;
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    .taskbar-apps {
-      display: flex;
-      gap: 0.5rem;
-      flex: 1;
-      margin: 0 1rem;
-    }
-    .taskbar-app {
-      background: rgba(255, 255, 255, 0.1);
-      border: none;
-      color: white;
-      padding: 0.5rem 0.75rem;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      transition: background 0.3s;
-    }
-    .taskbar-app:hover {
-      background: rgba(255, 255, 255, 0.2);
-    }
-    .taskbar-app.active {
-      background: var(--accent);
-    }
-    .system-tray {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      color: var(--sub);
-      font-size: 0.9rem;
-    }
+    .taskbar { position: fixed; bottom: 0; left: 0; right: 0; height: 48px; background: var(--card); border-top: 2px solid var(--accent); display: flex; align-items: center; justify-content: space-between; padding: 0 1rem; z-index: 1000; }
+    .start-button { background: var(--accent); border: none; color: white; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    .start-button:hover { background: #ff1744; }
+    .taskbar-apps { display: flex; gap: 0.5rem; flex: 1; margin: 0 1rem; }
+    .taskbar-app { background: rgba(255,255,255,0.1); border: none; color: white; padding: 0.5rem 0.75rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
+    .taskbar-app:hover { background: rgba(255,255,255,0.2); }
+    .taskbar-app.active { background: var(--accent); }
+    .system-tray { display: flex; align-items: center; gap: 1rem; color: var(--sub); font-size: 0.9rem; }
 
     /* Start Menu */
-    .start-menu {
-      position: fixed;
-      bottom: 48px;
-      left: 1rem;
-      width: 300px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1rem;
-      display: none;
-      z-index: 1001;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-    }
-    .start-menu.active {
-      display: block;
-    }
-    .start-menu-item {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      padding: 0.75rem;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-    .start-menu-item:hover {
-      background: rgba(255, 255, 255, 0.1);
-    }
+    .start-menu { position: fixed; bottom: 48px; left: 1rem; width: 300px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; display: none; z-index: 1001; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+    .start-menu.active { display: block; }
+    .start-menu-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; border-radius: 6px; cursor: pointer; }
+    .start-menu-item:hover { background: rgba(255,255,255,0.1); }
 
     /* Desktop Icons */
-    .desktop-icons {
-      position: absolute;
-      top: 2rem;
-      left: 2rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-    .desktop-icon {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 1rem;
-      border-radius: 8px;
-      cursor: pointer;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid transparent;
-      transition: all 0.3s;
-    }
-    .desktop-icon:hover {
-      background: rgba(255, 255, 255, 0.1);
-      border-color: var(--accent);
-      transform: translateY(-2px);
-    }
-    .desktop-icon .emoji {
-      font-size: 2.5rem;
-    }
-    .desktop-icon span {
-      font-size: 0.9rem;
-    }
+    .desktop-icons { position: absolute; top: 2rem; left: 2rem; display: flex; flex-direction: column; gap: 1.5rem; }
+    .desktop-icon { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; border-radius: 8px; cursor: pointer; background: rgba(255,255,255,0.05); border: 1px solid transparent; }
+    .desktop-icon:hover { background: rgba(255,255,255,0.1); border-color: var(--accent); transform: translateY(-2px); }
+    .desktop-icon .emoji { font-size: 2.5rem; }
+    .desktop-icon span { font-size: 0.9rem; color: var(--text); }
 
     /* Windows */
-    .window {
-      position: absolute;
-      top: 50px;
-      left: 50px;
-      width: 500px;
-      height: 400px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      z-index: 100;
-    }
-    .window-header {
-      background: rgba(255, 255, 255, 0.05);
-      padding: 0.75rem 1rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--border);
-    }
-    .window-title {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-weight: 500;
-    }
-    .window-controls {
-      display: flex;
-      gap: 0.5rem;
-    }
-    .window-control {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      cursor: pointer;
-    }
+    .window { position: absolute; background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); min-width: 400px; min-height: 300px; display: flex; flex-direction: column; overflow: hidden; }
+    .window-header { background: rgba(255,255,255,0.05); padding: 0.75rem 1rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+    .window-title { display: flex; align-items: center; gap: 0.5rem; font-weight: 500; }
+    .window-controls { display: flex; gap: 0.5rem; }
+    .window-control { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; }
+    .window-control:hover { transform: scale(1.2); }
     .window-control.close { background: #ff5f57; }
     .window-control.minimize { background: #ffbd2e; }
     .window-control.maximize { background: #28ca42; }
-    .window-content {
-      flex: 1;
-      padding: 1.5rem;
-      overflow: auto;
-      background: var(--bg);
-    }
+    .window-content { flex: 1; padding: 1.5rem; overflow: auto; background: var(--bg); }
 
     /* App Styles */
-    .app-calculator {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 0.5rem;
-      max-width: 300px;
-      margin: 0 auto;
-    }
-    .calc-display {
-      grid-column: 1 / -1;
-      background: #111;
-      padding: 1rem;
-      text-align: right;
-      font-size: 1.5rem;
-      border-radius: 6px;
-      margin-bottom: 0.5rem;
-      border: 1px solid var(--border);
-    }
-    .calc-btn {
-      padding: 1rem;
-      border: none;
-      background: #1a1a1a;
-      color: var(--text);
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 1.1rem;
-      transition: background 0.3s;
-      border: 1px solid var(--border);
-    }
-    .calc-btn:hover {
-      background: var(--accent);
-      color: white;
-    }
-    .calc-btn.operator {
-      background: var(--accent);
-      color: white;
-    }
-    .app-text-editor {
-      width: 100%;
-      height: 300px;
-      background: #111;
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 1rem;
-      font-family: monospace;
-      font-size: 1rem;
-      resize: vertical;
-    }
-    .app-terminal {
-      background: #000;
-      color: #0f0;
-      font-family: monospace;
-      padding: 1rem;
-      height: 300px;
-      overflow: auto;
-      border-radius: 6px;
-    }
-    .terminal-input {
-      background: transparent;
-      border: none;
-      color: #0f0;
-      outline: none;
-      width: 100%;
-      font-family: monospace;
-    }
-    .settings-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1rem;
-    }
-    .settings-item {
-      background: #111;
-      padding: 1rem;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-    }
-    .settings-item label {
-      display: block;
-      margin-bottom: 0.5rem;
-      color: var(--sub);
-    }
-    .settings-item select {
-      width: 100%;
-      padding: 0.5rem;
-      background: #000;
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-    }
+    .app-calculator { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; max-width: 300px; margin: 0 auto; }
+    .calc-display { grid-column: 1 / -1; background: #111; padding: 1rem; text-align: right; font-size: 1.5rem; border-radius: 6px; margin-bottom: 0.5rem; border: 1px solid var(--border); }
+    .calc-btn { padding: 1rem; border: none; background: #1a1a1a; color: var(--text); border-radius: 6px; cursor: pointer; font-size: 1.1rem; border: 1px solid var(--border); }
+    .calc-btn:hover { background: var(--accent); color: white; }
+    .calc-btn.operator { background: var(--accent); color: white; }
+    .app-text-editor { width: 100%; height: 300px; background: #111; color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; font-family: monospace; font-size: 1rem; resize: vertical; }
+    .app-terminal { background: #000; color: #0f0; font-family: monospace; padding: 1rem; height: 300px; overflow: auto; border-radius: 6px; }
+    .terminal-input { background: transparent; border: none; color: #0f0; outline: none; width: 100%; font-family: monospace; }
+    .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+    .settings-item { background: #111; padding: 1rem; border-radius: 6px; border: 1px solid var(--border); }
+    .settings-item label { display: block; margin-bottom: 0.5rem; color: var(--sub); }
+    .settings-item input, .settings-item select { width: 100%; padding: 0.5rem; background: #000; color: var(--text); border: 1px solid var(--border); border-radius: 4px; }
+
+    /* Utility */
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
 
-  <!-- Login -->
+  <!-- Login Screen -->
   <div id="login-screen" class="login-screen">
     <div class="login-container">
       <h2>VaOS Login</h2>
       <div id="error-message" class="error-message hidden"></div>
       <form id="login-form" class="login-form">
-        <input type="text" id="login-username" placeholder="Username" required>
-        <input type="password" id="login-password" placeholder="Password" required>
+        <input type="text" id="login-username" placeholder="Username" required />
+        <input type="password" id="login-password" placeholder="Password" required />
         <button type="submit">Login</button>
       </form>
       <form id="register-form" class="login-form hidden">
-        <input type="text" id="register-username" placeholder="Username" required>
-        <input type="password" id="register-password" placeholder="Password" required>
-        <input type="password" id="register-confirm" placeholder="Confirm Password" required>
+        <input type="text" id="register-username" placeholder="Username" required />
+        <input type="password" id="register-password" placeholder="Password" required />
+        <input type="password" id="register-confirm" placeholder="Confirm Password" required />
         <button type="submit">Create Account</button>
       </form>
       <div class="login-toggle">
@@ -379,6 +113,7 @@
 
   <!-- Desktop -->
   <div id="desktop" class="desktop">
+    <!-- Desktop Icons -->
     <div class="desktop-icons">
       <div class="desktop-icon" onclick="openApp('calculator')"><div class="emoji">🧮</div><span>Calculator</span></div>
       <div class="desktop-icon" onclick="openApp('text-editor')"><div class="emoji">📝</div><span>Text Editor</span></div>
@@ -386,8 +121,10 @@
       <div class="desktop-icon" onclick="openApp('settings')"><div class="emoji">⚙️</div><span>Settings</span></div>
     </div>
 
+    <!-- Windows -->
     <div id="windows-container"></div>
 
+    <!-- Taskbar -->
     <div class="taskbar">
       <button class="start-button" onclick="toggleStartMenu()">🪟 VaOS</button>
       <div id="taskbar-apps" class="taskbar-apps"></div>
@@ -398,6 +135,7 @@
       </div>
     </div>
 
+    <!-- Start Menu -->
     <div id="start-menu" class="start-menu">
       <div class="start-menu-item" onclick="openApp('calculator')"><span>🧮</span><span>Calculator</span></div>
       <div class="start-menu-item" onclick="openApp('text-editor')"><span>📝</span><span>Text Editor</span></div>
@@ -427,25 +165,32 @@
 
       setupEventListeners() {
         document.getElementById('login-form').addEventListener('submit', async (e) => {
-          e.preventDefault(); await this.login();
+          e.preventDefault();
+          await this.login();
         });
         document.getElementById('register-form').addEventListener('submit', async (e) => {
-          e.preventDefault(); await this.register();
+          e.preventDefault();
+          await this.register();
         });
       }
 
       async login() {
         const username = document.getElementById('login-username').value;
         const password = document.getElementById('login-password').value;
+
         if (username === 'AdamekBns' && password === 'Adben-0987') {
           const result = await window.vaosFirebase.login(username, password);
           if (!result.success) {
-            const reg = await window.vaosFirebase.register(username, password);
-            if (reg.success) this.showDesktop(); else this.showError(reg.error);
+            const registerResult = await window.vaosFirebase.register(username, password);
+            if (registerResult.success) this.showDesktop();
+            else this.showError(registerResult.error);
           }
           return;
         }
-        if (!/^[a-zA-Z0-9_-]+$/.test(username)) return this.showError('Invalid username format');
+
+        if (!username || !password) return this.showError('Please enter username and password');
+        if (!/^[a-zA-Z0-9_-]+$/.test(username)) return this.showError('Username can only contain letters, numbers, - and _');
+
         const result = await window.vaosFirebase.login(username, password);
         if (!result.success) this.showError(result.error);
       }
@@ -454,10 +199,13 @@
         const username = document.getElementById('register-username').value;
         const password = document.getElementById('register-password').value;
         const confirm = document.getElementById('register-confirm').value;
-        if (!/^[a-zA-Z0-9_-]+$/.test(username)) return this.showError('Invalid username');
+
+        if (!username || !password) return this.showError('Please fill in all fields');
+        if (!/^[a-zA-Z0-9_-]+$/.test(username)) return this.showError('Username can only contain letters, numbers, - and _');
         if (password !== confirm) return this.showError('Passwords do not match');
-        if (password.length < 6) return this.showError('Password too short');
-        if (username.length < 3) return this.showError('Username too short');
+        if (password.length < 6) return this.showError('Password must be at least 6 characters');
+        if (username.length < 3) return this.showError('Username must be at least 3 characters');
+
         const result = await window.vaosFirebase.register(username, password);
         if (!result.success) this.showError(result.error);
       }
@@ -477,15 +225,16 @@
         document.getElementById('current-user').textContent = this.userData?.username || 'User';
       }
 
-      showError(msg) {
-        const err = document.getElementById('error-message');
-        err.textContent = msg;
-        err.classList.remove('hidden');
-        setTimeout(() => err.classList.add('hidden'), 5000);
+      showError(message) {
+        const errorDiv = document.getElementById('error-message');
+        errorDiv.textContent = message;
+        errorDiv.classList.remove('hidden');
+        setTimeout(() => errorDiv.classList.add('hidden'), 5000);
       }
 
       updateClock() {
-        document.getElementById('system-time').textContent = new Date().toLocaleTimeString();
+        const now = new Date();
+        document.getElementById('system-time').textContent = now.toLocaleTimeString();
       }
 
       toggleStartMenu() {
@@ -493,11 +242,14 @@
       }
 
       openApp(appName) {
-        if (!this.checkAppPermission(appName)) return alert('You do not have permission to access this application.');
+        if (!this.checkAppPermission(appName)) {
+          alert('You do not have permission to access this application.');
+          return;
+        }
         const windowId = `window-${this.windowId++}`;
-        const window = this.createWindow(windowId, appName);
-        document.getElementById('windows-container').appendChild(window);
-        this.windows.set(windowId, { element: window, app: appName });
+        const windowEl = this.createWindow(windowId, appName);
+        document.getElementById('windows-container').appendChild(windowEl);
+        this.windows.set(windowId, { element: windowEl, app: appName });
         this.addToTaskbar(windowId, appName);
         this.makeWindowActive(windowId);
         document.getElementById('start-menu').classList.remove('active');
@@ -516,16 +268,18 @@
       }
 
       createWindow(windowId, appName) {
-        const window = document.createElement('div');
-        window.className = 'window';
-        window.id = windowId;
-        window.style.top = '50px';
-        window.style.left = '50px';
-        window.style.width = '500px';
-        window.style.height = '400px';
-        const title = { calculator: 'Calculator', 'text-editor': 'Text Editor', terminal: 'Terminal', settings: 'Settings' }[appName];
-        const icon = { calculator: '🧮', 'text-editor': '📝', terminal: '💻', settings: '⚙️' }[appName];
-        window.innerHTML = `
+        const windowEl = document.createElement('div');
+        windowEl.className = 'window';
+        windowEl.id = windowId;
+        windowEl.style.top = '50px';
+        windowEl.style.left = '50px';
+        windowEl.style.width = '500px';
+        windowEl.style.height = '400px';
+
+        const title = this.getAppTitle(appName);
+        const icon = this.getAppIcon(appName);
+
+        windowEl.innerHTML = `
           <div class="window-header">
             <div class="window-title"><span>${icon}</span><span>${title}</span></div>
             <div class="window-controls">
@@ -536,173 +290,9 @@
           </div>
           <div class="window-content">${this.createAppContent(appName)}</div>
         `;
-        this.makeWindowDraggable(window);
-        return window;
-      }
 
-      createAppContent(appName) {
-        switch (appName) {
-          case 'calculator':
-            return `
-              <div class="app-calculator">
-                <div class="calc-display" id="calc-display-${this.windowId}">0</div>
-                <button class="calc-btn" onclick="vaos.calcPress('7', ${this.windowId})">7</button>
-                <button class="calc-btn" onclick="vaos.calcPress('8', ${this.windowId})">8</button>
-                <button class="calc-btn" onclick="vaos.calcPress('9', ${this.windowId})">9</button>
-                <button class="calc-btn operator" onclick="vaos.calcPress('/', ${this.windowId})">÷</button>
-                <button class="calc-btn" onclick="vaos.calcPress('4', ${this.windowId})">4</button>
-                <button class="calc-btn" onclick="vaos.calcPress('5', ${this.windowId})">5</button>
-                <button class="calc-btn" onclick="vaos.calcPress('6', ${this.windowId})">6</button>
-                <button class="calc-btn operator" onclick="vaos.calcPress('*', ${this.windowId})">×</button>
-                <button class="calc-btn" onclick="vaos.calcPress('1', ${this.windowId})">1</button>
-                <button class="calc-btn" onclick="vaos.calcPress('2', ${this.windowId})">2</button>
-                <button class="calc-btn" onclick="vaos.calcPress('3', ${this.windowId})">3</button>
-                <button class="calc-btn operator" onclick="vaos.calcPress('-', ${this.windowId})">-</button>
-                <button class="calc-btn" onclick="vaos.calcPress('0', ${this.windowId})">0</button>
-                <button class="calc-btn" onclick="vaos.calcPress('.', ${this.windowId})">.</button>
-                <button class="calc-btn operator" onclick="vaos.calcPress('=', ${this.windowId})">=</button>
-                <button class="calc-btn operator" onclick="vaos.calcPress('+', ${this.windowId})">+</button>
-              </div>
-            `;
-          case 'text-editor':
-            return `<textarea class="app-text-editor" id="text-editor-${this.windowId}" placeholder="Start typing...">${this.userData?.notes || ''}</textarea>`;
-          case 'terminal':
-            return `
-              <div class="app-terminal">
-                <div>VaOS Terminal v1.0</div>
-                <div>Type 'help' for available commands</div>
-                <div id="terminal-output-${this.windowId}"></div>
-                <div style="display:flex"><span>${this.userData?.username}@vaos:~$ </span>
-                  <input type="text" class="terminal-input" id="terminal-input-${this.windowId}" onkeypress="vaos.terminalCommand(event, ${this.windowId})">
-                </div>
-              </div>
-            `;
-          case 'settings':
-            return `
-              <div class="settings-grid">
-                <div class="settings-item">
-                  <label>Theme</label>
-                  <select onchange="vaos.updateSetting('theme', this.value)">
-                    <option value="dark" ${this.userData?.settings?.theme === 'dark' ? 'selected' : ''}>Dark</option>
-                    <option value="light" ${this.userData?.settings?.theme === 'light' ? 'selected' : ''}>Light</option>
-                  </select>
-                </div>
-                <div class="settings-item">
-                  <label>Animations</label>
-                  <select onchange="vaos.updateSetting('animations', this.value === 'true')">
-                    <option value="true" ${this.userData?.settings?.animations ? 'selected' : ''}>Enabled</option>
-                    <option value="false" ${!this.userData?.settings?.animations ? 'selected' : ''}>Disabled</option>
-                  </select>
-                </div>
-                <div class="settings-item">
-                  <label>Notes</label>
-                  <button class="calc-btn operator" onclick="vaos.saveNotes()">Save Notes</button>
-                </div>
-              </div>
-            `;
-          default:
-            return '<div>App not found</div>';
-        }
-      }
-
-      makeWindowDraggable(window) {
-        const header = window.querySelector('.window-header');
-        let dragging = false, startX, startY, initX, initY;
-        header.addEventListener('mousedown', (e) => {
-          if (e.target.closest('.window-controls')) return;
-          dragging = true;
-          startX = e.clientX;
-          startY = e.clientY;
-          initX = window.offsetLeft;
-          initY = window.offsetTop;
-        });
-        document.addEventListener('mousemove', (e) => {
-          if (!dragging) return;
-          window.style.left = initX + e.clientX - startX + 'px';
-          window.style.top = initY + e.clientY - startY + 'px';
-        });
-        document.addEventListener('mouseup', () => dragging = false);
-      }
-
-      addToTaskbar(windowId, appName) {
-        const btn = document.createElement('button');
-        btn.className = 'taskbar-app';
-        btn.innerHTML = `${{ calculator: '🧮', 'text-editor': '📝', terminal: '💻', settings: '⚙️' }[appName]} ${ { calculator: 'Calculator', 'text-editor': 'Text Editor', terminal: 'Terminal', settings: 'Settings' }[appName]}`;
-        btn.onclick = () => this.toggleWindow(windowId);
-        document.getElementById('taskbar-apps').appendChild(btn);
-      }
-
-      makeWindowActive(windowId) {
-        document.querySelectorAll('.window').forEach(w => w.style.zIndex = '100');
-        document.querySelectorAll('.taskbar-app').forEach(t => t.classList.remove('active'));
-        const win = document.getElementById(windowId);
-        if (win) win.style.zIndex = '101';
-      }
-
-      toggleWindow(windowId) {
-        const win = document.getElementById(windowId);
-        win.style.display = win.style.display === 'none' ? 'flex' : 'none';
-        if (win.style.display === 'flex') this.makeWindowActive(windowId);
-      }
-
-      minimizeWindow(windowId) {
-        document.getElementById(windowId).style.display = 'none';
-      }
-
-      closeWindow(windowId) {
-        const win = document.getElementById(windowId);
-        if (win) {
-          win.remove();
-          this.windows.delete(windowId);
-          document.querySelectorAll('.taskbar-app').forEach((btn, i) => {
-            if (![...this.windows.keys()][i]) btn.remove();
-          });
-        }
-      }
-
-      calcPress(val, windowId) {
-        const d = document.getElementById(`calc-display-${windowId}`);
-        let cur = d.textContent;
-        if (val === '=') {
-          try { d.textContent = eval(cur.replace(/×/g, '*').replace(/÷/g, '/')); } catch { d.textContent = 'Error'; }
-        } else if (val === 'C') { d.textContent = '0'; } else {
-          d.textContent = cur === '0' || cur === 'Error' ? val : cur + val;
-        }
-      }
-
-      terminalId, { element: window, app: appName });
-        this.addToTaskbar(windowId, appName);
-        this.makeWindowActive(windowId);
-        document.getElementById('start-menu').classList.remove('active');
-      }
-
-      checkAppPermission(appName) {
-        if (!this.userData) return false;
-        if (this.userData.role === 'admin') return true;
-        const field = { 'calculator': 'calculator', 'text-editor': 'textEditor', 'terminal': 'terminal', 'settings': 'settings' }[appName];
-        return this.userData[field] === true;
-      }
-
-      createWindow(windowId, appName) {
-        const window = document.createElement('div');
-        window.className = 'window';
-        window.id = windowId;
-        window.style.top = '50px';
-        window.style.left = '50px';
-        window.style.width = '500px';
-        window.style.height = '400px';
-        window.innerHTML = `
-          <div class="window-header">
-            <div class="window-title"><span>${this.getAppIcon(appName)}</span><span>${this.getAppTitle(appName)}</span></div>
-            <div class="window-controls">
-              <div class="window-control minimize" onclick="vaos.minimizeWindow('${windowId}')"></div>
-              <div class="window-control maximize" onclick="vaos.maximizeWindow('${windowId}')"></div>
-              <div class="window-control close" onclick="vaos.closeWindow('${windowId}')"></div>
-            </div>
-          </div>
-          <div class="window-content">${this.createAppContent(appName)}</div>`;
-        this.makeWindowDraggable(window);
-        return window;
+        this.makeWindowDraggable(windowEl);
+        return windowEl;
       }
 
       createAppContent(appName) {
@@ -719,9 +309,24 @@
         return `
           <div class="app-calculator">
             <div class="calc-display" id="calc-display-${this.windowId}">0</div>
-            ${[7,8,9,'/',4,5,6,'*',1,2,3,'-',0,'.','=','+'].map(btn =>
-              `<button class="calc-btn ${isNaN(btn)&&btn!=='.'?'operator':''}" onclick="vaos.calcPress('${btn}',${this.windowId})">${btn}</button>`).join('')}
-          </div>`;
+            <button class="calc-btn" onclick="vaos.calcPress('7', ${this.windowId})">7</button>
+            <button class="calc-btn" onclick="vaos.calcPress('8', ${this.windowId})">8</button>
+            <button class="calc-btn" onclick="vaos.calcPress('9', ${this.windowId})">9</button>
+            <button class="calc-btn operator" onclick="vaos.calcPress('/', ${this.windowId})">÷</button>
+            <button class="calc-btn" onclick="vaos.calcPress('4', ${this.windowId})">4</button>
+            <button class="calc-btn" onclick="vaos.calcPress('5', ${this.windowId})">5</button>
+            <button class="calc-btn" onclick="vaos.calcPress('6', ${this.windowId})">6</button>
+            <button class="calc-btn operator" onclick="vaos.calcPress('*', ${this.windowId})">×</button>
+            <button class="calc-btn" onclick="vaos.calcPress('1', ${this.windowId})">1</button>
+            <button class="calc-btn" onclick="vaos.calcPress('2', ${this.windowId})">2</button>
+            <button class="calc-btn" onclick="vaos.calcPress('3', ${this.windowId})">3</button>
+            <button class="calc-btn operator" onclick="vaos.calcPress('-', ${this.windowId})">-</button>
+            <button class="calc-btn" onclick="vaos.calcPress('0', ${this.windowId})">0</button>
+            <button class="calc-btn" onclick="vaos.calcPress('.', ${this.windowId})">.</button>
+            <button class="calc-btn operator" onclick="vaos.calcPress('=', ${this.windowId})">=</button>
+            <button class="calc-btn operator" onclick="vaos.calcPress('+', ${this.windowId})">+</button>
+          </div>
+        `;
       }
 
       createTextEditor() {
@@ -734,10 +339,12 @@
             <div>VaOS Terminal v1.0</div>
             <div>Type 'help' for available commands</div>
             <div id="terminal-output-${this.windowId}"></div>
-            <div style="display:flex"><span>${this.userData?.username}@vaos:~$ </span>
-              <input type="text" class="terminal-input" id="terminal-input-${this.windowId}" onkeypress="vaos.terminalCommand(event,${this.windowId})">
+            <div style="display: flex;">
+              <span>${this.userData?.username}@vaos:~$ </span>
+              <input type="text" class="terminal-input" id="terminal-input-${this.windowId}" onkeypress="vaos.terminalCommand(event, ${this.windowId})" />
             </div>
-          </div>`;
+          </div>
+        `;
       }
 
       createSettings() {
@@ -745,144 +352,191 @@
           <div class="settings-grid">
             <div class="settings-item">
               <label>Theme</label>
-              <select onchange="vaos.updateSetting('theme',this.value)">
+              <select onchange="vaos.updateSetting('theme', this.value)">
                 <option value="dark" ${this.userData?.settings?.theme === 'dark' ? 'selected' : ''}>Dark</option>
                 <option value="light" ${this.userData?.settings?.theme === 'light' ? 'selected' : ''}>Light</option>
               </select>
             </div>
             <div class="settings-item">
               <label>Animations</label>
-              <select onchange="vaos.updateSetting('animations',this.value==='true')">
+              <select onchange="vaos.updateSetting('animations', this.value === 'true')">
                 <option value="true" ${this.userData?.settings?.animations ? 'selected' : ''}>Enabled</option>
                 <option value="false" ${!this.userData?.settings?.animations ? 'selected' : ''}>Disabled</option>
               </select>
             </div>
             <div class="settings-item">
-              <label>Notes</label>
-              <button class="calc-btn operator" onclick="vaos.saveNotes()">Save Notes</button>
+              <label>Auto-save notes</label>
+              <button class="admin-btn" onclick="vaos.saveNotes()">Save Notes</button>
             </div>
-          </div>`;
+          </div>
+        `;
       }
 
-      makeWindowDraggable(window) {
-        const header = window.querySelector('.window-header');
-        let dragging = false, startX, startY, initX, initY;
-        header.addEventListener('mousedown', e => {
+      makeWindowDraggable(windowEl) {
+        const header = windowEl.querySelector('.window-header');
+        let isDragging = false, startX, startY, initialX, initialY;
+        header.addEventListener('mousedown', (e) => {
           if (e.target.closest('.window-controls')) return;
-          dragging = true; startX = e.clientX; startY = e.clientY;
-          initX = window.offsetLeft; initY = window.offsetTop;
+          isDragging = true; startX = e.clientX; startY = e.clientY;
+          initialX = windowEl.offsetLeft; initialY = windowEl.offsetTop;
         });
-        document.addEventListener('mousemove', e => {
-          if (!dragging) return;
-          window.style.left = (initX + e.clientX - startX) + 'px';
-          window.style.top = (initY + e.clientY - startY) + 'px';
+        document.addEventListener('mousemove', (e) => {
+          if (!isDragging) return;
+          const dx = e.clientX - startX, dy = e.clientY - startY;
+          windowEl.style.left = initialX + dx + 'px';
+          windowEl.style.top = initialY + dy + 'px';
         });
-        document.addEventListener('mouseup', () => dragging = false);
+        document.addEventListener('mouseup', () => isDragging = false);
       }
 
       addToTaskbar(windowId, appName) {
+        const taskbar = document.getElementById('taskbar-apps');
         const btn = document.createElement('button');
         btn.className = 'taskbar-app';
         btn.innerHTML = `${this.getAppIcon(appName)} ${this.getAppTitle(appName)}`;
         btn.onclick = () => this.toggleWindow(windowId);
-        document.getElementById('taskbar-apps').appendChild(btn);
+        taskbar.appendChild(btn);
       }
 
       makeWindowActive(windowId) {
         document.querySelectorAll('.window').forEach(w => w.style.zIndex = '100');
-        document.querySelectorAll('.taskbar-app').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.taskbar-app').forEach(b => b.classList.remove('active'));
         const win = document.getElementById(windowId);
         if (win) win.style.zIndex = '101';
-        const btns = Array.from(document.querySelectorAll('.taskbar-app'));
+        const buttons = Array.from(document.querySelectorAll('.taskbar-app'));
         const idx = Array.from(this.windows.keys()).indexOf(windowId);
-        if (btns[idx]) btns[idx].classList.add('active');
+        if (buttons[idx]) buttons[idx].classList.add('active');
       }
 
       toggleWindow(windowId) {
         const win = document.getElementById(windowId);
         win.style.display = win.style.display === 'none' ? 'flex' : 'none';
-        if (win.style.display === 'flex') this.makeWindowActive(windowId);
+        this.makeWindowActive(windowId);
       }
 
-      minimizeWindow(windowId) { document.getElementById(windowId).style.display = 'none'; }
-      maximizeWindow(windowId) { document.getElementById(windowId).classList.toggle('maximized'); }
+      minimizeWindow(windowId) {
+        document.getElementById(windowId).style.display = 'none';
+      }
+
+      maximizeWindow(windowId) {
+        document.getElementById(windowId).classList.toggle('maximized');
+      }
 
       closeWindow(windowId) {
         const win = document.getElementById(windowId);
-        if (!win) return;
-        win.remove(); this.windows.delete(windowId);
-        const btns = Array.from(document.querySelectorAll('.taskbar-app'));
-        const idx = Array.from(this.windows.keys()).indexOf(windowId);
-        if (btns[idx]) btns[idx].remove();
+        if (win) {
+          win.remove();
+          this.windows.delete(windowId);
+          const buttons = Array.from(document.querySelectorAll('.taskbar-app'));
+          const idx = Array.from(this.windows.keys()).indexOf(windowId);
+          if (buttons[idx]) buttons[idx].remove();
+        }
       }
 
-      getAppTitle(n) { return ({ calculator: 'Calculator', 'text-editor': 'Text Editor', terminal: 'Terminal', settings: 'Settings' }[n] || 'App'); }
-      getAppIcon(n) { return ({ calculator: '🧮', 'text-editor': '📝', terminal: '💻', settings: '⚙️' }[n] || '📄'); }
-
-      calcPress(val, windowId) {
-        const d = document.getElementById(`calc-display-${windowId}`);
-        let cur = d.textContent;
-        if (val === '=') { try { cur = eval(cur.replace(/×/g, '*').replace(/÷/g, '/')); } catch { cur = 'Error'; } }
-        else if (val === 'C') cur = '0';
-        else cur = (cur === '0' || cur === 'Error') ? val : cur + val;
-        d.textContent = cur;
+      getAppTitle(appName) {
+        return {
+          'calculator': 'Calculator',
+          'text-editor': 'Text Editor',
+          'terminal': 'Terminal',
+          'settings': 'Settings'
+        }[appName] || 'Unknown App';
       }
 
-      terminalCommand(e, windowId) {
-        if (e.key !== 'Enter') return;
-        const input = e.target, cmd = input.value;
-        const out = document.getElementById(`terminal-output-${windowId}`);
-        out.innerHTML += `<div>${this.userData?.username}@vaos:~$ ${cmd}</div>`;
-        const r = this.processTerminalCommand(cmd);
-        if (r) out.innerHTML += `<div>${r}</div>`;
-        input.value = ''; out.scrollTop = out.scrollHeight;
+      getAppIcon(appName) {
+        return {
+          'calculator': '🧮',
+          'text-editor': '📝',
+          'terminal': '💻',
+          'settings': '⚙️'
+        }[appName] || '📄';
       }
 
-      processTerminalCommand(cmd) {
-        const [c, ...args] = cmd.split(' ');
-        switch (c) {
-          case 'help': return 'Commands: help clear date time echo whoami logout';
+      calcPress(value, windowId) {
+        const display = document.getElementById(`calc-display-${windowId}`);
+        let current = display.textContent;
+        if (value === '=') {
+          try {
+            display.textContent = eval(current.replace(/×/g, '*').replace(/÷/g, '/'));
+          } catch {
+            display.textContent = 'Error';
+          }
+        } else if (value === 'C') {
+          display.textContent = '0';
+        } else {
+          display.textContent = current === '0' || current === 'Error' ? value : current + value;
+        }
+      }
+
+      terminalCommand(event, windowId) {
+        if (event.key !== 'Enter') return;
+        const input = event.target;
+        const command = input.value;
+        const output = document.getElementById(`terminal-output-${windowId}`);
+        output.innerHTML += `<div>${this.userData?.username}@vaos:~$ ${command}</div>`;
+        const response = this.processTerminalCommand(command);
+        if (response) output.innerHTML += `<div>${response}</div>`;
+        input.value = '';
+        output.scrollTop = output.scrollHeight;
+      }
+
+      processTerminalCommand(command) {
+        const [cmd, ...args] = command.split(' ');
+        switch (cmd) {
+          case 'help': return 'Available commands:\n- help\n- clear\n- date\n- time\n- echo <text>\n- whoami\n- logout';
           case 'clear': return '';
           case 'date': return new Date().toLocaleDateString();
           case 'time': return new Date().toLocaleTimeString();
           case 'echo': return args.join(' ');
           case 'whoami': return this.userData?.username || 'unknown';
           case 'logout': this.logout(); return 'Logging out...';
-          default: return `Command not found: ${c}`;
+          default: return `Command not found: ${cmd}. Type 'help' for available commands.`;
         }
       }
 
-      updateSetting(k, v) { if (this.userData) this.userData.settings[k] = v; }
+      updateSetting(setting, value) {
+        if (!this.currentUser || !this.userData) return;
+        this.userData.settings[setting] = value;
+      }
 
       async saveNotes() {
         if (!this.currentUser) return;
-        const ta = document.querySelector('.app-text-editor');
-        if (ta) {
-          this.userData.notes = ta.value;
-          const r = await window.vaosFirebase.saveUserData();
-          alert(r.success ? 'Notes saved!' : 'Error: ' + r.error);
+        const editor = document.querySelector('.app-text-editor');
+        if (editor) {
+          this.userData.notes = editor.value;
+          const result = await window.vaosFirebase.saveUserData();
+          alert(result.success ? 'Notes saved!' : 'Error saving notes: ' + result.error);
         }
       }
     }
 
-    window.toggleAuthForm = function () {
-      const l = document.getElementById('login-form'), r = document.getElementById('register-form');
-      const t = document.getElementById('form-toggle-text'), a = document.getElementById('form-toggle');
-      if (l.classList.contains('hidden')) {
-        l.classList.remove('hidden'); r.classList.add('hidden');
-        t.textContent = "Don't have an account?"; a.textContent = "Register here";
+    // Global helpers
+    window.toggleAuthForm = () => {
+      const loginForm = document.getElementById('login-form');
+      const registerForm = document.getElementById('register-form');
+      const toggleText = document.getElementById('form-toggle-text');
+      const toggleLink = document.getElementById('form-toggle');
+      if (loginForm.classList.contains('hidden')) {
+        loginForm.classList.remove('hidden');
+        registerForm.classList.add('hidden');
+        toggleText.textContent = "Don't have an account?";
+        toggleLink.textContent = "Register here";
       } else {
-        l.classList.add('hidden'); r.classList.remove('hidden');
-        t.textContent = "Already have an account?"; a.textContent = "Login here";
+        loginForm.classList.add('hidden');
+        registerForm.classList.remove('hidden');
+        toggleText.textContent = "Already have an account?";
+        toggleLink.textContent = "Login here";
       }
     };
+
     window.toggleStartMenu = () => document.getElementById('start-menu').classList.toggle('active');
-    window.openApp = (n) => window.vaos.openApp(n);
+    window.openApp = (appName) => window.vaos.openApp(appName);
     window.logout = () => window.vaos.logout();
 
+    // Init
     window.vaos = new VaOS();
 
-    document.addEventListener('click', e => {
+    // Close start menu on outside click
+    document.addEventListener('click', (e) => {
       if (!e.target.closest('#start-menu') && !e.target.closest('.start-button')) {
         document.getElementById('start-menu').classList.remove('active');
       }

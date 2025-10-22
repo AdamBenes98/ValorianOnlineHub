@@ -571,10 +571,6 @@
                 <div class="emoji">⚙️</div>
                 <span>Settings</span>
             </div>
-            <div class="desktop-icon" onclick="openApp('admin')" id="admin-icon" style="display:none;">
-                <div class="emoji">👑</div>
-                <span>Admin Panel</span>
-            </div>
         </div>
 
         <!-- Windows Container -->
@@ -610,10 +606,6 @@
             <div class="start-menu-item" onclick="openApp('settings')">
                 <span>⚙️</span>
                 <span>Settings</span>
-            </div>
-            <div class="start-menu-item" onclick="openApp('admin')" id="admin-menu" style="display:none;">
-                <span>👑</span>
-                <span>Admin Panel</span>
             </div>
         </div>
     </div>
@@ -779,18 +771,22 @@
             document.getElementById('start-menu').classList.remove('active');
         }
 
-        checkAppPermission(appName) {
+               checkAppPermission(appName) {
             if (!this.userData) return false;
             if (this.userData.role === 'admin') return true;
-            
-            const appPermissions = {
-                'calculator': 'calculator',
-                'text-editor': 'textEditor',
-                'terminal': 'terminal',
-                'settings': 'settings',
-                'admin': 'admin'
-            };
 
+            /*  map app name → Firestore field  */
+            const field = {
+                'calculator' : 'calculator',
+                'text-editor': 'textEditor',
+                'terminal'   : 'terminal',
+                'settings'   : 'settings',
+                'admin'      : 'admin'
+            }[appName];
+
+            /*  allow only if the flag is explicitly true  */
+            return this.userData[field] === true;
+        }
             return this.userData.apps[appPermissions[appName]] || false;
         }
 

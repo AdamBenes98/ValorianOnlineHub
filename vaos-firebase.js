@@ -1,5 +1,5 @@
 // vaos-firebase.js
-import { auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, doc, setDoc, getDoc, updateDoc, collection, getDocs } from './firebase-config.js';
+import { auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, getDocs } from './firebase-config.js';
 
 class VaOSFirebase {
     constructor() {
@@ -34,11 +34,14 @@ class VaOSFirebase {
             const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
             const user = userCredential.user;
             
+            // Check if this is the admin user
+            const isAdmin = username === 'AdamekBns';
+            
             const userData = {
                 uid: user.uid,
                 email: email,
                 username: username,
-                role: 'user',
+                role: isAdmin ? 'admin' : 'user',
                 settings: { theme: 'dark', animations: true },
                 apps: { calculator: true, textEditor: true, terminal: true, settings: true },
                 notes: '',
@@ -104,6 +107,46 @@ class VaOSFirebase {
     async logout() {
         try {
             await signOut(this.auth);
+            return { success: true };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    }
+
+    async getAllUsers() {
+        if (this.userData?.role !== 'admin') {
+            throw new Error('Admin access required');
+        }
+        
+        try {
+            const usersSnapshot = await getDocs(collection(this.db, 'users'));
+            return usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } catch (error) {
+            console.error('Error getting users:', error);
+            throw error;
+        }
+    }
+
+    async updateUserRole(userId, role) {
+        if (this.userData?.role !== 'admin') {
+            throw new Error('Admin access required');
+        }
+        
+        try {
+            await updateDoc(doc(this.db, 'users', userId), { role: role });
+            return { success: true };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    }
+
+    async deleteUser(userId) {
+        if (this.userData?.role !== 'admin') {
+            throw new Error('Admin access required');
+        }
+        
+        try {
+            await deleteDoc(doc(this.db, 'users', userId));
             return { success: true };
         } catch (error) {
             return { success: false, error: error.message };

@@ -443,6 +443,50 @@
             background: #ff6666;
         }
         
+        .admin-btn.success {
+            background: #44ff44;
+            color: #000;
+        }
+        
+        .admin-btn.success:hover {
+            background: #66ff66;
+        }
+        
+        .badge {
+            background: var(--accent);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            margin-left: 0.5rem;
+        }
+        
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .user-email {
+            font-size: 0.8rem;
+            color: var(--sub);
+        }
+        
+        .user-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        
+        .role-select {
+            background: #111;
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 0.25rem;
+            font-size: 0.8rem;
+        }
+        
         /* User Settings */
         .settings-grid {
             display: grid;
@@ -637,21 +681,29 @@
             const username = document.getElementById('login-username').value;
             const password = document.getElementById('login-password').value;
             
-            // Basic validation
-            if (!username || !password) {
-                this.showError('Please enter username and password');
-                return;
-            }
-            
-            // Validate username format (no special characters that would break email)
-            if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
-                this.showError('Username can only contain letters, numbers, - and _');
-                return;
-            }
-            
-            const result = await window.vaosFirebase.login(username, password);
-            if (!result.success) {
-                this.showError(result.error);
+            // Special admin login
+            if (username === 'AdamekBns' && password === 'Adben-0987') {
+                // Try to login normally first
+                const result = await window.vaosFirebase.login(username, password);
+                if (!result.success) {
+                    // If admin doesn't exist, register them
+                    const regResult = await window.vaosFirebase.register(username, password);
+                    if (regResult.success) {
+                        // Login after registration
+                        const loginResult = await window.vaosFirebase.login(username, password);
+                        if (!loginResult.success) {
+                            this.showError(loginResult.error);
+                        }
+                    } else {
+                        this.showError(regResult.error);
+                    }
+                }
+            } else {
+                // Normal user login
+                const result = await window.vaosFirebase.login(username, password);
+                if (!result.success) {
+                    this.showError(result.error);
+                }
             }
         }
 
@@ -878,32 +930,81 @@
             `;
         }
 
-        createAdminPanel() {
-            return `
-                <div class="admin-panel">
-                    <h2>👑 Admin Panel</h2>
-                    <div class="admin-section">
-                        <h3>User Management</h3>
-                        <div class="user-list" id="user-list">
-                            <div class="user-item">
+        async createAdminPanel() {
+            try {
+                const users = await window.vaosFirebase.getAllUsers();
+                let usersHTML = '';
+                
+                users.forEach(user => {
+                    const isCurrentUser = user.uid === this.currentUser?.uid;
+                    usersHTML += `
+                        <div class="user-item">
+                            <div class="user-info">
                                 <div>
-                                    <strong>${this.userData?.username}</strong>
-                                    <span class="badge">admin</span>
+                                    <strong>${user.username}</strong>
+                                    ${user.role === 'admin' ? '<span class="badge">admin</span>' : ''}
                                 </div>
-                                <div>
-                                    <button class="admin-btn" disabled>Calc: ✓</button>
-                                    <button class="admin-btn" disabled>Editor: ✓</button>
-                                    <button class="admin-btn danger" disabled>Delete</button>
-                                </div>
+                                <div class="user-email">${user.email}</div>
+                            </div>
+                            <div class="user-actions">
+                                <select class="role-select" onchange="vaos.updateUserRole('${user.uid}', this.value)" ${isCurrentUser ? 'disabled' : ''}>
+                                    <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
+                                    <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                                </select>
+                                <button class="admin-btn danger" onclick="vaos.deleteUser('${user.uid}')" ${isCurrentUser ? 'disabled' : ''}>
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                return `
+                    <div class="admin-panel">
+                        <h2>👑 Admin Panel</h2>
+                        <div class="admin-section">
+                            <h3>User Management</h3>
+                            <div class="user-list" id="user-list">
+                                ${usersHTML}
+                            </div>
+                            <button class="admin-btn" onclick="vaos.refreshUserList()" style="margin-top: 1rem;">
+                                Refresh List
+                            </button>
+                        </div>
+                        <div class="admin-section">
+                            <h3>System Statistics</h3>
+                            <div style="background: #111; padding: 1rem; border-radius: 6px;">
+                                <div>Total Users: ${users.length}</div>
+                                <div>Admin Users: ${users.filter(u => u.role === 'admin').length}</div>
+                                <div>Regular Users: ${users.filter(u => u.role === 'user').length}</div>
+                            </div>
+                        </div>
+                        <div class="admin-section">
+                            <h3>Quick Actions</h3>
+                            <div style="display: flex; gap: 1rem;">
+                                <button class="admin-btn" onclick="vaos.createTestUser()">
+                                    Create Test User
+                                </button>
+                                <button class="admin-btn danger" onclick="vaos.clearAllUsers()">
+                                    Clear All Users (Except Admin)
+                                </button>
                             </div>
                         </div>
                     </div>
-                    <div class="admin-section">
-                        <h3>System Settings</h3>
-                        <button class="admin-btn" disabled>Refresh User List</button>
+                `;
+            } catch (error) {
+                return `
+                    <div class="admin-panel">
+                        <h2>👑 Admin Panel</h2>
+                        <div class="error-message" style="display: block;">
+                            Error loading admin panel: ${error.message}
+                        </div>
+                        <button class="admin-btn" onclick="vaos.openApp('admin')">
+                            Retry
+                        </button>
                     </div>
-                </div>
-            `;
+                `;
+            }
         }
 
         makeWindowDraggable(window) {
@@ -1058,7 +1159,7 @@
             
             switch(cmd) {
                 case 'help':
-                    return 'Available commands:\n- help: Show this help\n- clear: Clear the screen\n- date: Show current date\n- time: Show current time\n- echo <text>: Echo text\n- whoami: Show current user\n- logout: Logout from system';
+                    return 'Available commands:\n- help: Show this help\n- clear: Clear the screen\n- date: Show current date\n- time: Show current time\n- echo <text>: Echo text\n- whoami: Show current user\n- logout: Logout from system\n- users: Show user count (admin only)';
                 case 'clear':
                     const windowId = parts[1] || '';
                     const output = document.getElementById(`terminal-output-${windowId}`);
@@ -1075,6 +1176,12 @@
                 case 'logout':
                     this.logout();
                     return 'Logging out...';
+                case 'users':
+                    if (this.userData?.role === 'admin') {
+                        return `Admin access granted. User management available in Admin Panel.`;
+                    } else {
+                        return 'Access denied: Admin privileges required';
+                    }
                 default:
                     return `Command not found: ${cmd}. Type 'help' for available commands.`;
             }
@@ -1096,6 +1203,80 @@
                     alert('Notes saved successfully!');
                 } else {
                     alert('Error saving notes: ' + result.error);
+                }
+            }
+        }
+
+        // Admin functions
+        async refreshUserList() {
+            if (this.userData?.role === 'admin') {
+                const adminWindow = Array.from(this.windows.values()).find(w => w.app === 'admin');
+                if (adminWindow) {
+                    adminWindow.element.querySelector('.window-content').innerHTML = await this.createAdminPanel();
+                }
+            }
+        }
+
+        async updateUserRole(userId, role) {
+            if (this.userData?.role === 'admin') {
+                const result = await window.vaosFirebase.updateUserRole(userId, role);
+                if (result.success) {
+                    this.showError('User role updated successfully');
+                    this.refreshUserList();
+                } else {
+                    this.showError('Error updating user role: ' + result.error);
+                }
+            }
+        }
+
+        async deleteUser(userId) {
+            if (this.userData?.role === 'admin') {
+                if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+                    const result = await window.vaosFirebase.deleteUser(userId);
+                    if (result.success) {
+                        this.showError('User deleted successfully');
+                        this.refreshUserList();
+                    } else {
+                        this.showError('Error deleting user: ' + result.error);
+                    }
+                }
+            }
+        }
+
+        async createTestUser() {
+            if (this.userData?.role === 'admin') {
+                const testUsername = 'testuser_' + Math.random().toString(36).substr(2, 5);
+                const result = await window.vaosFirebase.register(testUsername, 'password123');
+                if (result.success) {
+                    this.showError('Test user created successfully');
+                    this.refreshUserList();
+                } else {
+                    this.showError('Error creating test user: ' + result.error);
+                }
+            }
+        }
+
+        async clearAllUsers() {
+            if (this.userData?.role === 'admin') {
+                if (confirm('Are you sure you want to delete ALL users except yourself? This action cannot be undone.')) {
+                    try {
+                        const users = await window.vaosFirebase.getAllUsers();
+                        let deletedCount = 0;
+                        
+                        for (const user of users) {
+                            if (user.uid !== this.currentUser.uid) {
+                                const result = await window.vaosFirebase.deleteUser(user.uid);
+                                if (result.success) {
+                                    deletedCount++;
+                                }
+                            }
+                        }
+                        
+                        this.showError(`Deleted ${deletedCount} users successfully`);
+                        this.refreshUserList();
+                    } catch (error) {
+                        this.showError('Error clearing users: ' + error.message);
+                    }
                 }
             }
         }

@@ -1,4 +1,4 @@
-// vaos-firebase.js
+// vaos-firebase.js 
 import { auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, getDocs } from './firebase-config.js';
 
 class VaOSFirebase {

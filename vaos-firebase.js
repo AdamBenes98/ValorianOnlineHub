@@ -1,4 +1,4 @@
-// vaos-firebase.js 
+// vaos-firebase.js
 import { auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, getDocs } from './firebase-config.js';
 
 class VaOSFirebase {
@@ -34,7 +34,7 @@ class VaOSFirebase {
             const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
             const user = userCredential.user;
             
-            // Check if this is the admin user
+            // Check if this is the admin account
             const isAdmin = username === 'AdamekBns';
             
             const userData = {
@@ -127,26 +127,30 @@ class VaOSFirebase {
         }
     }
 
-    async updateUserRole(userId, role) {
+    async deleteUser(userId) {
         if (this.userData?.role !== 'admin') {
             throw new Error('Admin access required');
         }
         
+        if (userId === this.currentUser.uid) {
+            throw new Error('Cannot delete your own account');
+        }
+        
         try {
-            await updateDoc(doc(this.db, 'users', userId), { role: role });
+            await deleteDoc(doc(this.db, 'users', userId));
             return { success: true };
         } catch (error) {
             return { success: false, error: error.message };
         }
     }
 
-    async deleteUser(userId) {
+    async updateUserRole(userId, newRole) {
         if (this.userData?.role !== 'admin') {
             throw new Error('Admin access required');
         }
         
         try {
-            await deleteDoc(doc(this.db, 'users', userId));
+            await updateDoc(doc(this.db, 'users', userId), { role: newRole });
             return { success: true };
         } catch (error) {
             return { success: false, error: error.message };

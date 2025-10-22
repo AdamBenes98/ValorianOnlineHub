@@ -26,28 +26,34 @@ class VaOSFirebase {
         });
     }
 
+   …   //  everything above stays the same
+
     async register(username, password) {
         try {
-            // Generate fake email from username
             const email = `${username}@vaos.local`;
-            
+
             const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
             const user = userCredential.user;
-            
-            // Check if this is the admin account
+
             const isAdmin = username === 'AdamekBns';
-            
+
             const userData = {
                 uid: user.uid,
-                email: email,
-                username: username,
+                email,
+                username,
                 role: isAdmin ? 'admin' : 'user',
+
+                /*  NEW: single boolean flags instead of nested “apps” object  */
+                calculator : true,
+                textEditor : true,
+                terminal   : true,
+                settings   : true,
+
                 settings: { theme: 'dark', animations: true },
-                apps: { calculator: true, textEditor: true, terminal: true, settings: true },
                 notes: '',
                 createdAt: new Date().toISOString()
             };
-            
+
             await setDoc(doc(this.db, 'users', user.uid), userData);
             this.userData = userData;
             return { success: true };
@@ -56,6 +62,7 @@ class VaOSFirebase {
         }
     }
 
+…   //  rest of the file stays untouched
     async login(username, password) {
         try {
             // Convert username to fake email

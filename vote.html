@@ -51,17 +51,17 @@ a{color:var(--red)}
 
 <script type="module">
 /* ----------  FIREBASE  ---------- */
-import { auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged,
-         doc, setDoc, getDoc, updateDoc, collection, query, where, onSnapshot, getDocs, deleteField } 
-from './firebase-config.js';
+import {
+  auth, db,
+  createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged,
+  doc, setDoc, getDoc, updateDoc, deleteDoc,      // ← deleteDoc added
+  collection, query, where, onSnapshot, getDocs, deleteField
+} from './firebase-config.js';
 
-export { auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged,
-         doc, setDoc, getDoc, updateDoc, deleteDoc, collection, getDocs, deleteField };
 /* ----------  CONSTANTS  ---------- */
-const ADMIN_EMAIL = 'adamekbns@valorian.eu';   // master account e-mail
-let   currentUser = null;                     // firebase user object
-let   unsubPoll   = null;                     // live listener
-
+const ADMIN_EMAIL = 'adamekbns@valorian.eu';
+let   currentUser = null;
+let   unsubPoll   = null;
 /* ----------  HELPERS  ---------- */
 const $ = q => document.querySelector(q);
 const today = () => new Date().toISOString().slice(0,10);

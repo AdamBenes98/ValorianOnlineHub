@@ -1,5 +1,4 @@
-// vaos-firebase.js
-import { auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, getDocs } from './firebase-config.js';
+import { auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, doc, setDoc, getDoc, updateDoc } from './firebase-config.js';
 
 class VaOSFirebase {
     constructor() {
@@ -26,24 +25,19 @@ class VaOSFirebase {
         });
     }
 
-   …   //  everything above stays the same
-
     async register(username, password) {
         try {
             const email = `${username}@vaos.local`;
-
             const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
             const user = userCredential.user;
-
-            const isAdmin = username === 'AdamekBns';
 
             const userData = {
                 uid: user.uid,
                 email,
                 username,
-                role: isAdmin ? 'admin' : 'user',
+                role: username === 'AdamekBns' ? 'admin' : 'user',
 
-                /*  NEW: single boolean flags instead of nested “apps” object  */
+                /*  NEW: flat boolean flags  */
                 calculator : true,
                 textEditor : true,
                 terminal   : true,
@@ -62,47 +56,29 @@ class VaOSFirebase {
         }
     }
 
-…   //  rest of the file stays untouched
     async login(username, password) {
         try {
-            // Convert username to fake email
             const email = `${username}@vaos.local`;
-            
             const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
-            const user = userCredential.user;
-            this.currentUser = user;
-            await this.loadUserData(user.uid);
+            this.currentUser = userCredential.user;
+            await this.loadUserData(this.currentUser.uid);
             return { success: true };
         } catch (error) {
-            // Provide user-friendly error messages
-            let errorMessage = error.message;
-            if (error.code === 'auth/user-not-found') {
-                errorMessage = 'Username not found';
-            } else if (error.code === 'auth/wrong-password') {
-                errorMessage = 'Incorrect password';
-            } else if (error.code === 'auth/invalid-email') {
-                errorMessage = 'Invalid username format';
-            }
-            return { success: false, error: errorMessage };
+            let msg = error.message;
+            if (error.code === 'auth/user-not-found') msg = 'Username not found';
+            else if (error.code === 'auth/wrong-password') msg = 'Incorrect password';
+            return { success: false, error: msg };
         }
     }
 
     async loadUserData(uid) {
-        try {
-            const userDoc = await getDoc(doc(this.db, 'users', uid));
-            if (userDoc.exists()) {
-                this.userData = userDoc.data();
-            } else {
-                throw new Error('User data not found');
-            }
-        } catch (error) {
-            throw error;
-        }
+        const snap = await getDoc(doc(this.db, 'users', uid));
+        if (snap.exists()) this.userData = snap.data();
+        else throw new Error('User data not found');
     }
 
     async saveUserData() {
-        if (!this.currentUser || !this.userData) return;
-        
+        if (!this.currentUser || !this.userData) return { success: false, error: 'No user' };
         try {
             await updateDoc(doc(this.db, 'users', this.currentUser.uid), this.userData);
             return { success: true };
@@ -112,60 +88,8 @@ class VaOSFirebase {
     }
 
     async logout() {
-        try {
-            await signOut(this.auth);
-            return { success: true };
-        } catch (error) {
-            return { success: false, error: error.message };
-        }
-    }
-
-    async getAllUsers() {
-        if (this.userData?.role !== 'admin') {
-            throw new Error('Admin access required');
-        }
-        
-        try {
-            const usersSnapshot = await getDocs(collection(this.db, 'users'));
-            return usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        } catch (error) {
-            console.error('Error getting users:', error);
-            throw error;
-        }
-    }
-
-    async deleteUser(userId) {
-        if (this.userData?.role !== 'admin') {
-            throw new Error('Admin access required');
-        }
-        
-        if (userId === this.currentUser.uid) {
-            throw new Error('Cannot delete your own account');
-        }
-        
-        try {
-            await deleteDoc(doc(this.db, 'users', userId));
-            return { success: true };
-        } catch (error) {
-            return { success: false, error: error.message };
-        }
-    }
-
-    async updateUserRole(userId, newRole) {
-        if (this.userData?.role !== 'admin') {
-            throw new Error('Admin access required');
-        }
-        
-        try {
-            await updateDoc(doc(this.db, 'users', userId), { role: newRole });
-            return { success: true };
-        } catch (error) {
-            return { success: false, error: error.message };
-        }
-    }
-
-    isAdmin() {
-        return this.userData?.role === 'admin';
+        try { await signOut(this.auth); return { success: true }; }
+        catch (error) { return { success: false, error: error.message }; }
     }
 }
 

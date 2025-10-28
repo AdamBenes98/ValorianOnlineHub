@@ -55,9 +55,8 @@ import { auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, s
          doc, setDoc, getDoc, updateDoc, collection, query, where, onSnapshot, getDocs, deleteField } 
 from './firebase-config.js';
 
-  export { auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged,
-         doc, setDoc, getDoc, updateDoc, deleteDoc, collection, getDocs,
-+        deleteField };
+export { auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged,
+         doc, setDoc, getDoc, updateDoc, deleteDoc, collection, getDocs, deleteField };
 /* ----------  CONSTANTS  ---------- */
 const ADMIN_EMAIL = 'adamekbns@valorian.eu';   // master account e-mail
 let   currentUser = null;                     // firebase user object

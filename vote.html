@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -8,28 +8,21 @@
 <style>
 :root{
   --bg:#111;
-  --text:#ffffff;        /* white text everywhere */
+  --text:#ffffff;
   --sub:#999;
   --blue:#00b4ff;
-  --green:#00c853;       /* Yes fill */
-  --red:#ff5252;         /* No fill & accents */
+  --green:#00c853;
+  --red:#ff5252;
   --radius:4px;
   --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
 }
 @media (prefers-color-scheme:light){
-  :root{
-    --bg:#1e1e1e;        /* keep dark card even in light OS mode */
-    --card:#1e1e1e;
-    --text:#ffffff;
-    --sub:#aaa;
-  }
+  :root{ --bg:#1e1e1e; --card:#1e1e1e; --text:#ffffff; --sub:#aaa; }
 }
-
-
 .ivcf-page{background:var(--bg);color:var(--text);display:none}
 .ivcf-page.active{display:block}
 .ivcf-header{background:#1e1e1e;border-bottom:2px solid var(--red);padding:1rem 2rem;display:flex;align-items:center;gap:1.5rem}
-.ivcf-header h1{margin:0;font-size:1.6rem;color:var(--text)}   /* white title */
+.ivcf-header h1{margin:0;font-size:1.6rem;color:var(--text)}
 .ivcf-nav{display:flex;gap:1rem;flex-wrap:wrap}
 .ivcf-nav a{padding:.4rem .7rem;border-radius:var(--radius);background:#0003;text-decoration:none;color:var(--text)}
 .ivcf-nav a.active{background:var(--red);color:#000;font-weight:bold}
@@ -39,17 +32,14 @@
 .ivcf-table{width:100%;border-collapse:collapse;margin-top:1rem}
 .ivcf-table th,.ivcf-table td{padding:.5rem;text-align:left;border-bottom:1px solid #333}
 .ivcf-table th{color:var(--blue)}
-.ivcf-card{background:#1e1e1e;padding:1.2rem;border-radius:8px;margin-bottom:1.2rem;color:var(--text)} /* <- force white text inside card */
+.ivcf-card{background:#1e1e1e;padding:1.2rem;border-radius:8px;margin-bottom:1.2rem;color:var(--text)}
 .ivcf-input,.ivcf-select,.ivcf-button{padding:.5rem;border:none;border-radius:var(--radius);font-family:var(--font);font-size:1rem}
 .ivcf-input,.ivcf-select{background:#222;color:var(--text);width:100%}
 .ivcf-button{background:var(--red);color:#000;cursor:pointer;font-weight:bold;transition:filter .15s}
 .ivcf-button:hover{filter:brightness(1.15)}
 .ivcf-button:active{filter:brightness(0.85)}
-
-/* vote bar */
 #barWrap{height:28px;background:var(--red);border-radius:var(--radius);overflow:hidden;margin:1rem 0}
 #barYes{height:100%;background:var(--green);width:0%;transition:width .4s}
-
 body{margin:0;background:var(--bg);font-family:var(--font);display:flex;align-items:center;justify-content:center;min-height:100vh}
 a{color:var(--red)}
 .small{font-size:.8rem;color:var(--sub)}
@@ -60,188 +50,219 @@ a{color:var(--red)}
 <div id="app"></div>
 
 <script type="module">
-/* ----------  helper  ---------- */
-const storage = (k, v) => {
-  if (v === undefined) return JSON.parse(localStorage.getItem(k) || 'null');
-  localStorage.setItem(k, JSON.stringify(v));
-};
-/* CONFIG */
-const ADMIN_USER = 'master';
-const ADMIN_PASS = 'M4sterP@ss';
+/* ----------  FIREBASE  ---------- */
+import { auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged,
+         doc, setDoc, getDoc, updateDoc, collection, query, where, onSnapshot, getDocs, deleteField } 
+from './firebase-config.js';
 
-/* HELPERS */
+/* ----------  CONSTANTS  ---------- */
+const ADMIN_EMAIL = 'adamekbns@valorian.eu';   // master account e-mail
+let   currentUser = null;                     // firebase user object
+let   unsubPoll   = null;                     // live listener
+
+/* ----------  HELPERS  ---------- */
 const $ = q => document.querySelector(q);
-/* ----------  remote storage  ---------- */
-let poll   = null;   // {title,end,votes:{}}
-let votes  = {};     // votes[user] = true/false
-
-async function loadPoll(){
-  const obj = await fetch('/api/votes').then(r => r.json());
-  poll  = {title: obj.title, end: obj.end};
-  votes = obj.votes || {};
-  renderBallot();          // your existing render
-}
-
-async function sendVote(user, voteBool){
-  await fetch('/api/votes', {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({user, vote: voteBool})
-  });
-  await loadPoll();
-}
 const today = () => new Date().toISOString().slice(0,10);
 
-/* DATA */
-const DB = {
-  poll:  () => storage('poll'),
-  voters:() => storage('voters')||{},
-  votes: () => storage('votes')||{},
-  voted: () => storage('voted')||[],
-  archive:()=> storage('archive')||[],
-  addVoter(u,p){ const v=this.voters(); if(v[u])return 0; v[u]=p; storage('voters',v); return 1;},
-  createPoll(o){ storage('poll',o); storage('votes',{}); storage('voted',[]);},
-  vote(u,y){ if(this.voted().includes(u))return 0; const votes=this.votes(); votes[u]=y; storage('votes',votes); storage('voted',[...this.voted(),u]); return 1;},
-  results(){ const v=Object.values(this.votes()), yes=v.filter(Boolean).length, no=v.length-yes, t=v.length||1; return {yes,no,total:v.length,yesP:(100*yes/t).toFixed(1),noP:(100*no/t).toFixed(1)};}
-};
-
-/* ARCHIVE */
-async function archiveThisPoll(){
-  const p = DB.poll(), v = DB.votes(), r = DB.results();
-  if(!p) return;
-  const entry = { ...p, results:r, votes:v, archivedAt:new Date().toISOString() };
-  await fetch('/api/votes/archive', {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify(entry)
+/* ----------  ROUTING  ---------- */
+function start(){
+  onAuthStateChanged(auth, user => {
+    currentUser = user;
+    if (!user) { renderGate(); return; }
+    if (user.email === ADMIN_EMAIL) { renderAdminPanel(); return; }
+    checkVoterAndLoad(user.email);
   });
 }
-/* ROUTER */
-function start(){
-  const p = DB.poll();
-  if(!p || new Date(p.end) < new Date()){ renderNoPollPage(); return; }
-  if(storage('adminSession')){ renderAdminPanel(); return; }
-  if(storage('session') && DB.voters()[storage('session')]){ renderBallot(); return; }
-  renderGate();
-}
-function renderNoPollPage(){
-  app.innerHTML = `
-  <div class="ivcf-card">
-    <h1>No active polls</h1>
-    <p>If you want to create one, please log in as administrator.</p>
-    <button class="ivcf-button" onclick="renderAdminLogin()">Admin login</button>
-    <p class="small"><a href="archive.html">📁 Vote archive</a></p>
-  </div>`;
-}
+start();
 
-/* PAGES */
-window.renderGate=()=>{
-  app.innerHTML=`
+/* ==========================================
+   GENERAL PAGES
+   ========================================== */
+window.renderGate = () => {
+  app.innerHTML = `
   <div class="ivcf-card">
     <h1>Parliament – Live Vote</h1>
     <p class="small">Choose your role:</p>
-    <button class="ivcf-button" onclick="renderVoterLogin()">I am a voter</button>
-    <button class="ivcf-button" onclick="renderAdminLogin()">I am an admin</button>
+    <button class="ivcf-button" onclick="renderLogin()">I am a voter</button>
+    <button class="ivcf-button" onclick="renderLogin()">I am an admin</button>
     <p class="small"><a href="archive.html">📁 Vote archive</a></p>
   </div>`;
 };
-window.renderAdminLogin=()=>{
-  app.innerHTML=`
+
+window.renderLogin = () => {
+  app.innerHTML = `
   <div class="ivcf-card">
-    <h1>Admin Login</h1>
-    <input class="ivcf-input" id="admUser" placeholder="Admin username">
-    <input class="ivcf-input" id="admPass" type="password" placeholder="Admin password">
-    <button class="ivcf-button" onclick="checkAdmin()">Login</button>
-    <p class="small"><a href="index.html">← back to main page</a></p>
+    <h1>Login</h1>
+    <input class="ivcf-input" id="emailIn" placeholder="E-mail">
+    <input class="ivcf-input" id="passIn" type="password" placeholder="Password">
+    <button class="ivcf-button" onclick="logIn()">Login</button>
+    <p class="small">No account? Ask the administrator.</p>
+    <p class="small"><a href="#" onclick="renderGate();return false">← back</a></p>
   </div>`;
 };
-window.checkAdmin=()=>{
-  if(admUser.value===ADMIN_USER && admPass.value===ADMIN_PASS){ storage('adminSession',true); renderAdminPanel();}
-  else alert('Wrong credentials');
+
+window.logIn = async () => {
+  const em = $('#emailIn').value.trim();
+  const pw = $('#passIn').value;
+  try { await signInWithEmailAndPassword(auth, em, pw); }
+  catch(e){ alert('Login failed: '+e.message); }
 };
-window.renderAdminPanel=()=>{
-  app.innerHTML=`
+
+window.logOut = async () => { await signOut(auth); };
+
+/* ==========================================
+   ADMIN ONLY
+   ========================================== */
+window.renderAdminPanel = async () => {
+  const pollSnap = await getDoc(doc(db,'polls','active'));
+  const p = pollSnap.exists() ? pollSnap.data() : null;
+
+  app.innerHTML = `
   <div class="ivcf-card" style="border-left:4px solid var(--green)">
     <h1>Admin Panel <span style="color:var(--green)">●</span></h1>
-    <input class="ivcf-input" id="newTitle" placeholder="Poll title" value="${DB.poll()?.title||''}">
-    <input class="ivcf-input" id="newEnd" type="datetime-local" value="${DB.poll()?.end||''}">
+    <input class="ivcf-input" id="titleIn" placeholder="Poll title" value="${p?p.title:''}">
+    <input class="ivcf-input" id="endIn" type="datetime-local" value="${p?p.end:''}">
     <button class="ivcf-button" onclick="savePoll()">Create / Update poll</button>
     <hr style="border:none;border-top:1px solid #333;margin:1rem 0">
-    <textarea class="ivcf-input" id="bulkUsers" placeholder="Add voters:  username password (one pair per line)"></textarea>
+    <textarea class="ivcf-input" id="bulkIn" placeholder="Add voters:  email password (one per line)"></textarea>
     <button class="ivcf-button" onclick="addVoters()">Add voters</button>
     <button class="ivcf-button" onclick="dlCsv()">Download results CSV</button>
-    <p class="small"><a href="#" onclick="logoutAdmin();return false">Leave admin mode</a></p>
+    <p class="small"><a href="#" onclick="logOut();return false">Logout</a></p>
   </div>`;
 };
-window.savePoll   =()=>{ DB.createPoll({title:newTitle.value,end:newEnd.value,labelYes:'Yes',labelNo:'No'}); alert('Poll saved'); };
-window.addVoters  =()=>{
-  const lines=bulkUsers.value.split('\n').map(l=>l.trim()).filter(Boolean);
-  let added=0; lines.forEach(l=>{const[u,p]=l.split(/\s+/); if(u&&p) added+=DB.addVoter(u,p);});
-  alert(`Added ${added} voter(s)`); bulkUsers.value='';
-};
-window.dlCsv=()=>{
-  const csv=`user,vote\n${Object.entries(DB.votes()).map(([u,v])=>`${u},${v?'Yes':'No'}`).join('\n')}`;
-  const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([csv],{type:'text/csv'})),download:`poll-${today()}.csv`}); a.click();
-};
-window.logoutAdmin=()=>{ storage('adminSession',null); renderGate(); };
 
-window.renderVoterLogin=()=>{
-  app.innerHTML=`
+window.savePoll = async () => {
+  const title = $('#titleIn').value.trim();
+  const end   = $('#endIn').value;
+  if(!title||!end){alert('Title and end date required');return;}
+  await setDoc(doc(db,'polls','active'),{title,end,voters:[],votes:{},createdAt:new Date()});
+  alert('Poll saved / updated');
+};
+
+window.addVoters = async () => {
+  const lines = $('#bulkIn').value.split('\n').map(l=>l.trim()).filter(Boolean);
+  let ok=0;
+  for(const l of lines){
+    const [email,pass] = l.split(/\s+/);
+    if(!email||!pass) continue;
+    try{
+      await createUserWithEmailAndPassword(auth, email, pass);
+      ok++;
+    }catch(e){
+      if(e.code==='auth/email-already-in-use') ok++;  // already exists – count as ok
+      else console.error(e);
+    }
+  }
+  alert(`Processed ${ok} voter(s)`);
+  $('#bulkIn').value='';
+};
+
+window.dlCsv = async () => {
+  const snap = await getDoc(doc(db,'polls','active'));
+  if(!snap.exists()){alert('No active poll');return;}
+  const votes = snap.data().votes||{};
+  const csv = `user,vote\n` +
+        Object.entries(votes).map(([u,v])=>`${u},${v?'Yes':'No'}`).join('\n');
+  const a = Object.assign(document.createElement('a'),{
+    href:URL.createObjectURL(new Blob([csv],{type:'text/csv'})),
+    download:`poll-${today()}.csv`
+  }); a.click();
+};
+
+/* ==========================================
+   VOTER FLOW
+   ========================================== */
+async function checkVoterAndLoad(email){
+  const pollRef = doc(db,'polls','active');
+  const pollSnap = await getDoc(pollRef);
+  if(!pollSnap.exists()){ renderNoPoll(); return; }
+  const p = pollSnap.data();
+  if(new Date()>new Date(p.end)){ await archiveAndClose(p); return; }
+  renderBallot(p, email);
+  /* live updates */
+  if(unsubPoll) unsubPoll();
+  unsubPoll = onSnapshot(pollRef, snap=>{
+    if(!snap.exists()) return;
+    const fresh = snap.data();
+    if(new Date()>new Date(fresh.end)){ archiveAndClose(fresh); return; }
+    updateBar(fresh.votes||{});
+  });
+}
+
+window.renderNoPoll = () => {
+  app.innerHTML = `
   <div class="ivcf-card">
-    <h1>Voter Login</h1>
-    <input class="ivcf-input" id="user" placeholder="Username">
-    <input class="ivcf-input" id="pass" type="password" placeholder="Password">
-    <button class="ivcf-button" onclick="checkVoter()">Login</button>
-    <p class="small"><a href="index.html">← back to main page</a></p>
+    <h1>No active polls</h1>
+    <p>Please wait for the next poll to open.</p>
+    <p class="small"><a href="archive.html">📁 Vote archive</a> · <a href="#" onclick="logOut();return false">Logout</a></p>
   </div>`;
 };
-window.checkVoter=()=>{
-  const u=user.value.trim(), p=pass.value;
-  if(!DB.voters()[u] || DB.voters()[u]!==p) return alert('Invalid credentials');
-  if(DB.voted().includes(u)) return alert('You have already voted.');
-  storage('session',u); renderBallot();
-};
-window.renderBallot=()=>{
-  const poll=DB.poll(), u=storage('session');
-  app.innerHTML=`
+
+window.renderBallot = (poll, email) => {
+  const already = poll.votes && Object.keys(poll.votes).includes(email);
+  app.innerHTML = `
   <div class="ivcf-card">
     <h1>${poll.title}</h1>
     <p id="timer" class="small"></p>
     <div id="voted" style="display:none"><p>Your vote has been recorded ✅</p><p class="small">Live result:</p></div>
-    <div id="ballot"><button class="ivcf-button" onclick="vote(true)">Yes</button><button class="ivcf-button" onclick="vote(false)">No</button></div>
+    <div id="ballot" style="display:${already?'none':'flex'};gap:.5rem">
+      <button class="ivcf-button" onclick="vote(true)">Yes</button>
+      <button class="ivcf-button" onclick="vote(false)">No</button>
+    </div>
     <div id="barWrap"><div id="barYes"></div></div>
     <p class="small"><span id="yes">0</span> Yes (<span id="yesP">0</span>%) · <span id="no">0</span> No (<span id="noP">0</span>%)</p>
-    <p class="small"><a href="archive.html">📁 Vote archive</a> · <a href="#" onclick="logoutVoter();return false">Logout</a></p>
+    <p class="small"><a href="archive.html">📁 Vote archive</a> · <a href="#" onclick="logOut();return false">Logout</a></p>
   </div>`;
-  const updateBar=()=>{
-    const r=DB.results();
-    yes.textContent=r.yes; no.textContent=r.no;
-    yesP.textContent=r.yesP; noP.textContent=r.noP;
-    barYes.style.width=r.yesP+'%';
-  };
-  updateBar(); setInterval(updateBar,1000);
-  const end=new Date(poll.end);
-  const int=setInterval(()=>{
-    const sec=Math.max(0,Math.floor((end-new Date())/1000));
-    if(!sec){clearInterval(int); archiveThisPoll(); location.replace('archive.html');}
-    timer.textContent=`Closes in ${String(Math.floor(sec/3600)).padStart(2,0)}:${String(Math.floor(sec/60)%60).padStart(2,0)}:${String(sec%60).padStart(2,0)}`;
+  updateBar(poll.votes||{});
+  countdown(poll.end);
+  if(already){ ballot.style.display='none'; voted.style.display='block'; }
+};
+
+window.vote = async bool => {
+  const pollRef = doc(db,'polls','active');
+  const email = currentUser.email;
+  await updateDoc(pollRef, { [`votes.${email}`]: bool });
+  import('https://cdn.skypack.dev/canvas-confetti').then(({default:confetti})=>
+    confetti({particleCount:120,spread:70,origin:{y:.7}})
+  );
+};
+
+function updateBar(votes){
+  const yes = Object.values(votes).filter(v=>v===true).length;
+  const no  = Object.values(votes).filter(v=>v===false).length;
+  const tot = yes+no||1;
+  $('#yes').textContent  = yes;
+  $('#no').textContent   = no;
+  $('#yesP').textContent = (100*yes/tot).toFixed(1);
+  $('#noP').textContent  = (100*no/tot).toFixed(1);
+  $('#barYes').style.width = (100*yes/tot).toFixed(1)+'%';
+}
+
+function countdown(endIso){
+  const end = new Date(endIso);
+  const iv = setInterval(()=>{
+    const sec = Math.max(0,Math.floor((end-new Date())/1000));
+    if(!sec){ clearInterval(iv); archiveAndClose(); return; }
+    $('#timer').textContent = `Closes in ${String(Math.floor(sec/3600)).padStart(2,0)}:${String(Math.floor(sec/60)%60).padStart(2,0)}:${String(sec%60).padStart(2,0)}`;
   },1000);
-  if(DB.voted().includes(u)){ ballot.style.display='none'; voted.style.display='block'; }
-};
-window.vote=y=>{
-  const u=storage('session');
-  if(DB.vote(u,y)){
-    import('https://cdn.skypack.dev/canvas-confetti').then(({default:confetti})=>confetti({particleCount:120,spread:70,origin:{y:.7}}));
-    renderBallot();
-  }
-};
-window.logoutVoter=()=>{ storage('session',null); renderGate(); };
+}
 
-/* demo data */
-(()=>{ if(Object.keys(DB.voters()).length===0){ DB.addVoter('alice','alice123'); DB.addVoter('bob','bob456'); } })();
-
-/* kick off */
-start();
+async function archiveAndClose(pollData){
+  if(unsubPoll) { unsubPoll(); unsubPoll=null; }
+  const p = pollData || (await getDoc(doc(db,'polls','active'))).data();
+  /* move to archive */
+  await setDoc(doc(db,'archive',Date.now().toString()), {
+    ...p,
+    archivedAt: new Date(),
+    results: {
+      yes: Object.values(p.votes||{}).filter(v=>v===true).length,
+      no:  Object.values(p.votes||{}).filter(v=>v===false).length
+    }
+  });
+  /* delete active */
+  await deleteDoc(doc(db,'polls','active'));
+  location.replace('archive.html');
+}
 </script>
 </body>
 </html>

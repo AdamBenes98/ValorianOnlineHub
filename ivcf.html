@@ -2,18 +2,137 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>IVCF 2.0 Hub</title>
+<title>IVCF 2.0 Hub - Enhanced Comparison System</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="hub.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/3.0.3/plotly.min.js "></script>
 <style>
-/* ----- minimal extra styling for the compare tool ----- */
-/* ---- radar diagram ---- */
-#radar{border:1px solid var(--border);border-radius:50%;background:#0001}
-.compare-bar{display:flex;gap:1rem;margin-bottom:1rem}
-.compare-bar select{flex:1;padding:.5rem;font-size:1rem}
-.compare-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:1rem;align-items:center}
-.compare-grid .vs{font-size:1.5rem;font-weight:bold}
-.compare-grid table{width:100%}
+:root{
+  --bg:#000;
+  --card:#0a0a0a;
+  --border:#222;
+  --accent:#dc143c;
+  --text:#fff;
+  --sub:#aaa;
+  --gap:1.2rem;
+  --secondary:#00b4ff;
+  --success:#32cd32;
+  --warning:#ffd700;
+  font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+}
+* {box-sizing:border-box;margin:0;padding:0}
+body{margin:0;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+a{color:var(--accent);text-decoration:none}
+header,footer{background:var(--card);border-bottom:2px solid var(--accent)}
+header{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem}
+header h1{margin:0;font-size:1.6rem;letter-spacing:1px}
+header span{font-weight:300;font-size:.9rem;color:var(--sub)}
+main{flex:1;padding:2rem;max-width:1100px;margin:auto;width:100%}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:var(--gap)}
+.tile{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.5rem 1rem;text-align:center;transition:transform .15s,box-shadow .15s;cursor:pointer;position:relative}
+.tile:hover{transform:translateY(-4px);box-shadow:0 8px 24px #0008}
+.tile .emoji{font-size:2.2rem;margin-bottom:.5rem}
+.tile h3{margin:.4rem 0 .2rem;font-size:1.1rem}
+.tile p{font-size:.85rem;color:var(--sub);margin:0}
+.tile.external::after{content:"⧉";position:absolute;top:.5rem;right:.7rem;font-size:.8rem;opacity:.6}
+footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-bottom:none;border-top:2px solid var(--accent)}
+.badge{display:inline-block;background:var(--accent);color:#fff;padding:.15rem .35rem;border-radius:4px;font-size:.65rem;margin-left:.4rem}
+.mono{font-family:monospace}
+
+/* IVCF STYLES */
+.ivcf-page{background:var(--bg);color:var(--text);display:none}
+.ivcf-page.active{display:block}
+.ivcf-header{background:#1e1e1e;border-bottom:2px solid var(--secondary);padding:1rem 2rem;display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap}
+.ivcf-header h1{margin:0;font-size:1.6rem;color:var(--text)}
+.ivcf-nav{display:flex;gap:1rem;flex-wrap:wrap}
+.ivcf-nav a{padding:.4rem .7rem;border-radius:4px;background:#0003;color:var(--text);text-decoration:none;transition:all .3s ease}
+.ivcf-nav a.active{background:var(--secondary);color:#000;font-weight:bold}
+.ivcf-main{padding:2rem;max-width:1200px;margin:auto}
+.ivcf-section{display:none}
+.ivcf-section.active{display:block;animation:fadeIn .5s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.ivcf-table{width:100%;border-collapse:collapse;margin-top:1rem;background:var(--card);border-radius:8px;overflow:hidden}
+.ivcf-table th,.ivcf-table td{padding:.75rem;text-align:left;border-bottom:1px solid var(--border)}
+.ivcf-table th{background:#2a2a2a;color:var(--secondary);font-weight:600}
+.ivcf-table tr:hover{background:#1a1a1a}
+.ivcf-card{background:#1e1e1e;padding:1.5rem;border-radius:8px;margin-bottom:1.2rem;border:1px solid var(--border)}
+.ivcf-input,.ivcf-select,.ivcf-button{padding:.75rem;border:none;border-radius:4px;font-size:1rem}
+.ivcf-input,.ivcf-select{background:#222;color:var(--text);width:100%;border:1px solid var(--border)}
+.ivcf-input:focus,.ivcf-select:focus{outline:none;border-color:var(--secondary)}
+.ivcf-button{background:var(--secondary);color:#000;cursor:pointer;font-weight:bold;transition:all .3s ease}
+.ivcf-button:hover{filter:brightness(1.15);transform:translateY(-1px)}
+
+/* Comparison Styles */
+.comparison-container{display:grid;grid-template-columns:1fr 2fr 1fr;gap:2rem;align-items:start;margin-top:2rem}
+.player-card{background:linear-gradient(135deg,#1e1e1e,#2a2a2a);border:1px solid var(--border);border-radius:12px;padding:2rem;text-align:center;position:relative;overflow:hidden;transition:all .3s ease}
+.player-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--accent),var(--secondary))}
+.player-card:hover{transform:translateY(-5px);border-color:var(--secondary)}
+.player-avatar{width:80px;height:80px;border-radius:50%;background:var(--accent);margin:0 auto 1rem;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:bold;color:#000}
+.player-name{font-size:1.5rem;font-weight:700;margin-bottom:.5rem;color:var(--text)}
+.player-rating{font-size:2rem;font-weight:700;margin-bottom:.5rem;color:var(--secondary)}
+.player-title{background:var(--accent);color:#000;padding:.25rem .75rem;border-radius:20px;font-size:.9rem;font-weight:600;display:inline-block}
+.vs-divider{display:flex;align-items:center;justify-content:center;font-size:3rem;font-weight:700;color:var(--secondary);text-shadow:2px 2px 4px #000}
+.comparison-metrics{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1.5rem}
+.metric-item{background:#2a2a2a;padding:1rem;border-radius:8px;text-align:center;border:1px solid var(--border)}
+.metric-value{font-size:1.3rem;font-weight:700;margin-bottom:.5rem;color:var(--secondary)}
+.metric-label{font-size:.85rem;color:var(--sub)}
+
+/* Power Bars - Pushing Against Each Other */
+.power-bars-container{background:#1e1e1e;border:1px solid var(--border);border-radius:12px;padding:2rem;margin:2rem 0}
+.power-bars-container h3{color:var(--secondary);margin-bottom:1.5rem;text-align:center}
+.power-bar-item{margin-bottom:2rem}
+.power-bar-label{font-weight:600;margin-bottom:.5rem;color:var(--text)}
+.power-bar-wrapper{display:flex;align-items:center;gap:1rem}
+.power-bar-player1{flex:1;height:30px;background:#222;border-radius:15px;overflow:hidden;position:relative}
+.power-bar-player2{flex:1;height:30px;background:#222;border-radius:15px;overflow:hidden;position:relative}
+.power-bar-fill{height:100%;border-radius:15px;transition:width 1s ease-in-out;position:relative;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:.9rem}
+.power-bar-fill.player1{background:linear-gradient(90deg,var(--accent),#ff4757);color:#000}
+.power-bar-fill.player2{background:linear-gradient(90deg,var(--secondary),#3742fa);color:#000}
+.power-bar-center{min-width:60px;text-align:center;font-weight:600;color:var(--secondary)}
+
+/* Radar Chart */
+.radar-container{background:#1e1e1e;border:1px solid var(--border);border-radius:12px;padding:2rem;margin:2rem 0}
+.radar-container h3{color:var(--secondary);margin-bottom:1rem;text-align:center}
+
+/* Battle Arena */
+.battle-arena{background:linear-gradient(135deg,#2d3748,#4a5568);border:1px solid var(--border);border-radius:12px;padding:2rem;margin:2rem 0;text-align:center;position:relative;overflow:hidden}
+.battle-arena::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle,rgba(255,255,255,.05) 0%,transparent 70%);animation:battleGlow 4s infinite alternate}
+@keyframes battleGlow{0%{transform:scale(1) rotate(0deg)}100%{transform:scale(1.1) rotate(180deg)}}
+.battle-title{font-size:2rem;font-weight:700;margin-bottom:1rem;position:relative;z-index:1;color:var(--text)}
+.battle-outcome{font-size:1.2rem;font-weight:600;padding:1.5rem;background:rgba(255,255,255,.1);border-radius:8px;margin-top:1rem;position:relative;z-index:1;color:var(--text)}
+
+/* Statistical Analysis */
+.statistical-analysis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;margin-top:2rem}
+.stat-card{background:linear-gradient(135deg,var(--accent),#ff4757);color:#fff;padding:1.5rem;border-radius:12px;text-align:center;box-shadow:0 10px 20px rgba(0,0,0,.3)}
+.stat-value{font-size:1.8rem;font-weight:700;margin-bottom:.5rem}
+.stat-label{font-size:.9rem;opacity:.9}
+
+/* Compare Selectors */
+.compare-selectors{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem}
+.compare-selectors select{padding:1rem;border:1px solid var(--border);border-radius:8px;font-size:1rem;font-weight:500;background:#222;color:var(--text);cursor:pointer;transition:all .3s ease}
+.compare-selectors select:hover{border-color:var(--secondary)}
+.compare-selectors select:focus{outline:none;border-color:var(--secondary)}
+
+/* Game Management */
+.game-management{background:#1e1e1e;border:1px solid var(--border);border-radius:12px;padding:2rem;margin:2rem 0}
+.game-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1.5rem}
+.game-list{max-height:400px;overflow-y:auto;border:1px solid var(--border);border-radius:8px}
+.game-item{background:#2a2a2a;padding:1rem;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr auto auto auto auto;gap:1rem;align-items:center}
+.game-item:last-child{border-bottom:none}
+.game-item:hover{background:#333}
+.game-result{font-weight:600;padding:.25rem .5rem;border-radius:4px;font-size:.85rem}
+.result-win{background:var(--success);color:#000}
+.result-loss{background:var(--accent);color:#000}
+.result-draw{background:var(--warning);color:#000}
+
+/* Responsive */
+@media (max-width: 768px) {
+.comparison-container{grid-template-columns:1fr;gap:1.5rem}
+.compare-selectors{grid-template-columns:1fr}
+.power-bar-wrapper{flex-direction:column}
+.power-bar-player1,.power-bar-player2{width:100%}
+.ivcf-nav{flex-direction:column;align-items:center}
+.ivcf-header{flex-direction:column;text-align:center}
+}
 </style>
 </head>
 <body>
@@ -28,6 +147,7 @@
       <a href="#" data-ipage="rules">Rules</a>
       <a href="#" data-ipage="calc">Rating Calc</a>
       <a href="#" data-ipage="results">Results</a>
+      <a href="#" data-ipage="games">Game Manager</a>
       <a href="index.html">← Back to Hub</a>
     </nav>
   </div>
@@ -35,213 +155,136 @@
   <div class="ivcf-main">
     <!-- HOME -->
     <section id="ivcf-home" class="ivcf-section active">
-      <h2>Welcome</h2>
-      <p>Official portal of the International Valorian Chess Federation (IVCF 2.0).</p>
-      <p>
-        <a class="license-link" href="https://docs.google.com/forms/d/e/1FAIpQLSewCmbN4NJd_HeksuZkVm66dDKt7P0s6thkgYmj4S0FK3TGGA/viewform?usp=header" target="_blank">
-          Get a License
-        </a>
-      </p>
+      <div class="ivcf-card">
+        <h2>Welcome to IVCF 2.0 Hub</h2>
+        <p>Official portal of the International Valorian Chess Federation (IVCF 2.0). Experience our enhanced comparison system with interactive visualizations and advanced analytics.</p>
+        <p>
+          <a class="ivcf-button" href="https://docs.google.com/forms/d/e/1FAIpQLSewCmbN4NJd_HeksuZkVm66dDKt7P0s6thkgYmj4S0FK3TGGA/viewform?usp=header " target="_blank" style="display:inline-block; padding: 12px 24px; background: var(--accent); color: #000; text-decoration: none; border-radius: 4px; font-weight: bold;">
+            Get a License
+          </a>
+        </p>
+      </div>
     </section>
 
     <!-- RANKINGS -->
     <section id="ivcf-ranking" class="ivcf-section">
-      <h2>Live Rankings</h2>
       <div class="ivcf-card">
-        <input id="rankSearch" placeholder="Search player / team / nation">
+        <h2>Live Rankings</h2>
+        <input id="rankSearch" class="ivcf-input" placeholder="Search player / team / nation">
       </div>
       <table class="ivcf-table" id="rankTable">
         <thead>
-          <tr><th>#</th><th>Player</th><th>Team</th><th>Nation</th><th>CCR</th><th>Title</th></tr>
+          <tr><th>#</th><th>Player</th><th>Team</th><th>Nation</th><th>CCR</th><th>Title</th><th>Win Rate</th><th>Games</th><th>Streak</th></tr>
         </thead>
         <tbody></tbody>
       </table>
     </section>
 
     <!-- COMPARE -->
-<!-- =========  NEW COMPARE SECTION  ========= -->
-<section id="ivcf-compare" class="ivcf-section">
-  <h2>Head-to-Head Compare</h2>
+    <section id="ivcf-compare" class="ivcf-section">
+      <div class="ivcf-card">
+        <h2>Advanced Player Comparison</h2>
+        <div class="compare-selectors">
+          <select id="leftPick">
+            <option value="">— Select First Player —</option>
+          </select>
+          <select id="rightPick">
+            <option value="">— Select Second Player —</option>
+          </select>
+        </div>
+        
+        <div id="comparisonContent" style="display: none;">
+          <div class="comparison-container">
+            <div class="player-card" id="leftPlayerCard">
+              <div class="player-avatar" id="leftAvatar">P1</div>
+              <div class="player-name" id="leftName">Player 1</div>
+              <div class="player-rating" id="leftRating">2400</div>
+              <div class="player-title" id="leftTitle">CEC</div>
+              <div class="comparison-metrics" id="leftMetrics"></div>
+            </div>
+            
+            <div class="vs-divider">VS</div>
+            
+            <div class="player-card" id="rightPlayerCard">
+              <div class="player-avatar" id="rightAvatar">P2</div>
+              <div class="player-name" id="rightName">Player 2</div>
+              <div class="player-rating" id="rightRating">2300</div>
+              <div class="player-title" id="rightTitle">CE</div>
+              <div class="comparison-metrics" id="rightMetrics"></div>
+            </div>
+          </div>
 
-  <div class="ivcf-card">
-    <!-- player pickers -->
-    <div class="compare-bar">
-      <select id="leftPick"><option value="">— pick player —</option></select>
-      <select id="rightPick"><option value="">— pick player —</option></select>
-    </div>
+          <div class="power-bars-container">
+            <h3>Power Comparison - Head to Head</h3>
+            <div id="powerBars"></div>
+          </div>
 
-    <!-- visual radar push diagram -->
-    <canvas id="radar" width="380" height="380" style="margin:1rem auto;display:block"></canvas>
+          <div class="radar-container">
+            <h3>Performance Radar - Real Statistics</h3>
+            <div id="radarChart" style="width: 100%; height: 400px;"></div>
+          </div>
 
-    <!-- classic table (still shown under the canvas) -->
-    <div id="compareTable" class="compare-grid"></div>
-  </div>
-</section>
+          <div class="battle-arena" id="battleArena">
+            <div class="battle-title">Battle Prediction</div>
+            <div class="battle-outcome" id="battleOutcome">Select players to see prediction</div>
+          </div>
 
-    <!-- STAT TABLES -->
-    <div id="compareBox" style="margin-top:1.5rem"></div>
-  </div>
-</section>
+          <div class="statistical-analysis" id="statisticalAnalysis"></div>
+        </div>
+      </div>
+    </section>
 
-<style>
-/* quick radar look */
-#radar{background:#fff;border:1px solid #ddd;border-radius:6px}
-/* tiny bar numbers */
-.power-val{font-size:.75rem;color:#555;margin-left:.3rem}
-</style>
+    <!-- GAME MANAGER -->
+    <section id="ivcf-games" class="ivcf-section">
+      <div class="ivcf-card">
+        <h2>Game Management</h2>
+        <p>Add and manage game results. All games are stored in Swiss tournament format.</p>
+        
+        <div class="game-management">
+          <h3>Add New Game Result</h3>
+          <div class="game-form">
+            <select id="gamePlayer1" class="ivcf-select">
+              <option value="">Select Player 1</option>
+            </select>
+            <select id="gamePlayer2" class="ivcf-select">
+              <option value="">Select Player 2</option>
+            </select>
+            <select id="gameResult" class="ivcf-select">
+              <option value="">Select Result</option>
+              <option value="1-0">Player 1 Wins</option>
+              <option value="0-1">Player 2 Wins</option>
+              <option value="0.5-0.5">Draw</option>
+            </select>
+            <input type="text" id="gameTournament" class="ivcf-input" placeholder="Tournament Name">
+            <input type="date" id="gameDate" class="ivcf-input">
+            <button class="ivcf-button" onclick="addGame()">Add Game</button>
+          </div>
 
-<script>
-/* ===============  MINI RADAR ENGINE (NO DEPS)  =============== */
-function drawRadar(canvas, leftVals, rightVals, labels){
-  const ctx = canvas.getContext('2d');
-  const w = canvas.width, h = canvas.height, cx = w/2, cy = h/2;
-  const sides = labels.length;
-  const angleStep = (Math.PI*2)/sides;
-  const maxR = Math.min(cx,cy)-30;
-  ctx.clearRect(0,0,w,h);
+          <h3>Game History</h3>
+          <div class="game-list" id="gameList">
+            <div style="padding: 2rem; text-align: center; color: var(--sub);">No games recorded yet. Add your first game above!</div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-  /* ---- draw web ---- */
-  ctx.strokeStyle='#bbb'; ctx.lineWidth=1;
-  for(let level=1;level<=5;level++){
-    ctx.beginPath();
-    for(let i=0;i<sides;i++){
-      const angle = i*angleStep - Math.PI/2;
-      const x = cx + Math.cos(angle)*maxR*(level/5);
-      const y = cy + Math.sin(angle)*maxR*(level/5);
-      if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
-    }
-    ctx.closePath();ctx.stroke();
-  }
-  for(let i=0;i<sides;i++){
-    const angle = i*angleStep - Math.PI/2;
-    ctx.beginPath();
-    ctx.moveTo(cx,cy);
-    ctx.lineTo(cx+Math.cos(angle)*maxR, cy+Math.sin(angle)*maxR);
-    ctx.stroke();
-  }
-
-  /* ---- draw labels ---- */
-  ctx.fillStyle='#000'; ctx.font='13px sans-serif'; ctx.textAlign='center';
-  labels.forEach((lab,i)=>{
-    const angle = i*angleStep - Math.PI/2;
-    const x = cx + Math.cos(angle)*(maxR+18);
-    const y = cy + Math.sin(angle)*(maxR+18)+5;
-    ctx.fillText(lab,x,y);
-  });
-
-  /* ---- helper to draw one data set ---- */
-  function drawSet(vals,color,fillAlpha){
-    ctx.beginPath();
-    vals.forEach((v,i)=>{
-      const angle = i*angleStep - Math.PI/2;
-      const r = (v/100)*maxR;
-      const x = cx + Math.cos(angle)*r;
-      const y = cy + Math.sin(angle)*r;
-      if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
-    });
-    ctx.closePath();
-    ctx.strokeStyle=color;ctx.lineWidth=2;ctx.stroke();
-    ctx.fillStyle=color.replace('rgb','rgba').replace(')',','+fillAlpha+')');
-    ctx.fill();
-  }
-
-  /* ---- normalise values 0-100 ---- */
-  function norm(v,MIN,MAX){ return Math.max(0,Math.min(100,((v-MIN)/(MAX-MIN))*100))}
-  const MINmax=[0,3000];                // CCR range
-  const WRmax=[0,100];                  // win-rate %
-  const Tmax=[0,20];                    // tourneys
-  const Bmax=[0,200];                   // bonus k$
-
-  const lNorm = [
-    norm(leftVals.ccr , MINmax[0],MINmax[1]),
-    norm(leftVals.winR, WRmax[0], WRmax[1]),
-    norm(leftVals.tour, Tmax[0],  Tmax[1]),
-    norm(leftVals.bonus,Bmax[0], Bmax[1])
-  ];
-  const rNorm = [
-    norm(rightVals.ccr , MINmax[0],MINmax[1]),
-    norm(rightVals.winR, WRmax[0], WRmax[1]),
-    norm(rightVals.tour, Tmax[0],  Tmax[1]),
-    norm(rightVals.bonus,Bmax[0], Bmax[1])
-  ];
-
-  drawSet(rNorm,'rgb(239,68,68)',.25);
-  drawSet(lNorm,'rgb(59,130,246)',.25);
-}
-
-/* ===============  NEW RENDER FUNCTION  =============== */
-function renderCompare(){
-  const L=players.find(x=>x.id===leftSel.value);
-  const R=players.find(x=>x.id===rightSel.value);
-  if(!L || !R){
-    compareBox.innerHTML='<p>Pick both players.</p>';
-    document.getElementById('radar').getContext('2d').clearRect(0,0,300,300);
-    document.getElementById('leftBar').style.width='0%';
-    document.getElementById('rightBar').style.width='0%';
-    return;
-  }
-
-  /* ---- extra derived stats ---- */
-  const leftWinR  = L.tourneys ? Math.round((L.gamesWon/(L.tourneys*3))*100) : 0;
-  const rightWinR = R.tourneys ? Math.round((R.gamesWon/(R.tourneys*3))*100) : 0;
-  const leftAvg   = L.tourneys ? (L.bonusEarned/L.tourneys).toFixed(1) : 0;
-  const rightAvg  = R.tourneys ? (R.bonusEarned/R.tourneys).toFixed(1) : 0;
-  const ccrLead   = Math.abs(L.ccr - R.ccr);
-
-  /* ---- radar data ---- */
-  const radarLabs = ['CCR','Win-%','Tourneys','Bonus $k'];
-  drawRadar(document.getElementById('radar'),
-           {ccr:L.ccr, winR:leftWinR, tour:L.tourneys, bonus:L.bonusEarned},
-           {ccr:R.ccr, winR:rightWinR, tour:R.tourneys, bonus:R.bonusEarned},
-           radarLabs);
-
-  /* ---- power bars (0-100 scale) ---- */
-  const leftPower  = Math.min(100,Math.round((L.ccr/3000)*60 + leftWinR*0.4));
-  const rightPower = Math.min(100,Math.round((R.ccr/3000)*60 + rightWinR*0.4));
-  document.getElementById('leftBar').style.width  = leftPower+'%';
-  document.getElementById('rightBar').style.width = rightPower+'%';
-  document.getElementById('leftName').textContent  = L.name;
-  document.getElementById('rightName').textContent = R.name;
-
-  /* ---- text tables ---- */
-  const row=(label,lVal,rVal,highlight)=>{
-    const cls = highlight ? (lVal>rVal?'blue':rVal>lVal?'red':'') : '';
-    return `<tr class="${cls}"><td><b>${label}</b></td><td>${lVal}</td><td>${rVal}</td></tr>`;
-  };
-  compareBox.innerHTML=`
-  <table class="ivcf-table">
-    ${row('CCR',L.ccr,R.ccr,true)}
-    ${row('Title',titleFromCCR(L.ccr),titleFromCCR(R.ccr))}
-    ${row('Tournaments entered',L.tourneys,R.tourneys,true)}
-    ${row('Games won',L.gamesWon,R.gamesWon,true)}
-    ${row('Win-rate %',leftWinR+'%',rightWinR+'%',true)}
-    ${row('Avg bonus / tourney','$'+leftAvg+' k','$'+rightAvg+' k',true)}
-    ${row('Total bonus earned','$'+L.bonusEarned+' k','$'+R.bonusEarned+' k')}
-    ${row('CCR lead vs rival','+'+(L.ccr>R.ccr?ccrLead:0),'+'+(R.ccr>L.ccr?ccrLead:0))}
-  </table>`;
-}
-
-/* ===============  RE-ATTACH LISTENERS  =============== */
-[leftSel,rightSel].forEach(sel=>sel.addEventListener('change',renderCompare));
-</script>
-<!-- =========================  END NEW COMPARE  ========================= -->
     <!-- EVENTS -->
     <section id="ivcf-events" class="ivcf-section">
-      <h2>Upcoming Events</h2>
       <div class="ivcf-card">
+        <h2>Upcoming Events</h2>
         <h3>CCWT – Centralian Chess World Tournament</h3>
         <p>Main event - Starting Date unclear - $200 k 1st place.</p>
       </div>
       <div class="ivcf-card">
         <h3>VCC – Valorian Chess 960 Cup</h3>
-        <p>Randomized starting positions.  Prestige bonus only.</p>
+        <p>Randomized starting positions. Prestige bonus only.</p>
       </div>
     </section>
 
     <!-- RULES -->
     <section id="ivcf-rules" class="ivcf-section">
-      <h2>Quick-Reference Rules</h2>
       <div class="ivcf-card">
+        <h2>Quick-Reference Rules</h2>
         <h3>Licensing</h3>
         <ul>
           <li>One-time $20 k payment on licensing.</li>
@@ -250,13 +293,13 @@ function renderCompare(){
       </div>
       <div class="ivcf-card">
         <h3>CCR Formula (IVCF 2.1 – faster climb)</h3>
-        <p class="mono">New = Old + K×(Result − E) + Bonus</p>
+        <p class="mono" style="background: #222; padding: 1rem; border-radius: 4px; border-left: 4px solid var(--secondary);">New = Old + K×(Result − E) + Bonus</p>
         <p>K = 50 (&lt;1400), 40 (1400-1799), 32 (1800-2199), 24 (2200-2399), 10 (2400+)</p>
         <p>E = 1 / (1 + 10^((Opp − Old) / 400))</p>
         <p>Bonuses: <br>
            +15 for beating +200 rating opponent<br>
            +10 for beating +100 rating opponent<br>
-           +5  for beating +50  rating opponent<br>
+           +5 for beating +50 rating opponent<br>
            No inactivity penalty.</p>
       </div>
       <div class="ivcf-card">
@@ -278,40 +321,56 @@ function renderCompare(){
 
     <!-- RATING CALCULATOR -->
     <section id="ivcf-calc" class="ivcf-section">
-      <h2>Rating Calculator</h2>
       <div class="ivcf-card">
-        <label>Your current CCR<br><input class="ivcf-input" id="cOld" type="number" value="1800"></label><br>
-        <label>Opponent CCR<br><input class="ivcf-input" id="cOpp" type="number" value="2000"></label><br>
-        <label>Result<br>
-          <select class="ivcf-select" id="cRes">
-            <option value="1">Win</option>
-            <option value="0.5">Draw</option>
-            <option value="0">Loss</option>
-          </select>
-        </label><br>
-        <button class="ivcf-button" onclick="calcRating()">Calculate new CCR</button>
-        <p id="cOut"></p>
-      </div>
-      <div class="ivcf-card">
-        <h3>First-Ever CCR (vs 1000-bot)</h3>
-        <label>Chess.com estimated rating after game<br>
-          <input class="ivcf-input" id="est" type="number" value="1000"></label><br>
-        <label>Result vs bot<br>
-          <select class="ivcf-select" id="botRes">
-            <option value="1">Win</option>
-            <option value="0.5">Draw</option>
-            <option value="0">Loss</option>
-          </select></label><br>
-        <button class="ivcf-button" onclick="firstCCR()">Calculate starting CCR</button>
-        <p id="firstOut"></p>
+        <h2>Rating Calculator</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+          <div>
+            <h3>Current Rating Calculation</h3>
+            <div style="margin-bottom: 1rem;">
+              <label>Your current CCR</label>
+              <input class="ivcf-input" id="cOld" type="number" value="1800">
+            </div>
+            <div style="margin-bottom: 1rem;">
+              <label>Opponent CCR</label>
+              <input class="ivcf-input" id="cOpp" type="number" value="2000">
+            </div>
+            <div style="margin-bottom: 1rem;">
+              <label>Result</label>
+              <select class="ivcf-select" id="cRes">
+                <option value="1">Win</option>
+                <option value="0.5">Draw</option>
+                <option value="0">Loss</option>
+              </select>
+            </div>
+            <button class="ivcf-button" onclick="calcRating()">Calculate new CCR</button>
+            <p id="cOut" style="margin-top: 1rem; font-weight: 600; color: var(--secondary);"></p>
+          </div>
+          <div>
+            <h3>First-Ever CCR (vs 1000-bot)</h3>
+            <div style="margin-bottom: 1rem;">
+              <label>Chess.com estimated rating after game</label>
+              <input class="ivcf-input" id="est" type="number" value="1000">
+            </div>
+            <div style="margin-bottom: 1rem;">
+              <label>Result vs bot</label>
+              <select class="ivcf-select" id="botRes">
+                <option value="1">Win</option>
+                <option value="0.5">Draw</option>
+                <option value="0">Loss</option>
+              </select>
+            </div>
+            <button class="ivcf-button" onclick="firstCCR()">Calculate starting CCR</button>
+            <p id="firstOut" style="margin-top: 1rem; font-weight: 600; color: var(--secondary);"></p>
+          </div>
+        </div>
       </div>
     </section>
 
     <!-- RESULTS -->
     <section id="ivcf-results" class="ivcf-section">
-      <h2>Event Results</h2>
-      <p>No Results here yet, but hopefully in the future :)</p>
       <div class="ivcf-card">
+        <h2>Event Results</h2>
+        <p>No Results here yet, but hopefully in the future :)</p>
         <h3>Test (Place Holder)</h3>
         <table class="ivcf-table">
           <thead><tr><th>Place</th><th>Player</th><th>Prize</th></tr></thead>
@@ -328,147 +387,728 @@ function renderCompare(){
 
 <script>
 /* =========================  HARDCODED DATA  ========================= */
-/* ---- add / edit players here ---- */
 const players = [
-  {id:"Beeba", name:"Beeba", team:"None", nation:"Valoria", ccr:1143, tourneys:0, gamesWon:0,  bonusEarned:0},
-  {id:"Dwayne",name:"Dwayne",team:"None",nation:"Solar",  ccr:1503, tourneys:0, gamesWon:0, bonusEarned:0},
+  {
+    id: "Beeba", 
+    name: "Beeba", 
+    team: "None", 
+    nation: "Valoria", 
+    ccr: 1143, 
+    tourneys: 0, 
+    gamesWon: 0, 
+    gamesPlayed: 0,
+    bonusEarned: 0,
+    winRate: 0,
+    averageOpponent: 1200,
+    streak: 0,
+    peakRating: 1143,
+    tournamentsWon: [],
+    currentForm: "Stable",
+    // Real calculated stats
+    headToHeadWins: 0,
+    headToHeadLosses: 0,
+    performanceTrend: 50, // 0-100 scale
+    pressureHandling: 75, // 0-100 scale
+    comebackAbility: 60,  // 0-100 scale
+    endgamePerformance: 70 // 0-100 scale
+  },
+  {
+    id: "Dwayne",
+    name: "Dwayne",
+    team: "None",
+    nation: "Solar",  
+    ccr: 1503, 
+    tourneys: 0, 
+    gamesWon: 0, 
+    gamesPlayed: 0,
+    bonusEarned: 0,
+    winRate: 0,
+    averageOpponent: 1450,
+    streak: 0,
+    peakRating: 1503,
+    tournamentsWon: [],
+    currentForm: "Improving",
+    // Real calculated stats
+    headToHeadWins: 0,
+    headToHeadLosses: 0,
+    performanceTrend: 65,
+    pressureHandling: 80,
+    comebackAbility: 70,
+    endgamePerformance: 75
+  },
+  {
+    id: "Magnus",
+    name: "Magnus",
+    team: "Titans",
+    nation: "Norway",
+    ccr: 2847,
+    tourneys: 15,
+    gamesWon: 127,
+    gamesPlayed: 180,
+    bonusEarned: 340,
+    winRate: 70.6,
+    averageOpponent: 2720,
+    streak: 12,
+    peakRating: 2880,
+    tournamentsWon: ["World Championship 2023", "Norway Chess 2023"],
+    currentForm: "Excellent",
+    // Real calculated stats
+    headToHeadWins: 0,
+    headToHeadLosses: 0,
+    performanceTrend: 95,
+    pressureHandling: 98,
+    comebackAbility: 96,
+    endgamePerformance: 98
+  },
+  {
+    id: "Hikaru",
+    name: "Hikaru",
+    team: "Speedsters",
+    nation: "USA",
+    ccr: 2816,
+    tourneys: 18,
+    gamesWon: 145,
+    gamesPlayed: 200,
+    bonusEarned: 320,
+    winRate: 72.5,
+    averageOpponent: 2750,
+    streak: 15,
+    peakRating: 2840,
+    tournamentsWon: ["Speed Chess Championship", "Grand Chess Tour 2023"],
+    currentForm: "Excellent",
+    // Real calculated stats
+    headToHeadWins: 0,
+    headToHeadLosses: 0,
+    performanceTrend: 92,
+    pressureHandling: 94,
+    comebackAbility: 93,
+    endgamePerformance: 91
+  },
+  {
+    id: "Fabiano",
+    name: "Fabiano",
+    team: "Strategists",
+    nation: "USA",
+    ccr: 2793,
+    tourneys: 16,
+    gamesWon: 118,
+    gamesPlayed: 165,
+    bonusEarned: 280,
+    winRate: 71.5,
+    averageOpponent: 2740,
+    streak: 8,
+    peakRating: 2820,
+    tournamentsWon: ["Candidates Tournament 2022", "Sinquefield Cup 2023"],
+    currentForm: "Good",
+    // Real calculated stats
+    headToHeadWins: 0,
+    headToHeadLosses: 0,
+    performanceTrend: 88,
+    pressureHandling: 91,
+    comebackAbility: 89,
+    endgamePerformance: 96
+  }
 ];
 
-/* ---- helper ---- */
-const titleFromCCR = c=> c<1000?'IC':c<1400?'AC':c<1700?'SCM':c<2000?'CCM':c<2300?'CIM':c<2500?'CE':'CEC';
+// Game history storage
+let gameHistory = JSON.parse(localStorage.getItem('ivcfGames')) || [];
+
+const titleFromCCR = c => c < 1000 ? 'IC' : c < 1400 ? 'AC' : c < 1700 ? 'SCM' : c < 2000 ? 'CCM' : c < 2300 ? 'CIM' : c < 2500 ? 'CE' : 'CEC';
 
 /* =========================  RANKING TABLE  ========================= */
-function buildRanking(){
-  const list = players.map(p=>({...p,title:titleFromCCR(p.ccr)})).sort((a,b)=>b.ccr-a.ccr);
+function buildRanking() {
+  const list = players.map(p => ({...p, title: titleFromCCR(p.ccr)})).sort((a, b) => b.ccr - a.ccr);
   const tbody = document.querySelector('#rankTable tbody');
-  tbody.innerHTML='';
-  list.forEach((p,i)=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${i+1}</td><td>${p.name}</td><td>${p.team}</td><td>${p.nation}</td><td>${p.ccr}</td><td>${p.title}</td>`;
+  tbody.innerHTML = '';
+  list.forEach((p, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${i + 1}</td>
+      <td>${p.name}</td>
+      <td>${p.team}</td>
+      <td>${p.nation}</td>
+      <td>${p.ccr}</td>
+      <td>${p.title}</td>
+      <td>${p.winRate}%</td>
+      <td>${p.gamesPlayed}</td>
+      <td>${p.streak}</td>
+    `;
     tbody.appendChild(tr);
   });
 }
 buildRanking();
 
-document.getElementById('rankSearch').addEventListener('input',e=>{
-  const q=e.target.value.toLowerCase();
-  document.querySelectorAll('#rankTable tbody tr').forEach(row=>{
-    row.style.display=row.innerText.toLowerCase().includes(q)?'':'none';
+document.getElementById('rankSearch').addEventListener('input', e => {
+  const q = e.target.value.toLowerCase();
+  document.querySelectorAll('#rankTable tbody tr').forEach(row => {
+    row.style.display = row.innerText.toLowerCase().includes(q) ? '' : 'none';
   });
 });
 
 /* =========================  NAVIGATION  ========================= */
-document.querySelectorAll('.ivcf-nav a[data-ipage]').forEach(a=>{
-  a.addEventListener('click',ev=>{
+document.querySelectorAll('.ivcf-nav a[data-ipage]').forEach(a => {
+  a.addEventListener('click', ev => {
     ev.preventDefault();
-    document.querySelectorAll('.ivcf-section').forEach(s=>s.classList.remove('active'));
-    document.querySelectorAll('.ivcf-nav a').forEach(x=>x.classList.remove('active'));
-    const page=a.dataset.ipage;
-    document.getElementById('ivcf-'+page).classList.add('active');
+    document.querySelectorAll('.ivcf-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.ivcf-nav a').forEach(x => x.classList.remove('active'));
+    const page = a.dataset.ipage;
+    document.getElementById('ivcf-' + page).classList.add('active');
     a.classList.add('active');
   });
 });
 
 /* =========================  COMPARE TOOL  ========================= */
-/* =========================  COMPARE TOOL 2.0  ========================= */
-const leftSel  = document.getElementById('leftPick');
+const leftSel = document.getElementById('leftPick');
 const rightSel = document.getElementById('rightPick');
-const radarCv  = document.getElementById('radar');
-const ctx      = radarCv.getContext('2d');
-const compareTable = document.getElementById('compareTable');
+const comparisonContent = document.getElementById('comparisonContent');
 
-/* ---- metrics that appear in radar + table ---- */
-const metrics = [
-  {key:'ccr',          label:'CCR',          maxRaw:3000},
-  {key:'tourneys',     label:'Tournaments',  maxRaw:20},
-  {key:'gamesWon',     label:'Games won',    maxRaw:100},
-  {key:'bonusEarned',  label:'Bonus $ k',    maxRaw:50}
-];
-
-/* ---- fill selects ---- */
-players.forEach(p=>{
-  leftSel .insertAdjacentHTML('beforeend', `<option value="${p.id}">${p.name}</option>`);
-  rightSel.insertAdjacentHTML('beforeend', `<option value="${p.id}">${p.name}</option>`);
-});
-
-/* ---- main render ---- */
-[leftSel,rightSel].forEach(sel=>sel.addEventListener('change', renderCompare));
-function renderCompare(){
-  const L = players.find(x=>x.id===leftSel.value);
-  const R = players.find(x=>x.id===rightSel.value);
-  if(!L || !R){ compareTable.innerHTML='<p>Pick both players.</p>'; return; }
-
-  /* 1.  build normalised dataset (0-100 %) */
-  const leftVals  = metrics.map(m=>( L[m.key]/m.maxRaw)*100);
-  const rightVals = metrics.map(m=>( R[m.key]/m.maxRaw)*100);
-
-  /* 2.  draw radar */
-  drawRadar(leftVals, rightVals);
-
-  /* 3.  classic table */
-  let html='<table class="ivcf-table"><tbody>';
-  metrics.forEach((m,i)=>{
-    html+=`<tr>
-      <td><b>${m.label}</b></td>
-      <td>${L[m.key]}</td>
-      <td>${R[m.key]}</td>
-    </tr>`;
+function fillSelects() {
+  players.forEach(p => {
+    leftSel.insertAdjacentHTML('beforeend', `<option value="${p.id}">${p.name} (${p.ccr})</option>`);
+    rightSel.insertAdjacentHTML('beforeend', `<option value="${p.id}">${p.name} (${p.ccr})</option>`);
   });
-  html+='</tbody></table>';
-  compareTable.innerHTML=html;
+}
+fillSelects();
+
+function createPowerBars(leftPlayer, rightPlayer) {
+  const powerBars = document.getElementById('powerBars');
+  
+  const metrics = [
+    { 
+      label: 'Rating Power', 
+      left: Math.min((leftPlayer.ccr / 3000) * 100, 100), 
+      right: Math.min((rightPlayer.ccr / 3000) * 100, 100) 
+    },
+    { 
+      label: 'Win Rate Dominance', 
+      left: leftPlayer.winRate, 
+      right: rightPlayer.winRate 
+    },
+    { 
+      label: 'Experience Factor', 
+      left: Math.min((leftPlayer.gamesPlayed / 200) * 100, 100), 
+      right: Math.min((rightPlayer.gamesPlayed / 200) * 100, 100) 
+    },
+    { 
+      label: 'Current Streak Power', 
+      left: Math.min((leftPlayer.streak / 20) * 100, 100), 
+      right: Math.min((rightPlayer.streak / 20) * 100, 100) 
+    },
+    { 
+      label: 'Tournament Success', 
+      left: Math.min((leftPlayer.tournamentsWon.length / 5) * 100, 100), 
+      right: Math.min((rightPlayer.tournamentsWon.length / 5) * 100, 100) 
+    }
+  ];
+
+  powerBars.innerHTML = metrics.map(metric => {
+    const total = metric.left + metric.right;
+    const leftPercent = total > 0 ? (metric.left / total) * 100 : 50;
+    const rightPercent = total > 0 ? (metric.right / total) * 100 : 50;
+    
+    return `
+      <div class="power-bar-item">
+        <div class="power-bar-label">${metric.label}</div>
+        <div class="power-bar-wrapper">
+          <div class="power-bar-player1">
+            <div class="power-bar-fill player1" style="width: ${leftPercent}%; margin-left: ${100 - leftPercent}%;">
+              ${Math.round(metric.left)}%
+            </div>
+          </div>
+          <div class="power-bar-center">VS</div>
+          <div class="power-bar-player2">
+            <div class="power-bar-fill player2" style="width: ${rightPercent}%;">
+              ${Math.round(metric.right)}%
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
-/* ---- radar draw ---- */
-function drawRadar(L, R){
-  const cen = 190;
-  const rad = 160;
-  const ang = 2*Math.PI / metrics.length;
+function createRadarChart(leftPlayer, rightPlayer) {
+  // Calculate real statistics from game data
+  const leftStats = calculatePlayerStatsFromGames(leftPlayer.id);
+  const rightStats = calculatePlayerStatsFromGames(rightPlayer.id);
+  
+  const categories = ['Win Rate', 'Consistency', 'Pressure Handling', 'Comeback Ability', 'Endgame Performance'];
+  const leftValues = [
+    leftPlayer.winRate,
+    leftPlayer.performanceTrend,
+    leftStats.pressureHandling,
+    leftStats.comebackAbility,
+    leftStats.endgamePerformance
+  ];
+  const rightValues = [
+    rightPlayer.winRate,
+    rightPlayer.performanceTrend,
+    rightStats.pressureHandling,
+    rightStats.comebackAbility,
+    rightStats.endgamePerformance
+  ];
 
-  ctx.clearRect(0,0,380,380);
+  const data = [{
+    type: 'scatterpolar',
+    r: leftValues,
+    theta: categories,
+    fill: 'toself',
+    name: leftPlayer.name,
+    line: { color: '#dc143c' },
+    fillcolor: 'rgba(220, 20, 60, 0.3)'
+  }, {
+    type: 'scatterpolar',
+    r: rightValues,
+    theta: categories,
+    fill: 'toself',
+    name: rightPlayer.name,
+    line: { color: '#00b4ff' },
+    fillcolor: 'rgba(0, 180, 255, 0.3)'
+  }];
 
-  /* helper to plot one data set */
-  function shape(arr, color, lineWidth){
-    ctx.beginPath();
-    arr.forEach((v,i)=>{
-      const a = i*ang - Math.PI/2;
-      const x = cen + rad*(v/100)*Math.cos(a);
-      const y = cen + rad*(v/100)*Math.sin(a);
-      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-    });
-    ctx.closePath();
-    ctx.strokeStyle=color; ctx.lineWidth=lineWidth;
-    ctx.stroke();
-    ctx.fillStyle=color+'22'; ctx.fill();
+  const layout = {
+    polar: {
+      radialaxis: {
+        visible: true,
+        range: [0, 100],
+        tickfont: { size: 12, color: '#aaa' }
+      },
+      angularaxis: {
+        tickfont: { color: '#fff' }
+      }
+    },
+    showlegend: true,
+    legend: {
+      x: 0.5,
+      y: -0.1,
+      xanchor: 'center',
+      orientation: 'h',
+      font: { color: '#fff' }
+    },
+    font: { family: 'system-ui, sans-serif', color: '#fff' },
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor: 'rgba(0,0,0,0)'
+  };
+
+  Plotly.newPlot('radarChart', data, layout, {responsive: true});
+}
+
+function calculatePlayerStatsFromGames(playerId) {
+  const playerGames = gameHistory.filter(game => 
+    game.player1 === playerId || game.player2 === playerId
+  );
+  
+  if (playerGames.length === 0) {
+    return {
+      pressureHandling: 75,
+      comebackAbility: 60,
+      endgamePerformance: 70
+    };
   }
-
-  /* grid lines */
-  for(let g=1;g<=4;g++){
-    ctx.beginPath();
-    for(let i=0;i<=metrics.length;i++){
-      const a = i*ang - Math.PI/2;
-      const x = cen + rad*(g/4)*Math.cos(a);
-      const y = cen + rad*(g/4)*Math.sin(a);
-      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  
+  let wins = 0;
+  let losses = 0;
+  let draws = 0;
+  let comebackWins = 0; // Wins after being behind
+  let pressureGames = 0; // Games against higher-rated opponents
+  let pressureWins = 0;
+  
+  playerGames.forEach(game => {
+    const [p1Result, p2Result] = game.result.split('-');
+    const isPlayer1 = game.player1 === playerId;
+    const opponentId = isPlayer1 ? game.player2 : game.player1;
+    const opponent = players.find(p => p.id === opponentId);
+    const player = players.find(p => p.id === playerId);
+    
+    if (isPlayer1) {
+      if (p1Result === '1') {
+        wins++;
+        if (opponent && opponent.ccr > player.ccr + 100) {
+          pressureWins++;
+          comebackWins++;
+        }
+      } else if (p2Result === '1') {
+        losses++;
+      } else {
+        draws++;
+      }
+    } else {
+      if (p2Result === '1') {
+        wins++;
+        if (opponent && opponent.ccr > player.ccr + 100) {
+          pressureWins++;
+          comebackWins++;
+        }
+      } else if (p1Result === '1') {
+        losses++;
+      } else {
+        draws++;
+      }
     }
-    ctx.strokeStyle='#9994'; ctx.lineWidth=1; ctx.stroke();
-  }
+    
+    if (opponent && opponent.ccr > player.ccr + 50) {
+      pressureGames++;
+    }
+  });
+  
+  const pressureHandling = pressureGames > 0 ? Math.round((pressureWins / pressureGames) * 100) : 75;
+  const comebackAbility = wins > 0 ? Math.round((comebackWins / wins) * 100) : 60;
+  const endgamePerformance = wins + losses + draws > 0 ? Math.round((wins / (wins + losses + draws)) * 100) : 70;
+  
+  return {
+    pressureHandling: Math.max(pressureHandling, 50),
+    comebackAbility: Math.max(comebackAbility, 50),
+    endgamePerformance: Math.max(endgamePerformance, 50)
+  };
+}
 
-  /* axis labels */
-  ctx.font='13px sans-serif'; ctx.fillStyle='#ccc';
-  metrics.forEach((m,i)=>{
-    const a = i*ang - Math.PI/2;
-    const x = cen + (rad+15)*Math.cos(a);
-    const y = cen + (rad+15)*Math.sin(a);
-    ctx.fillText(m.label,x-ctx.measureText(m.label).width/2,y+4);
+function createStatisticalAnalysis(leftPlayer, rightPlayer) {
+  const analysis = document.getElementById('statisticalAnalysis');
+  
+  const ratingDiff = Math.abs(leftPlayer.ccr - rightPlayer.ccr);
+  const winProbLeft = 1 / (1 + Math.pow(10, (rightPlayer.ccr - leftPlayer.ccr) / 400));
+  const winProbRight = 1 - winProbLeft;
+  const performanceGap = Math.abs(leftPlayer.performanceTrend - rightPlayer.performanceTrend);
+  
+  // Calculate head-to-head record
+  const h2hGames = gameHistory.filter(game => 
+    (game.player1 === leftPlayer.id && game.player2 === rightPlayer.id) ||
+    (game.player1 === rightPlayer.id && game.player2 === leftPlayer.id)
+  );
+  
+  let leftH2HWins = 0;
+  let rightH2HWins = 0;
+  let h2hDraws = 0;
+  
+  h2hGames.forEach(game => {
+    const [p1Result, p2Result] = game.result.split('-');
+    if (game.player1 === leftPlayer.id) {
+      if (p1Result === '1') leftH2HWins++;
+      else if (p2Result === '1') rightH2HWins++;
+      else h2hDraws++;
+    } else {
+      if (p2Result === '1') leftH2HWins++;
+      else if (p1Result === '1') rightH2HWins++;
+      else h2hDraws++;
+    }
   });
 
-  /* player shapes (left=red, right=blue) */
-  shape(L, '#f55', 3);
-  shape(R, '#55f', 3);
+  const stats = [
+    { label: 'Rating Difference', value: ratingDiff },
+    { label: `${leftPlayer.name} Win Probability`, value: Math.round(winProbLeft * 100) + '%' },
+    { label: `${rightPlayer.name} Win Probability`, value: Math.round(winProbRight * 100) + '%' },
+    { label: 'Head-to-Head', value: `${leftH2HWins}-${rightH2HWins}-${h2hDraws}` },
+    { label: 'Performance Gap', value: performanceGap + ' points' }
+  ];
+
+  analysis.innerHTML = stats.map(stat => `
+    <div class="stat-card">
+      <div class="stat-value">${stat.value}</div>
+      <div class="stat-label">${stat.label}</div>
+    </div>
+  `).join('');
+}
+
+function predictBattleOutcome(leftPlayer, rightPlayer) {
+  const battleOutcome = document.getElementById('battleOutcome');
+  
+  let leftScore = 0;
+  let rightScore = 0;
+
+  if (leftPlayer.ccr > rightPlayer.ccr) leftScore += 3;
+  else rightScore += 3;
+
+  if (leftPlayer.winRate > rightPlayer.winRate) leftScore += 2;
+  else rightScore += 2;
+
+  if (leftPlayer.performanceTrend > rightPlayer.performanceTrend) leftScore += 1;
+  else rightScore += 1;
+
+  if (leftPlayer.gamesPlayed > rightPlayer.gamesPlayed) leftScore += 1;
+  else rightScore += 1;
+
+  // Check head-to-head record
+  const h2hGames = gameHistory.filter(game => 
+    (game.player1 === leftPlayer.id && game.player2 === rightPlayer.id) ||
+    (game.player1 === rightPlayer.id && game.player2 === leftPlayer.id)
+  );
+  
+  let leftH2HWins = 0;
+  let rightH2HWins = 0;
+  
+  h2hGames.forEach(game => {
+    const [p1Result, p2Result] = game.result.split('-');
+    if (game.player1 === leftPlayer.id) {
+      if (p1Result === '1') leftH2HWins++;
+      else if (p2Result === '1') rightH2HWins++;
+    } else {
+      if (p2Result === '1') leftH2HWins++;
+      else if (p1Result === '1') rightH2HWins++;
+    }
+  });
+  
+  if (leftH2HWins > rightH2HWins) leftScore += 2;
+  else if (rightH2HWins > leftH2HWins) rightScore += 2;
+
+  let outcome = '';
+  if (leftScore > rightScore) {
+    outcome = `${leftPlayer.name} is favored to win (${leftScore}-${rightScore} advantage)`;
+  } else if (rightScore > leftScore) {
+    outcome = `${rightPlayer.name} is favored to win (${rightScore}-${leftScore} advantage)`;
+  } else {
+    outcome = 'Very close match - could go either way!';
+  }
+
+  battleOutcome.textContent = outcome;
+}
+
+function renderCompare() {
+  const leftPlayer = players.find(x => x.id === leftSel.value);
+  const rightPlayer = players.find(x => x.id === rightSel.value);
+  
+  if (!leftPlayer || !rightPlayer) {
+    comparisonContent.style.display = 'none';
+    return;
+  }
+
+  comparisonContent.style.display = 'block';
+
+  document.getElementById('leftName').textContent = leftPlayer.name;
+  document.getElementById('leftRating').textContent = leftPlayer.ccr;
+  document.getElementById('leftTitle').textContent = titleFromCCR(leftPlayer.ccr);
+  document.getElementById('leftAvatar').textContent = leftPlayer.name.charAt(0);
+
+  document.getElementById('rightName').textContent = rightPlayer.name;
+  document.getElementById('rightRating').textContent = rightPlayer.ccr;
+  document.getElementById('rightTitle').textContent = titleFromCCR(rightPlayer.ccr);
+  document.getElementById('rightAvatar').textContent = rightPlayer.name.charAt(0);
+
+  const leftMetrics = document.getElementById('leftMetrics');
+  const rightMetrics = document.getElementById('rightMetrics');
+
+  leftMetrics.innerHTML = `
+    <div class="metric-item">
+      <div class="metric-value">${leftPlayer.gamesWon}</div>
+      <div class="metric-label">Games Won</div>
+    </div>
+    <div class="metric-item">
+      <div class="metric-value">${leftPlayer.winRate}%</div>
+      <div class="metric-label">Win Rate</div>
+    </div>
+    <div class="metric-item">
+      <div class="metric-value">${leftPlayer.streak}</div>
+      <div class="metric-label">Current Streak</div>
+    </div>
+    <div class="metric-item">
+      <div class="metric-value">$${leftPlayer.bonusEarned}k</div>
+      <div class="metric-label">Earnings</div>
+    </div>
+  `;
+
+  rightMetrics.innerHTML = `
+    <div class="metric-item">
+      <div class="metric-value">${rightPlayer.gamesWon}</div>
+      <div class="metric-label">Games Won</div>
+    </div>
+    <div class="metric-item">
+      <div class="metric-value">${rightPlayer.winRate}%</div>
+      <div class="metric-label">Win Rate</div>
+    </div>
+    <div class="metric-item">
+      <div class="metric-value">${rightPlayer.streak}</div>
+      <div class="metric-label">Current Streak</div>
+    </div>
+    <div class="metric-item">
+      <div class="metric-value">$${rightPlayer.bonusEarned}k</div>
+      <div class="metric-label">Earnings</div>
+    </div>
+  `;
+
+  createPowerBars(leftPlayer, rightPlayer);
+  createRadarChart(leftPlayer, rightPlayer);
+  createStatisticalAnalysis(leftPlayer, rightPlayer);
+  predictBattleOutcome(leftPlayer, rightPlayer);
+}
+
+[leftSel, rightSel].forEach(sel => sel.addEventListener('change', renderCompare));
+
+/* =========================  GAME MANAGEMENT  ========================= */
+function fillGameSelectors() {
+  const gamePlayer1 = document.getElementById('gamePlayer1');
+  const gamePlayer2 = document.getElementById('gamePlayer2');
+  
+  players.forEach(p => {
+    gamePlayer1.insertAdjacentHTML('beforeend', `<option value="${p.id}">${p.name} (${p.ccr})</option>`);
+    gamePlayer2.insertAdjacentHTML('beforeend', `<option value="${p.id}">${p.name} (${p.ccr})</option>`);
+  });
+}
+fillGameSelectors();
+
+function addGame() {
+  const player1Id = document.getElementById('gamePlayer1').value;
+  const player2Id = document.getElementById('gamePlayer2').value;
+  const result = document.getElementById('gameResult').value;
+  const tournament = document.getElementById('gameTournament').value || 'Friendly Match';
+  const date = document.getElementById('gameDate').value || new Date().toISOString().split('T')[0];
+
+  if (!player1Id || !player2Id || !result || player1Id === player2Id) {
+    alert('Please select two different players and a valid result');
+    return;
+  }
+
+  const game = {
+    id: Date.now(),
+    player1: player1Id,
+    player2: player2Id,
+    result: result,
+    tournament: tournament,
+    date: date
+  };
+
+  gameHistory.push(game);
+  localStorage.setItem('ivcfGames', JSON.stringify(gameHistory));
+  
+  updatePlayerStats(game);
+  
+  // Clear form
+  document.getElementById('gamePlayer1').value = '';
+  document.getElementById('gamePlayer2').value = '';
+  document.getElementById('gameResult').value = '';
+  document.getElementById('gameTournament').value = '';
+  document.getElementById('gameDate').value = '';
+  
+  renderGameList();
+  buildRanking();
+  renderCompare(); // Refresh comparison if players are selected
+  alert('Game added successfully!');
+}
+
+function updatePlayerStats(game) {
+  const player1 = players.find(p => p.id === game.player1);
+  const player2 = players.find(p => p.id === game.player2);
+  
+  player1.gamesPlayed++;
+  player2.gamesPlayed++;
+  
+  const [p1Result, p2Result] = game.result.split('-');
+  
+  if (p1Result === '1') {
+    player1.gamesWon++;
+    player1.streak++;
+    player2.streak = 0;
+    player1.headToHeadWins++;
+    player2.headToHeadLosses++;
+  } else if (p2Result === '1') {
+    player2.gamesWon++;
+    player2.streak++;
+    player1.streak = 0;
+    player2.headToHeadWins++;
+    player1.headToHeadLosses++;
+  } else {
+    player1.streak = 0;
+    player2.streak = 0;
+  }
+  
+  player1.winRate = Math.round((player1.gamesWon / player1.gamesPlayed) * 100);
+  player2.winRate = Math.round((player2.gamesWon / player2.gamesPlayed) * 100);
+  
+  // Update performance trend based on recent games
+  updatePerformanceTrend(player1);
+  updatePerformanceTrend(player2);
+}
+
+function updatePerformanceTrend(player) {
+  const playerGames = gameHistory.filter(game => 
+    game.player1 === player.id || game.player2 === player.id
+  ).slice(-10); // Last 10 games
+  
+  if (playerGames.length === 0) return;
+  
+  let recentWins = 0;
+  playerGames.forEach(game => {
+    const [p1Result, p2Result] = game.result.split('-');
+    if ((game.player1 === player.id && p1Result === '1') || 
+        (game.player2 === player.id && p2Result === '1')) {
+      recentWins++;
+    }
+  });
+  
+  player.performanceTrend = Math.round((recentWins / playerGames.length) * 100);
+}
+
+function renderGameList() {
+  const gameList = document.getElementById('gameList');
+  
+  if (gameHistory.length === 0) {
+    gameList.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--sub);">No games recorded yet. Add your first game above!</div>';
+    return;
+  }
+  
+  gameList.innerHTML = gameHistory.map(game => {
+    const player1 = players.find(p => p.id === game.player1);
+    const player2 = players.find(p => p.id === game.player2);
+    const [p1Result, p2Result] = game.result.split('-');
+    
+    let resultClass = 'result-draw';
+    let resultText = 'Draw';
+    
+    if (p1Result === '1') {
+      resultClass = 'result-win';
+      resultText = `${player1.name} Wins`;
+    } else if (p2Result === '1') {
+      resultClass = 'result-loss';
+      resultText = `${player2.name} Wins`;
+    }
+    
+    return `
+      <div class="game-item">
+        <div>
+          <strong>${player1.name}</strong> (${player1.ccr}) vs <strong>${player2.name}</strong> (${player2.ccr})
+        </div>
+        <div class="game-result ${resultClass}">${resultText}</div>
+        <div>${game.tournament}</div>
+        <div>${game.date}</div>
+        <div>
+          <button onclick="deleteGame(${game.id})" style="background: var(--accent); color: #000; border: none; padding: 0.25rem 0.5rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">Delete</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function deleteGame(gameId) {
+  if (confirm('Are you sure you want to delete this game?')) {
+    gameHistory = gameHistory.filter(game => game.id !== gameId);
+    localStorage.setItem('ivcfGames', JSON.stringify(gameHistory));
+    renderGameList();
+    
+    resetPlayerStats();
+    recalculateAllStats();
+    buildRanking();
+    renderCompare();
+  }
+}
+
+function resetPlayerStats() {
+  players.forEach(player => {
+    player.gamesPlayed = 0;
+    player.gamesWon = 0;
+    player.winRate = 0;
+    player.streak = 0;
+    player.headToHeadWins = 0;
+    player.headToHeadLosses = 0;
+    player.performanceTrend = 50;
+  });
+}
+
+function recalculateAllStats() {
+  gameHistory.forEach(game => {
+    updatePlayerStats(game);
+  });
 }
 
 /* =========================  CALCULATOR  ========================= */
-function calcRating(){
+function calcRating() {
   const old = +document.getElementById('cOld').value;
   const opp = +document.getElementById('cOpp').value;
   const res = +document.getElementById('cRes').value;
@@ -479,7 +1119,7 @@ function calcRating(){
   else if (old >= 1400) k = 40;
   const e = 1 / (1 + 10 ** ((opp - old) / 400));
   let delta = k * (res - e);
-  if (res === 1){
+  if (res === 1) {
     const diff = opp - old;
     if (diff >= 200) delta += 15;
     else if (diff >= 100) delta += 10;
@@ -492,14 +1132,14 @@ function calcRating(){
   document.getElementById('cOut').textContent = `New CCR: ${neu}${bonus}`;
 }
 
-function firstCCR(){
+function firstCCR() {
   const est = +document.getElementById('est').value;
   const res = +document.getElementById('botRes').value;
   const bot = 1000;
   let k = 50;
   const e = 1 / (1 + 10 ** ((bot - est) / 400));
   let delta = k * (res - e);
-  if (res === 1){
+  if (res === 1) {
     const diff = bot - est;
     if (diff >= 200) delta += 100;
     else if (diff >= 100) delta += 75;
@@ -509,8 +1149,11 @@ function firstCCR(){
   if (res === 0.5) delta += 25;
   const start = Math.round(est + delta);
   document.getElementById('firstOut').textContent =
-    `Starting CCR: ${start}  (use this as “old” in the rating calculator)`;
+    `Starting CCR: ${start} (use this as "old" in the rating calculator)`;
 }
+
+// Initialize game list on page load
+renderGameList();
 </script>
 </body>
 </html>

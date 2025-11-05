@@ -104,19 +104,21 @@
     </footer>
 
     <script>
-        // HARD-CODED POLLS - EDIT THIS SECTION TO ADD/MODIFY POLLS
-        const POLLS = [
-            {
-                id: "poll_001",
-                title: "Should we have a permanent Lord of Alter Hafen? If so, who should it be? (Only Lord of Alter Hafen himself could transfer his title.)",
-                date: "2025-02-11",
-                options: [
-                    { text: "MineKid", votes: 2 },
-                    { text: "King Adam", votes: 0 },
-                    { text: "Dwayne", votes: 1 },
-                    { text: "Not a permanent position", votes: 0 }
-                ]
-            }
+       // HARD-CODED POLLS - EDIT THIS SECTION TO ADD/MODIFY POLLS
+const POLLS = [
+    {
+        id: "poll_001",
+        title: "Should we have a permanent Lord of Alter Hafen? If so, who should it be? (Only Lord of Alter Hafen himself could transfer his title.)",
+        date: "2025-02-11",
+        options: [
+            { text: "MineKid", votes: 2 },
+            { text: "King Adam", votes: 0 },
+            { text: "Dwayne", votes: 1 },
+            { text: "Not a permanent position", votes: 0 }
+        ]
+    }
+    // <-- You can add more polls here, separated by commas
+];
         // Calculate statistics
         function calculateStats() {
             const stats = {

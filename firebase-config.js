@@ -3,7 +3,7 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, si
 import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBJT4Bh-Q0gTefjdYN-_3NMdrwo8pDN_ww",
+  apiKey: "AIzaSyBJT4Bh-Q0gTefjdYN-_3NMdrwo8pDN_ww", 
   authDomain: "valorian-online-hub.firebaseapp.com",
   projectId: "valorian-online-hub",
   storageBucket: "valorian-online-hub.firebasestorage.app",

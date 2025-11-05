@@ -46,5 +46,5 @@ export {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  doc, setDoc, getDoc, updateDoc, deleteDoc, collection, getDocs
+  doc, setDoc, getDoc, updateDoc, collection, getDocs
 };

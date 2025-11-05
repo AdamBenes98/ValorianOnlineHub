@@ -7,6 +7,8 @@
 <link rel="stylesheet" href="hub.css">
 <style>
 /* ----- minimal extra styling for the compare tool ----- */
+/* ---- radar diagram ---- */
+#radar{border:1px solid var(--border);border-radius:50%;background:#0001}
 .compare-bar{display:flex;gap:1rem;margin-bottom:1rem}
 .compare-bar select{flex:1;padding:.5rem;font-size:1rem}
 .compare-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:1rem;align-items:center}
@@ -57,33 +59,24 @@
     </section>
 
     <!-- COMPARE -->
- <!-- =========================  NEW COMPARE SECTION  ========================= -->
+<!-- =========  NEW COMPARE SECTION  ========= -->
 <section id="ivcf-compare" class="ivcf-section">
   <h2>Head-to-Head Compare</h2>
+
   <div class="ivcf-card">
+    <!-- player pickers -->
     <div class="compare-bar">
       <select id="leftPick"><option value="">— pick player —</option></select>
       <select id="rightPick"><option value="">— pick player —</option></select>
     </div>
 
-    <!-- RADAR + BARS WRAPPER -->
-    <div id="compareWrap" style="display:flex;gap:1.5rem;flex-wrap:wrap;justify-content:center;margin-top:1rem">
-      <!-- RADAR CHART -->
-      <div style="flex:1 1 320px;min-width:280px">
-        <canvas id="radar" width="300" height="300"></canvas>
-      </div>
-      <!-- POWER BARS -->
-      <div style="flex:1 1 220px;min-width:200px">
-        <div style="margin-bottom:.8rem"><span id="leftName" style="font-weight:bold">-</span> power</div>
-        <div style="background:#eee;border-radius:4px;height:22px;margin-bottom:.5rem">
-          <div id="leftBar" style="background:#3b82f6;height:100%;border-radius:4px;width:0%"></div>
-        </div>
-        <div style="margin-bottom:.8rem"><span id="rightName" style="font-weight:bold">-</span> power</div>
-        <div style="background:#eee;border-radius:4px;height:22px">
-          <div id="rightBar" style="background:#ef4444;height:100%;border-radius:4px;width:0%"></div>
-        </div>
-      </div>
-    </div>
+    <!-- visual radar push diagram -->
+    <canvas id="radar" width="380" height="380" style="margin:1rem auto;display:block"></canvas>
+
+    <!-- classic table (still shown under the canvas) -->
+    <div id="compareTable" class="compare-grid"></div>
+  </div>
+</section>
 
     <!-- STAT TABLES -->
     <div id="compareBox" style="margin-top:1.5rem"></div>

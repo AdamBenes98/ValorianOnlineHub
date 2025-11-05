@@ -5,6 +5,14 @@
 <title>IVCF 2.0 Hub</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="hub.css">
+<style>
+/* ----- minimal extra styling for the compare tool ----- */
+.compare-bar{display:flex;gap:1rem;margin-bottom:1rem}
+.compare-bar select{flex:1;padding:.5rem;font-size:1rem}
+.compare-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:1rem;align-items:center}
+.compare-grid .vs{font-size:1.5rem;font-weight:bold}
+.compare-grid table{width:100%}
+</style>
 </head>
 <body>
 <div class="ivcf-page active">
@@ -13,6 +21,7 @@
     <nav class="ivcf-nav">
       <a class="active" href="#" data-ipage="home">Home</a>
       <a href="#" data-ipage="ranking">Rankings</a>
+      <a href="#" data-ipage="compare">Compare</a>
       <a href="#" data-ipage="events">Events</a>
       <a href="#" data-ipage="rules">Rules</a>
       <a href="#" data-ipage="calc">Rating Calc</a>
@@ -25,13 +34,12 @@
     <!-- HOME -->
     <section id="ivcf-home" class="ivcf-section active">
       <h2>Welcome</h2>
-      <p>Official portal of the International Valorian Chess Federation (IVCF 2.0).<p>
+      <p>Official portal of the International Valorian Chess Federation (IVCF 2.0).</p>
       <p>
-    <a class="license-link" href="https://docs.google.com/forms/d/e/1FAIpQLSewCmbN4NJd_HeksuZkVm66dDKt7P0s6thkgYmj4S0FK3TGGA/viewform?usp=header" target="_blank">
-      Get a License
-    </a>
-  </p>
-
+        <a class="license-link" href="https://docs.google.com/forms/d/e/1FAIpQLSewCmbN4NJd_HeksuZkVm66dDKt7P0s6thkgYmj4S0FK3TGGA/viewform?usp=header" target="_blank">
+          Get a License
+        </a>
+      </p>
     </section>
 
     <!-- RANKINGS -->
@@ -48,12 +56,24 @@
       </table>
     </section>
 
+    <!-- COMPARE -->
+    <section id="ivcf-compare" class="ivcf-section">
+      <h2>Head-to-Head Compare</h2>
+      <div class="ivcf-card">
+        <div class="compare-bar">
+          <select id="leftPick"><option value="">— pick player —</option></select>
+          <select id="rightPick"><option value="">— pick player —</option></select>
+        </div>
+        <div class="compare-grid" id="compareBox"></div>
+      </div>
+    </section>
+
     <!-- EVENTS -->
     <section id="ivcf-events" class="ivcf-section">
       <h2>Upcoming Events</h2>
       <div class="ivcf-card">
         <h3>CCWT – Centralian Chess World Tournament</h3>
-        <p>Main event - Starting Dtae unclear - $200 k 1st place.</p>
+        <p>Main event - Starting Date unclear - $200 k 1st place.</p>
       </div>
       <div class="ivcf-card">
         <h3>VCC – Valorian Chess 960 Cup</h3>
@@ -102,8 +122,6 @@
     <!-- RATING CALCULATOR -->
     <section id="ivcf-calc" class="ivcf-section">
       <h2>Rating Calculator</h2>
-
-      <!-- existing calculator -->
       <div class="ivcf-card">
         <label>Your current CCR<br><input class="ivcf-input" id="cOld" type="number" value="1800"></label><br>
         <label>Opponent CCR<br><input class="ivcf-input" id="cOpp" type="number" value="2000"></label><br>
@@ -117,8 +135,6 @@
         <button class="ivcf-button" onclick="calcRating()">Calculate new CCR</button>
         <p id="cOut"></p>
       </div>
-
-      <!-- NEW: first-ever CCR card -->
       <div class="ivcf-card">
         <h3>First-Ever CCR (vs 1000-bot)</h3>
         <label>Chess.com estimated rating after game<br>
@@ -150,16 +166,22 @@
         </table>
       </div>
     </section>
+  </div>
 </div>
 
 <script>
-/* ---------- existing data & helpers ---------- */
+/* =========================  HARDCODED DATA  ========================= */
+/* ---- add / edit players here ---- */
 const players = [
-  {id:"Beeba",  name:"Beeba",  team:"None",      nation:"Valoria", ccr:1143},
-  {id:"Dwayne",   name:"Dwayne",   team:"None", nation:"Solar", ccr:1503},
+  {id:"Beeba", name:"Beeba", team:"None", nation:"Valoria", ccr:1143, tourneys:3, gamesWon:7,  bonusEarned:6},
+  {id:"Dwayne",name:"Dwayne",team:"None",nation:"Solar",  ccr:1503, tourneys:5, gamesWon:15, bonusEarned:20},
+  {id:"Alya",  name:"Alya",  team:"Vulc",nation:"Lunar",  ccr:2210, tourneys:9, gamesWon:32, bonusEarned:108},
 ];
+
+/* ---- helper ---- */
 const titleFromCCR = c=> c<1000?'IC':c<1400?'AC':c<1700?'SCM':c<2000?'CCM':c<2300?'CIM':c<2500?'CE':'CEC';
 
+/* =========================  RANKING TABLE  ========================= */
 function buildRanking(){
   const list = players.map(p=>({...p,title:titleFromCCR(p.ccr)})).sort((a,b)=>b.ccr-a.ccr);
   const tbody = document.querySelector('#rankTable tbody');
@@ -179,6 +201,7 @@ document.getElementById('rankSearch').addEventListener('input',e=>{
   });
 });
 
+/* =========================  NAVIGATION  ========================= */
 document.querySelectorAll('.ivcf-nav a[data-ipage]').forEach(a=>{
   a.addEventListener('click',ev=>{
     ev.preventDefault();
@@ -190,46 +213,65 @@ document.querySelectorAll('.ivcf-nav a[data-ipage]').forEach(a=>{
   });
 });
 
-/* ---------- existing rating calculator ---------- */
+/* =========================  COMPARE TOOL  ========================= */
+const leftSel=document.getElementById('leftPick');
+const rightSel=document.getElementById('rightPick');
+const compareBox=document.getElementById('compareBox');
+
+function fillSelects(){
+  players.forEach(p=>{
+    leftSel.insertAdjacentHTML('beforeend', `<option value="${p.id}">${p.name}</option>`);
+    rightSel.insertAdjacentHTML('beforeend', `<option value="${p.id}">${p.name}</option>`);
+  });
+}
+fillSelects();
+
+function renderCompare(){
+  const L=players.find(x=>x.id===leftSel.value);
+  const R=players.find(x=>x.id===rightSel.value);
+  if(!L || !R) return compareBox.innerHTML='<p>Pick both players.</p>';
+
+  const row=(label,lVal,rVal)=>`<tr><td><b>${label}</b></td><td>${lVal}</td><td>${rVal}</td></tr>`;
+  compareBox.innerHTML=`
+    <table class="ivcf-table">${row('CCR',L.ccr,R.ccr)}${row('Title',titleFromCCR(L.ccr),titleFromCCR(R.ccr))}${row('Tournaments entered',L.tourneys,R.tourneys)}${row('Games won',L.gamesWon,R.gamesWon)}${row('Total bonus earned','$'+L.bonusEarned+' k','$'+R.bonusEarned+' k')}</table>
+    <div class="vs">VS</div>
+    <table class="ivcf-table">${row('CCR',R.ccr,L.ccr)}${row('Title',titleFromCCR(R.ccr),titleFromCCR(L.ccr))}${row('Tournaments entered',R.tourneys,L.tourneys)}${row('Games won',R.gamesWon,L.gamesWon)}${row('Total bonus earned','$'+R.bonusEarned+' k','$'+L.bonusEarned+' k')}</table>
+  `;
+}
+[leftSel,rightSel].forEach(sel=>sel.addEventListener('change',renderCompare));
+
+/* =========================  CALCULATOR  ========================= */
 function calcRating(){
   const old = +document.getElementById('cOld').value;
   const opp = +document.getElementById('cOpp').value;
   const res = +document.getElementById('cRes').value;
-
   let k = 50;
   if (old >= 2400) k = 10;
   else if (old >= 2200) k = 24;
   else if (old >= 1800) k = 32;
   else if (old >= 1400) k = 40;
-
   const e = 1 / (1 + 10 ** ((opp - old) / 400));
   let delta = k * (res - e);
-
   if (res === 1){
     const diff = opp - old;
     if (diff >= 200) delta += 15;
     else if (diff >= 100) delta += 10;
     else if (diff >= 50) delta += 5;
   }
-
   const neu = Math.round(old + delta);
   let bonus = '';
   if (delta > k * 0.75) bonus = ' (big upset bonus)';
   else if (delta > 0) bonus = ' (bonus)';
-
   document.getElementById('cOut').textContent = `New CCR: ${neu}${bonus}`;
 }
 
-/* ---------- NEW first-ever CCR function ---------- */
 function firstCCR(){
-  const est   = +document.getElementById('est').value;
-  const res   = +document.getElementById('botRes').value;
-  const bot   = 1000;
-
+  const est = +document.getElementById('est').value;
+  const res = +document.getElementById('botRes').value;
+  const bot = 1000;
   let k = 50;
   const e = 1 / (1 + 10 ** ((bot - est) / 400));
   let delta = k * (res - e);
-
   if (res === 1){
     const diff = bot - est;
     if (diff >= 200) delta += 100;
@@ -238,7 +280,6 @@ function firstCCR(){
     else delta += 25;
   }
   if (res === 0.5) delta += 25;
-
   const start = Math.round(est + delta);
   document.getElementById('firstOut').textContent =
     `Starting CCR: ${start}  (use this as “old” in the rating calculator)`;

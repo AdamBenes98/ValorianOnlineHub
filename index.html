@@ -5,7 +5,6 @@
 <title>Valorian Online Hub</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-/* --- previous css untouched --- */
 :root{
   --bg:#000;
   --card:#0a0a0a;
@@ -34,19 +33,45 @@ main{flex:1;padding:2rem;max-width:1100px;margin:auto;width:100%}
 footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-bottom:none;border-top:2px solid var(--accent)}
 .badge{display:inline-block;background:var(--accent);color:#fff;padding:.15rem .35rem;border-radius:4px;font-size:.65rem;margin-left:.4rem}
 .mono{font-family:monospace}
-
-/* ---- auth overlay ---- */
-#authOverlay{position:fixed;inset:0;background:#000e;z-index:999;display:flex;align-items:center;justify-content:center}
-#authBox{background:#1a1a1a;border:1px solid var(--border);border-radius:8px;padding:2rem;width:320px}
-#authBox h2{margin-top:0}
-#authBox input{width:100%;padding:.5rem;margin:.5rem 0;border:none;border-radius:4px;background:#222;color:var(--text)}
-#authBox button{width:100%;padding:.5rem;border:none;border-radius:4px;background:var(--accent);color:#fff;font-weight:bold;cursor:pointer}
-#authBox p{font-size:.8rem;text-align:center;margin-top:1rem}
-#authBox .error{color:var(--accent);margin-top:.5rem}
-#userBadge{position:absolute;right:2rem;top:1.2rem;font-size:.85rem}
-#userBadge button{margin-left:.5rem;padding:.25rem .5rem;background:var(--accent);color:#fff;border:none;border-radius:4px;cursor:pointer}
+/* NEWS PAGE */
+.news-header{background:#111;border-bottom:2px solid var(--accent);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between}
+.news-header h1{margin:0;font-size:1.5rem}
+.news-main{max-width:700px;margin:2rem auto;padding:0 1rem}
+.post{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:1rem;margin-bottom:1rem}
+.post img,.post iframe{max-width:100%;border-radius:4px;margin-top:.5rem}
+.post small{color:var(--sub);font-size:.75rem}
+.post-actions{margin-top:.5rem;display:flex;gap:1rem;font-size:.8rem}
+.post-actions a{cursor:pointer}
+.comment-box{margin-top:.5rem;display:flex;gap:.5rem}
+.comment-box input{flex:1;padding:.4rem;border:none;border-radius:4px;background:#222;color:var(--text)}
+.comment-box button{padding:.4rem .8rem;border:none;border-radius:4px;background:var(--accent);color:#fff;cursor:pointer}
+.new-post textarea{width:100%;min-height:80px;padding:.5rem;border:none;border-radius:4px;background:#222;color:var(--text);resize:vertical}
+.new-post input[type=file]{margin-top:.5rem}
+.new-post button{margin-top:.5rem;padding:.5rem 1rem;border:none;border-radius:4px;background:var(--accent);color:#fff;cursor:pointer;font-weight:bold}
+/* VAULT LOGIN */
+.vault-login{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh}
+.vault-login input{padding:.5rem;border:none;border-radius:4px;background:#222;color:var(--text);width:250px}
+.vault-login button{margin-top:1rem;padding:.5rem 1rem;border:none;border-radius:4px;background:var(--accent);color:#fff;cursor:pointer;font-weight:bold}
+/* IVCF STYLES */
+.ivcf-page{background:var(--bg);color:var(--text);display:none}
+.ivcf-page.active{display:block}
+.ivcf-header{background:#1e1e1e;border-bottom:2px solid #00b4ff;padding:1rem 2rem;display:flex;align-items:center;gap:1.5rem}
+.ivcf-header h1{margin:0;font-size:1.6rem}
+.ivcf-nav{display:flex;gap:1rem;flex-wrap:wrap}
+.ivcf-nav a{padding:.4rem .7rem;border-radius:4px;background:#0003}
+.ivcf-nav a.active{background:#00b4ff;color:#000;font-weight:bold}
+.ivcf-main{padding:2rem;max-width:1200px;margin:auto}
+.ivcf-section{display:none}
+.ivcf-section.active{display:block}
+.ivcf-table{width:100%;border-collapse:collapse;margin-top:1rem}
+.ivcf-table th,.ivcf-table td{padding:.5rem;text-align:left;border-bottom:1px solid #333}
+.ivcf-table th{color:#00b4ff}
+.ivcf-card{background:#1e1e1e;padding:1.2rem;border-radius:8px;margin-bottom:1.2rem}
+.ivcf-input,.ivcf-select,.ivcf-button{padding:.5rem;border:none;border-radius:4px}
+.ivcf-input,.ivcf-select{background:#222;color:var(--text);width:100%}
+.ivcf-button{background:#00b4ff;color:#000;cursor:pointer;font-weight:bold}
+.ivcf-button:hover{filter:brightness(1.15)}
 </style>
-<link rel="icon" href="data:,">
 </head>
 <body>
 
@@ -56,7 +81,6 @@ footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-
     <span>Official toolbox of the Kingdom</span>
   </div>
   <div id="clock" class="mono"></div>
-  <div id="userBadge"></div>
 </header>
 
 <main id="hub-main">
@@ -68,107 +92,35 @@ footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-
 
 <footer>Kingdom of Valoria | &copy; <span id="yr"></span></footer>
 
-<!-- ---------- auth overlay ---------- -->
-<div id="authOverlay" style="display:none">
-  <div id="authBox">
-    <h2 id="authTitle">Login</h2>
-    <input id="authEmail" placeholder="Email" type="email">
-    <input id="authPass" placeholder="Password" type="password">
-    <button id="authBtn">Login</button>
-    <p id="authToggle">No account? <a href="#" id="authSwitch">Register</a></p>
-    <div class="error" id="authError"></div>
-  </div>
-</div>
-
-<script type="module">
-import { auth, db, role, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from './firebase-config.js';
-
-/* ---------- tile config (add "roles" field) ---------- */
+<script>
+/* CONFIG */
 const tiles = [
-  {emoji:"📚", title:"Learn", desc:"Educational resources & guides", url:"learn.html", external:false, beta:false, roles:null},
-  {emoji:"🤖", title:"V.ai", desc:"Valorian Intelligence", url:"vai.html", external:false, beta:true, roles:["vai"]},
-  {emoji:"📰", title:"Valorian News", desc:"Public announcements & comments", url:"news.html", external:false, beta:true, roles:null},
-  {emoji:"🗳", title:"Pols", desc:"Live votes", url:"vote.html", external:false, beta:false, roles:["voter"]},
-  {emoji:"🏘", title:"Valoria Map", desc:"Interactive Map", url:"CountryMap.html", external:false, beta:true, roles:["map"]},
-  {emoji:"📜", title:"Constitution", desc:"Laws and Constitution", url:"constitution.html", external:false, beta:false, roles:null},
-  {emoji:"♟", title:"IVCF", desc:"Chess federation ladders & rating calc", url:"ivcf.html", external:false, beta:false, roles:["ivcf"]},
-  {emoji:"🔒", title:"GovVault", desc:"Government-only archive", url:"vault.html", external:false, beta:false, roles:["gov"]}
+  {emoji:"📚", title:"Learn", desc:"Educational resources & guides", url:"learn.html", external:false, beta:false},
+  {emoji:"🤖", title:"V.ai", desc:"Valorian Intelligence", url:"vai.html", external:false, beta:true},
+  {emoji:"📰", title:"Valorian News", desc:"Public announcements & comments", url:"news.html", external:false, beta:true},
+  {emoji:"🗳", title:"Pols", desc:"Live votes", url:"vote.html", external:false, beta:false},
+  {emoji:"🏘", title:"Valoria Map", desc:"Interactive Map", url:"CountryMap.html", external:false, beta:true},
+  {emoji:"📜", title:"Constitution", desc:"Laws and Constitution", url:"constitution.html", external:false, beta:false},
+  {emoji:"♟", title:"IVCF", desc:"Chess federation ladders & rating calc", url:"ivcf.html", external:false, beta:false},
+  {emoji:"🔒", title:"GovVault", desc:"Government-only archive", url:"vault.html", external:false, beta:false}
 ];
 
-/* ---------- render tiles after auth ---------- */
+/* RENDER TILES */
 const grid = document.getElementById('grid');
-async function buildGrid(user){
-  grid.innerHTML = "";
-  for(const t of tiles){
-    const ok = await role.can(user, t.roles);
-    if(!ok) continue;                 // tile not visible
-    const div = document.createElement('div');
-    div.className = 'tile' + (t.external?' external':'');
-    div.innerHTML = `<div class="emoji">${t.emoji}</div><h3>${t.title}${t.beta?'<span class="badge">BETA</span>':''}</h3><p>${t.desc}</p>`;
-    div.onclick = () => window.open(t.url, '_blank');
-    grid.appendChild(div);
-  }
-}
-
-/* ---------- auth overlay ---------- */
-const overlay = document.getElementById('authOverlay');
-const authTitle = document.getElementById('authTitle');
-const authBtn   = document.getElementById('authBtn');
-const authSwitch= document.getElementById('authSwitch');
-const authError = document.getElementById('authError');
-const authEmail = document.getElementById('authEmail');
-const authPass  = document.getElementById('authPass');
-let mode = 'login';
-
-function toggleMode(e){
-  e.preventDefault();
-  mode = mode==='login'?'register':'login';
-  authTitle.textContent = mode==='login'?'Login':'Register';
-  authBtn.textContent   = mode==='login'?'Login':'Create account';
-  authSwitch.textContent= mode==='login'?'Register':'Login';
-  authError.textContent = '';
-}
-authSwitch.addEventListener('click', toggleMode);
-
-authBtn.addEventListener('click', async ()=>{
-  const email = authEmail.value.trim();
-  const pass  = authPass.value.trim();
-  if(!email || !pass) return authError.textContent = 'Fill both fields.';
-  try{
-    if(mode==='login'){
-      await signInWithEmailAndPassword(auth, email, pass);
-    }else{
-      const cred = await createUserWithEmailAndPassword(auth, email, pass);
-      // first-time user → give default role (empty) → you can change in admin.html
-      await role.set(cred.user.uid, []);
-    }
-  }catch(err){
-    authError.textContent = err.message;
-  }
+tiles.forEach(t=>{
+  const div = document.createElement('div');
+  div.className = 'tile' + (t.external?' external':'');
+  div.innerHTML = `<div class="emoji">${t.emoji}</div><h3>${t.title}${t.beta?'<span class="badge">BETA</span>':''}</h3><p>${t.desc}</p>`;
+  div.onclick = () => window.open(t.url, '_blank');
+  grid.appendChild(div);
 });
 
-/* ---------- user badge ---------- */
-const userBadge = document.getElementById('userBadge');
-onAuthStateChanged(auth, async user=>{
-  if(user){
-    overlay.style.display = 'none';
-    const rs = await role.ofUser(user);
-    userBadge.innerHTML = `Hello ${user.email} <button id="logout">logout</button>`;
-    document.getElementById('logout').onclick = ()=>signOut(auth);
-  }else{
-    overlay.style.display = 'flex';
-    userBadge.innerHTML = '';
-  }
-  await buildGrid(user);
-});
-
-/* ---------- clock ---------- */
+/* CLOCK */
 function tick(){
+  const now = new Date();
   document.getElementById('clock').textContent =
-    new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
 }
 tick(); setInterval(tick,60000);
 document.getElementById('yr').textContent = new Date().getFullYear();
 </script>
-</body>
-</html>

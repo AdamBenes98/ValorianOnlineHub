@@ -370,31 +370,102 @@ document.querySelectorAll('.ivcf-nav a[data-ipage]').forEach(a=>{
 });
 
 /* =========================  COMPARE TOOL  ========================= */
-const leftSel=document.getElementById('leftPick');
-const rightSel=document.getElementById('rightPick');
-const compareBox=document.getElementById('compareBox');
+/* =========================  COMPARE TOOL 2.0  ========================= */
+const leftSel  = document.getElementById('leftPick');
+const rightSel = document.getElementById('rightPick');
+const radarCv  = document.getElementById('radar');
+const ctx      = radarCv.getContext('2d');
+const compareTable = document.getElementById('compareTable');
 
-function fillSelects(){
-  players.forEach(p=>{
-    leftSel.insertAdjacentHTML('beforeend', `<option value="${p.id}">${p.name}</option>`);
-    rightSel.insertAdjacentHTML('beforeend', `<option value="${p.id}">${p.name}</option>`);
-  });
-}
-fillSelects();
+/* ---- metrics that appear in radar + table ---- */
+const metrics = [
+  {key:'ccr',          label:'CCR',          maxRaw:3000},
+  {key:'tourneys',     label:'Tournaments',  maxRaw:20},
+  {key:'gamesWon',     label:'Games won',    maxRaw:100},
+  {key:'bonusEarned',  label:'Bonus $ k',    maxRaw:50}
+];
 
+/* ---- fill selects ---- */
+players.forEach(p=>{
+  leftSel .insertAdjacentHTML('beforeend', `<option value="${p.id}">${p.name}</option>`);
+  rightSel.insertAdjacentHTML('beforeend', `<option value="${p.id}">${p.name}</option>`);
+});
+
+/* ---- main render ---- */
+[leftSel,rightSel].forEach(sel=>sel.addEventListener('change', renderCompare));
 function renderCompare(){
-  const L=players.find(x=>x.id===leftSel.value);
-  const R=players.find(x=>x.id===rightSel.value);
-  if(!L || !R) return compareBox.innerHTML='<p>Pick both players.</p>';
+  const L = players.find(x=>x.id===leftSel.value);
+  const R = players.find(x=>x.id===rightSel.value);
+  if(!L || !R){ compareTable.innerHTML='<p>Pick both players.</p>'; return; }
 
-  const row=(label,lVal,rVal)=>`<tr><td><b>${label}</b></td><td>${lVal}</td><td>${rVal}</td></tr>`;
-  compareBox.innerHTML=`
-    <table class="ivcf-table">${row('CCR',L.ccr,R.ccr)}${row('Title',titleFromCCR(L.ccr),titleFromCCR(R.ccr))}${row('Tournaments entered',L.tourneys,R.tourneys)}${row('Games won',L.gamesWon,R.gamesWon)}${row('Total bonus earned','$'+L.bonusEarned+' k','$'+R.bonusEarned+' k')}</table>
-    <div class="vs">VS</div>
-    <table class="ivcf-table">${row('CCR',R.ccr,L.ccr)}${row('Title',titleFromCCR(R.ccr),titleFromCCR(L.ccr))}${row('Tournaments entered',R.tourneys,L.tourneys)}${row('Games won',R.gamesWon,L.gamesWon)}${row('Total bonus earned','$'+R.bonusEarned+' k','$'+L.bonusEarned+' k')}</table>
-  `;
+  /* 1.  build normalised dataset (0-100 %) */
+  const leftVals  = metrics.map(m=>( L[m.key]/m.maxRaw)*100);
+  const rightVals = metrics.map(m=>( R[m.key]/m.maxRaw)*100);
+
+  /* 2.  draw radar */
+  drawRadar(leftVals, rightVals);
+
+  /* 3.  classic table */
+  let html='<table class="ivcf-table"><tbody>';
+  metrics.forEach((m,i)=>{
+    html+=`<tr>
+      <td><b>${m.label}</b></td>
+      <td>${L[m.key]}</td>
+      <td>${R[m.key]}</td>
+    </tr>`;
+  });
+  html+='</tbody></table>';
+  compareTable.innerHTML=html;
 }
-[leftSel,rightSel].forEach(sel=>sel.addEventListener('change',renderCompare));
+
+/* ---- radar draw ---- */
+function drawRadar(L, R){
+  const cen = 190;
+  const rad = 160;
+  const ang = 2*Math.PI / metrics.length;
+
+  ctx.clearRect(0,0,380,380);
+
+  /* helper to plot one data set */
+  function shape(arr, color, lineWidth){
+    ctx.beginPath();
+    arr.forEach((v,i)=>{
+      const a = i*ang - Math.PI/2;
+      const x = cen + rad*(v/100)*Math.cos(a);
+      const y = cen + rad*(v/100)*Math.sin(a);
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    });
+    ctx.closePath();
+    ctx.strokeStyle=color; ctx.lineWidth=lineWidth;
+    ctx.stroke();
+    ctx.fillStyle=color+'22'; ctx.fill();
+  }
+
+  /* grid lines */
+  for(let g=1;g<=4;g++){
+    ctx.beginPath();
+    for(let i=0;i<=metrics.length;i++){
+      const a = i*ang - Math.PI/2;
+      const x = cen + rad*(g/4)*Math.cos(a);
+      const y = cen + rad*(g/4)*Math.sin(a);
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.strokeStyle='#9994'; ctx.lineWidth=1; ctx.stroke();
+  }
+
+  /* axis labels */
+  ctx.font='13px sans-serif'; ctx.fillStyle='#ccc';
+  metrics.forEach((m,i)=>{
+    const a = i*ang - Math.PI/2;
+    const x = cen + (rad+15)*Math.cos(a);
+    const y = cen + (rad+15)*Math.sin(a);
+    ctx.fillText(m.label,x-ctx.measureText(m.label).width/2,y+4);
+  });
+
+  /* player shapes (left=red, right=blue) */
+  shape(L, '#f55', 3);
+  shape(R, '#55f', 3);
+}
 
 /* =========================  CALCULATOR  ========================= */
 function calcRating(){

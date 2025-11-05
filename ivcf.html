@@ -57,17 +57,181 @@
     </section>
 
     <!-- COMPARE -->
-    <section id="ivcf-compare" class="ivcf-section">
-      <h2>Head-to-Head Compare</h2>
-      <div class="ivcf-card">
-        <div class="compare-bar">
-          <select id="leftPick"><option value="">— pick player —</option></select>
-          <select id="rightPick"><option value="">— pick player —</option></select>
-        </div>
-        <div class="compare-grid" id="compareBox"></div>
-      </div>
-    </section>
+ <!-- =========================  NEW COMPARE SECTION  ========================= -->
+<section id="ivcf-compare" class="ivcf-section">
+  <h2>Head-to-Head Compare</h2>
+  <div class="ivcf-card">
+    <div class="compare-bar">
+      <select id="leftPick"><option value="">— pick player —</option></select>
+      <select id="rightPick"><option value="">— pick player —</option></select>
+    </div>
 
+    <!-- RADAR + BARS WRAPPER -->
+    <div id="compareWrap" style="display:flex;gap:1.5rem;flex-wrap:wrap;justify-content:center;margin-top:1rem">
+      <!-- RADAR CHART -->
+      <div style="flex:1 1 320px;min-width:280px">
+        <canvas id="radar" width="300" height="300"></canvas>
+      </div>
+      <!-- POWER BARS -->
+      <div style="flex:1 1 220px;min-width:200px">
+        <div style="margin-bottom:.8rem"><span id="leftName" style="font-weight:bold">-</span> power</div>
+        <div style="background:#eee;border-radius:4px;height:22px;margin-bottom:.5rem">
+          <div id="leftBar" style="background:#3b82f6;height:100%;border-radius:4px;width:0%"></div>
+        </div>
+        <div style="margin-bottom:.8rem"><span id="rightName" style="font-weight:bold">-</span> power</div>
+        <div style="background:#eee;border-radius:4px;height:22px">
+          <div id="rightBar" style="background:#ef4444;height:100%;border-radius:4px;width:0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STAT TABLES -->
+    <div id="compareBox" style="margin-top:1.5rem"></div>
+  </div>
+</section>
+
+<style>
+/* quick radar look */
+#radar{background:#fff;border:1px solid #ddd;border-radius:6px}
+/* tiny bar numbers */
+.power-val{font-size:.75rem;color:#555;margin-left:.3rem}
+</style>
+
+<script>
+/* ===============  MINI RADAR ENGINE (NO DEPS)  =============== */
+function drawRadar(canvas, leftVals, rightVals, labels){
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height, cx = w/2, cy = h/2;
+  const sides = labels.length;
+  const angleStep = (Math.PI*2)/sides;
+  const maxR = Math.min(cx,cy)-30;
+  ctx.clearRect(0,0,w,h);
+
+  /* ---- draw web ---- */
+  ctx.strokeStyle='#bbb'; ctx.lineWidth=1;
+  for(let level=1;level<=5;level++){
+    ctx.beginPath();
+    for(let i=0;i<sides;i++){
+      const angle = i*angleStep - Math.PI/2;
+      const x = cx + Math.cos(angle)*maxR*(level/5);
+      const y = cy + Math.sin(angle)*maxR*(level/5);
+      if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+    }
+    ctx.closePath();ctx.stroke();
+  }
+  for(let i=0;i<sides;i++){
+    const angle = i*angleStep - Math.PI/2;
+    ctx.beginPath();
+    ctx.moveTo(cx,cy);
+    ctx.lineTo(cx+Math.cos(angle)*maxR, cy+Math.sin(angle)*maxR);
+    ctx.stroke();
+  }
+
+  /* ---- draw labels ---- */
+  ctx.fillStyle='#000'; ctx.font='13px sans-serif'; ctx.textAlign='center';
+  labels.forEach((lab,i)=>{
+    const angle = i*angleStep - Math.PI/2;
+    const x = cx + Math.cos(angle)*(maxR+18);
+    const y = cy + Math.sin(angle)*(maxR+18)+5;
+    ctx.fillText(lab,x,y);
+  });
+
+  /* ---- helper to draw one data set ---- */
+  function drawSet(vals,color,fillAlpha){
+    ctx.beginPath();
+    vals.forEach((v,i)=>{
+      const angle = i*angleStep - Math.PI/2;
+      const r = (v/100)*maxR;
+      const x = cx + Math.cos(angle)*r;
+      const y = cy + Math.sin(angle)*r;
+      if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+    });
+    ctx.closePath();
+    ctx.strokeStyle=color;ctx.lineWidth=2;ctx.stroke();
+    ctx.fillStyle=color.replace('rgb','rgba').replace(')',','+fillAlpha+')');
+    ctx.fill();
+  }
+
+  /* ---- normalise values 0-100 ---- */
+  function norm(v,MIN,MAX){ return Math.max(0,Math.min(100,((v-MIN)/(MAX-MIN))*100))}
+  const MINmax=[0,3000];                // CCR range
+  const WRmax=[0,100];                  // win-rate %
+  const Tmax=[0,20];                    // tourneys
+  const Bmax=[0,200];                   // bonus k$
+
+  const lNorm = [
+    norm(leftVals.ccr , MINmax[0],MINmax[1]),
+    norm(leftVals.winR, WRmax[0], WRmax[1]),
+    norm(leftVals.tour, Tmax[0],  Tmax[1]),
+    norm(leftVals.bonus,Bmax[0], Bmax[1])
+  ];
+  const rNorm = [
+    norm(rightVals.ccr , MINmax[0],MINmax[1]),
+    norm(rightVals.winR, WRmax[0], WRmax[1]),
+    norm(rightVals.tour, Tmax[0],  Tmax[1]),
+    norm(rightVals.bonus,Bmax[0], Bmax[1])
+  ];
+
+  drawSet(rNorm,'rgb(239,68,68)',.25);
+  drawSet(lNorm,'rgb(59,130,246)',.25);
+}
+
+/* ===============  NEW RENDER FUNCTION  =============== */
+function renderCompare(){
+  const L=players.find(x=>x.id===leftSel.value);
+  const R=players.find(x=>x.id===rightSel.value);
+  if(!L || !R){
+    compareBox.innerHTML='<p>Pick both players.</p>';
+    document.getElementById('radar').getContext('2d').clearRect(0,0,300,300);
+    document.getElementById('leftBar').style.width='0%';
+    document.getElementById('rightBar').style.width='0%';
+    return;
+  }
+
+  /* ---- extra derived stats ---- */
+  const leftWinR  = L.tourneys ? Math.round((L.gamesWon/(L.tourneys*3))*100) : 0;
+  const rightWinR = R.tourneys ? Math.round((R.gamesWon/(R.tourneys*3))*100) : 0;
+  const leftAvg   = L.tourneys ? (L.bonusEarned/L.tourneys).toFixed(1) : 0;
+  const rightAvg  = R.tourneys ? (R.bonusEarned/R.tourneys).toFixed(1) : 0;
+  const ccrLead   = Math.abs(L.ccr - R.ccr);
+
+  /* ---- radar data ---- */
+  const radarLabs = ['CCR','Win-%','Tourneys','Bonus $k'];
+  drawRadar(document.getElementById('radar'),
+           {ccr:L.ccr, winR:leftWinR, tour:L.tourneys, bonus:L.bonusEarned},
+           {ccr:R.ccr, winR:rightWinR, tour:R.tourneys, bonus:R.bonusEarned},
+           radarLabs);
+
+  /* ---- power bars (0-100 scale) ---- */
+  const leftPower  = Math.min(100,Math.round((L.ccr/3000)*60 + leftWinR*0.4));
+  const rightPower = Math.min(100,Math.round((R.ccr/3000)*60 + rightWinR*0.4));
+  document.getElementById('leftBar').style.width  = leftPower+'%';
+  document.getElementById('rightBar').style.width = rightPower+'%';
+  document.getElementById('leftName').textContent  = L.name;
+  document.getElementById('rightName').textContent = R.name;
+
+  /* ---- text tables ---- */
+  const row=(label,lVal,rVal,highlight)=>{
+    const cls = highlight ? (lVal>rVal?'blue':rVal>lVal?'red':'') : '';
+    return `<tr class="${cls}"><td><b>${label}</b></td><td>${lVal}</td><td>${rVal}</td></tr>`;
+  };
+  compareBox.innerHTML=`
+  <table class="ivcf-table">
+    ${row('CCR',L.ccr,R.ccr,true)}
+    ${row('Title',titleFromCCR(L.ccr),titleFromCCR(R.ccr))}
+    ${row('Tournaments entered',L.tourneys,R.tourneys,true)}
+    ${row('Games won',L.gamesWon,R.gamesWon,true)}
+    ${row('Win-rate %',leftWinR+'%',rightWinR+'%',true)}
+    ${row('Avg bonus / tourney','$'+leftAvg+' k','$'+rightAvg+' k',true)}
+    ${row('Total bonus earned','$'+L.bonusEarned+' k','$'+R.bonusEarned+' k')}
+    ${row('CCR lead vs rival','+'+(L.ccr>R.ccr?ccrLead:0),'+'+(R.ccr>L.ccr?ccrLead:0))}
+  </table>`;
+}
+
+/* ===============  RE-ATTACH LISTENERS  =============== */
+[leftSel,rightSel].forEach(sel=>sel.addEventListener('change',renderCompare));
+</script>
+<!-- =========================  END NEW COMPARE  ========================= -->
     <!-- EVENTS -->
     <section id="ivcf-events" class="ivcf-section">
       <h2>Upcoming Events</h2>

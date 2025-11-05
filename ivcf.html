@@ -235,38 +235,61 @@ footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-
     </section>
 
     <!-- GAME MANAGER -->
-    <section id="ivcf-games" class="ivcf-section">
-      <div class="ivcf-card">
-        <h2>Game Management</h2>
-        <p>Add and manage game results. All games are stored in Swiss tournament format.</p>
-        
-        <div class="game-management">
-          <h3>Add New Game Result</h3>
-          <div class="game-form">
-            <select id="gamePlayer1" class="ivcf-select">
-              <option value="">Select Player 1</option>
-            </select>
-            <select id="gamePlayer2" class="ivcf-select">
-              <option value="">Select Player 2</option>
-            </select>
-            <select id="gameResult" class="ivcf-select">
-              <option value="">Select Result</option>
-              <option value="1-0">Player 1 Wins</option>
-              <option value="0-1">Player 2 Wins</option>
-              <option value="0.5-0.5">Draw</option>
-            </select>
-            <input type="text" id="gameTournament" class="ivcf-input" placeholder="Tournament Name">
-            <input type="date" id="gameDate" class="ivcf-input">
-            <button class="ivcf-button" onclick="addGame()">Add Game</button>
-          </div>
+   <!-- GAME MANAGER -->
+<section id="ivcf-games" class="ivcf-section">
+  <div class="ivcf-card">
+    <h2>Game Management</h2>
+    <p>
+      <strong>Game entry is locked.</strong>  
+      Results are now <em>hard-coded</em> and can only be changed by editing the source code.
+      You may still delete accidental duplicates from the list below.
+    </p>
 
-          <h3>Game History</h3>
-          <div class="game-list" id="gameList">
-            <div style="padding: 2rem; text-align: center; color: var(--sub);">No games recorded yet. Add your first game above!</div>
-          </div>
+    <!--  LOCKED ENTRY FORM  -->
+    <div class="game-management">
+      <h3>Add New Game Result</h3>
+      <div class="game-form">
+        <select id="gamePlayer1" class="ivcf-select" disabled>
+          <option>—  Locked  —</option>
+        </select>
+        <select id="gamePlayer2" class="ivcf-select" disabled>
+          <option>—  Locked  —</option>
+        </select>
+        <select id="gameResult" class="ivcf-select" disabled>
+          <option>—  Locked  —</option>
+        </select>
+        <input type="text" id="gameTournament" class="ivcf-input" placeholder="Tournament Name" disabled>
+        <input type="date" id="gameDate" class="ivcf-input" disabled>
+        <button class="ivcf-button" disabled style="opacity:.4;cursor:not-allowed">Add Game</button>
+      </div>
+
+      <h3>Game History</h3>
+      <div class="game-list" id="gameList">
+        <div style="padding: 2rem; text-align: center; color: var(--sub);">
+          No games recorded yet. Add your first game in the source code!
         </div>
       </div>
-    </section>
+    </div>
+
+    <!--  HOW-TO FOR ADMINS  -->
+    <div class="ivcf-card" style="margin-top:1.5rem">
+      <h3>For Administrators</h3>
+      <p>To record a new result open this file in any editor and append an object to the
+      <code class="mono">gameHistory</code> array that already exists near the top of the script:</p>
+      <pre style="background:#222;padding:1rem;border-radius:4px;overflow:auto">
+gameHistory.push({
+  id: Date.now(),                       // unique numeric id
+  player1: "Beeba",                     // id of white/first player
+  player2: "Dwayne",                    // id of black/second player
+  result: "1-0",                        // 1-0, 0-1 or 0.5-0.5
+  tournament: "CCWT 2025",              // any string
+  date: "2025-11-06"                    // yyyy-mm-dd
+});
+      </pre>
+      <p>Save the file, reload the page, and the new game will appear everywhere automatically.</p>
+    </div>
+  </div>
+</section>
 
     <!-- EVENTS -->
     <section id="ivcf-events" class="ivcf-section">

@@ -1,74 +1,173 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Role manager – Valoria</title>
+<title>Valorian Online Hub</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-body{background:#000;color:#fff;font-family:system-ui;padding:2rem}
-table{width:100%;border-collapse:collapse;margin-top:1rem}
-th,td{padding:.5rem;text-align:left;border-bottom:1px solid #333}
-th{color:#dc143c}
-input,select,button{padding:.4rem;border:none;border-radius:4px}
-button{background:#dc143c;color:#fff;cursor:pointer}
+/* --- previous css untouched --- */
+:root{
+  --bg:#000;
+  --card:#0a0a0a;
+  --border:#222;
+  --accent:#dc143c;
+  --text:#fff;
+  --sub:#aaa;
+  --gap:1.2rem;
+  font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+}
+* {box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+a{color:var(--accent);text-decoration:none}
+header,footer{background:var(--card);border-bottom:2px solid var(--accent)}
+header{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem}
+header h1{margin:0;font-size:1.6rem;letter-spacing:1px}
+header span{font-weight:300;font-size:.9rem;color:var(--sub)}
+main{flex:1;padding:2rem;max-width:1100px;margin:auto;width:100%}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:var(--gap)}
+.tile{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.5rem 1rem;text-align:center;transition:transform .15s,box-shadow .15s;cursor:pointer;position:relative}
+.tile:hover{transform:translateY(-4px);box-shadow:0 8px 24px #0008}
+.tile .emoji{font-size:2.2rem;margin-bottom:.5rem}
+.tile h3{margin:.4rem 0 .2rem;font-size:1.1rem}
+.tile p{font-size:.85rem;color:var(--sub);margin:0}
+.tile.external::after{content:"⧉";position:absolute;top:.5rem;right:.7rem;font-size:.8rem;opacity:.6}
+footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-bottom:none;border-top:2px solid var(--accent)}
+.badge{display:inline-block;background:var(--accent);color:#fff;padding:.15rem .35rem;border-radius:4px;font-size:.65rem;margin-left:.4rem}
 .mono{font-family:monospace}
+
+/* ---- auth overlay ---- */
+#authOverlay{position:fixed;inset:0;background:#000e;z-index:999;display:flex;align-items:center;justify-content:center}
+#authBox{background:#1a1a1a;border:1px solid var(--border);border-radius:8px;padding:2rem;width:320px}
+#authBox h2{margin-top:0}
+#authBox input{width:100%;padding:.5rem;margin:.5rem 0;border:none;border-radius:4px;background:#222;color:var(--text)}
+#authBox button{width:100%;padding:.5rem;border:none;border-radius:4px;background:var(--accent);color:#fff;font-weight:bold;cursor:pointer}
+#authBox p{font-size:.8rem;text-align:center;margin-top:1rem}
+#authBox .error{color:var(--accent);margin-top:.5rem}
+#userBadge{position:absolute;right:2rem;top:1.2rem;font-size:.85rem}
+#userBadge button{margin-left:.5rem;padding:.25rem .5rem;background:var(--accent);color:#fff;border:none;border-radius:4px;cursor:pointer}
 </style>
 </head>
 <body>
-<h2>User Role Manager</h2>
-<table id="tbl">
-  <thead><tr><th>Email</th><th>UID</th><th>Roles</th><th>Action</th></tr></thead>
-  <tbody></tbody>
-</table>
+
+<header>
+  <div>
+    <h1>Valorian Online Hub</h1>
+    <span>Official toolbox of the Kingdom</span>
+  </div>
+  <div id="clock" class="mono"></div>
+  <div id="userBadge"></div>
+</header>
+
+<main id="hub-main">
+  <section id="hub-home">
+    <h2>Quick-Tools</h2>
+    <div class="grid" id="grid"></div>
+  </section>
+</main>
+
+<footer>Kingdom of Valoria | &copy; <span id="yr"></span></footer>
+
+<!-- ---------- auth overlay ---------- -->
+<div id="authOverlay" style="display:none">
+  <div id="authBox">
+    <h2 id="authTitle">Login</h2>
+    <input id="authEmail" placeholder="Email" type="email">
+    <input id="authPass" placeholder="Password" type="password">
+    <button id="authBtn">Login</button>
+    <p id="authToggle">No account? <a href="#" id="authSwitch">Register</a></p>
+    <div class="error" id="authError"></div>
+  </div>
+</div>
 
 <script type="module">
-import { auth, db, role, collection, getDocs, onAuthStateChanged, signOut } from './firebase-config.js';
+import { auth, db, role, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from './firebase-config.js';
 
-const tbody = document.querySelector('#tbl tbody');
+/* ---------- tile config (add "roles" field) ---------- */
+const tiles = [
+  {emoji:"📚", title:"Learn", desc:"Educational resources & guides", url:"learn.html", external:false, beta:false, roles:null},
+  {emoji:"🤖", title:"V.ai", desc:"Valorian Intelligence", url:"vai.html", external:false, beta:true, roles:["vai"]},
+  {emoji:"📰", title:"Valorian News", desc:"Public announcements & comments", url:"news.html", external:false, beta:true, roles:null},
+  {emoji:"🗳", title:"Pols", desc:"Live votes", url:"vote.html", external:false, beta:false, roles:["voter"]},
+  {emoji:"🏘", title:"Valoria Map", desc:"Interactive Map", url:"CountryMap.html", external:false, beta:true, roles:["map"]},
+  {emoji:"📜", title:"Constitution", desc:"Laws and Constitution", url:"constitution.html", external:false, beta:false, roles:null},
+  {emoji:"♟", title:"IVCF", desc:"Chess federation ladders & rating calc", url:"ivcf.html", external:false, beta:false, roles:["ivcf"]},
+  {emoji:"🔒", title:"GovVault", desc:"Government-only archive", url:"vault.html", external:false, beta:false, roles:["gov"]}
+];
 
-/* ---- render table ---- */
-async function load(){
-  const snap = await getDocs(collection(db,"users"));
-  tbody.innerHTML = "";
-  snap.forEach(d=>{
-    const data = d.data();
-    const tr = document.createElement('tr');
-    const emailCell = document.createElement('td');
-    emailCell.textContent = data.email||'—';
-    const uidCell = document.createElement('td');
-    uidCell.textContent = d.id;
-    uidCell.className = "mono";
-    const roleCell = document.createElement('td');
-    const sel = document.createElement('select');
-    sel.multiple = true;
-    ["admin","vai","voter","map","ivcf","gov"].forEach(r=>{
-      const opt = document.createElement('option');
-      opt.value = r; opt.textContent = r;
-      if((data.roles||[]).includes(r)) opt.selected = true;
-      sel.appendChild(opt);
-    });
-    roleCell.appendChild(sel);
-    const actCell = document.createElement('td');
-    const saveBtn = document.createElement('button');
-    saveBtn.textContent = "Save";
-    saveBtn.onclick = async ()=>{
-      const chosen = Array.from(sel.selectedOptions).map(o=>o.value);
-      await role.set(d.id, chosen);
-      alert("Saved");
-    };
-    actCell.appendChild(saveBtn);
-    tr.append(emailCell, uidCell, roleCell, actCell);
-    tbody.appendChild(tr);
-  });
+/* ---------- render tiles after auth ---------- */
+const grid = document.getElementById('grid');
+async function buildGrid(user){
+  grid.innerHTML = "";
+  for(const t of tiles){
+    const ok = await role.can(user, t.roles);
+    if(!ok) continue;                 // tile not visible
+    const div = document.createElement('div');
+    div.className = 'tile' + (t.external?' external':'');
+    div.innerHTML = `<div class="emoji">${t.emoji}</div><h3>${t.title}${t.beta?'<span class="badge">BETA</span>':''}</h3><p>${t.desc}</p>`;
+    div.onclick = () => window.open(t.url, '_blank');
+    grid.appendChild(div);
+  }
 }
 
-/* ---- protect page ---- */
-onAuthStateChanged(auth, async user=>{
-  if(!user){ location = "index.html"; return; }
-  const ok = await role.can(user, "admin");
-  if(!ok){ alert("Admins only"); location = "index.html"; return; }
-  load();
+/* ---------- auth overlay ---------- */
+const overlay = document.getElementById('authOverlay');
+const authTitle = document.getElementById('authTitle');
+const authBtn   = document.getElementById('authBtn');
+const authSwitch= document.getElementById('authSwitch');
+const authError = document.getElementById('authError');
+const authEmail = document.getElementById('authEmail');
+const authPass  = document.getElementById('authPass');
+let mode = 'login';
+
+function toggleMode(e){
+  e.preventDefault();
+  mode = mode==='login'?'register':'login';
+  authTitle.textContent = mode==='login'?'Login':'Register';
+  authBtn.textContent   = mode==='login'?'Login':'Create account';
+  authSwitch.textContent= mode==='login'?'Register':'Login';
+  authError.textContent = '';
+}
+authSwitch.addEventListener('click', toggleMode);
+
+authBtn.addEventListener('click', async ()=>{
+  const email = authEmail.value.trim();
+  const pass  = authPass.value.trim();
+  if(!email || !pass) return authError.textContent = 'Fill both fields.';
+  try{
+    if(mode==='login'){
+      await signInWithEmailAndPassword(auth, email, pass);
+    }else{
+      const cred = await createUserWithEmailAndPassword(auth, email, pass);
+      // first-time user → give default role (empty) → you can change in admin.html
+      await role.set(cred.user.uid, []);
+    }
+  }catch(err){
+    authError.textContent = err.message;
+  }
 });
+
+/* ---------- user badge ---------- */
+const userBadge = document.getElementById('userBadge');
+onAuthStateChanged(auth, async user=>{
+  if(user){
+    overlay.style.display = 'none';
+    const rs = await role.ofUser(user);
+    userBadge.innerHTML = `Hello ${user.email} <button id="logout">logout</button>`;
+    document.getElementById('logout').onclick = ()=>signOut(auth);
+  }else{
+    overlay.style.display = 'flex';
+    userBadge.innerHTML = '';
+  }
+  await buildGrid(user);
+});
+
+/* ---------- clock ---------- */
+function tick(){
+  document.getElementById('clock').textContent =
+    new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+}
+tick(); setInterval(tick,60000);
+document.getElementById('yr').textContent = new Date().getFullYear();
 </script>
 </body>
 </html>

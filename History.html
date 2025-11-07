@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valoria Interactive Timeline</title>
+   <style>
+/* ----------  CSS VARIABLES (your palette)  ---------- */
+:root{
+  --bg:#000;
+  --card:#0a0a0a;
+  --border:#222;
+  --accent:#dc143c;
+  --text:#fff;
+  --sub:#aaa;
+  --gap:1.2rem;
+  font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+}
+
+/* ----------  GLOBAL RESET  ---------- */
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  line-height:1.6;
+}
+a{color:var(--accent);text-decoration:none}
+
+/* ----------  RE-USABLE COMPONENTS (from your sheet)  ---------- */
+header,footer{
+  background:var(--card);
+  border-bottom:2px solid var(--accent);
+}
+header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:1rem 2rem;
+}
+header h1{margin:0;font-size:1.6rem;letter-spacing:1px}
+header span{font-weight:300;font-size:.9rem;color:var(--sub)}
+main{flex:1;padding:2rem;max-width:1100px;margin:auto;width:100%}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:var(--gap)}
+.tile{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:1.5rem 1rem;
+  text-align:center;
+  transition:transform .15s,box-shadow .15s;
+  cursor:pointer;
+  position:relative;
+}
+.tile:hover{transform:translateY(-4px);box-shadow:0 8px 24px #0008}
+.tile .emoji{font-size:2.2rem;margin-bottom:.5rem}
+.tile h3{margin:.4rem 0 .2rem;font-size:1.1rem}
+.tile p{font-size:.85rem;color:var(--sub);margin:0}
+.tile.external::after{content:"⧉";position:absolute;top:.5rem;right:.7rem;font-size:.8rem;opacity:.6}
+footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-bottom:none;border-top:2px solid var(--accent)}
+.badge{display:inline-block;background:var(--accent);color:#fff;padding:.15rem .35rem;border-radius:4px;font-size:.65rem;margin-left:.4rem}
+.mono{font-family:monospace}
+
+/* ----------  NEWS PAGE  ---------- */
+.news-header{background:#111;border-bottom:2px solid var(--accent);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between}
+.news-header h1{margin:0;font-size:1.5rem}
+.news-main{max-width:700px;margin:2rem auto;padding:0 1rem}
+.post{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:1rem;margin-bottom:1rem}
+.post img,.post iframe{max-width:100%;border-radius:4px;margin-top:.5rem}
+.post small{color:var(--sub);font-size:.75rem}
+.post-actions{margin-top:.5rem;display:flex;gap:1rem;font-size:.8rem}
+.post-actions a{cursor:pointer}
+.comment-box{margin-top:.5rem;display:flex;gap:.5rem}
+.comment-box input{flex:1;padding:.4rem;border:none;border-radius:4px;background:#222;color:var(--text)}
+.comment-box button{padding:.4rem .8rem;border:none;border-radius:4px;background:var(--accent);color:#fff;cursor:pointer}
+.new-post textarea{width:100%;min-height:80px;padding:.5rem;border:none;border-radius:4px;background:#222;color:var(--text);resize:vertical}
+.new-post input[type=file]{margin-top:.5rem}
+.new-post button{margin-top:.5rem;padding:.5rem 1rem;border:none;border-radius:4px;background:var(--accent);color:#fff;cursor:pointer;font-weight:bold}
+
+/* ----------  VAULT LOGIN  ---------- */
+.vault-login{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh}
+.vault-login input{padding:.5rem;border:none;border-radius:4px;background:#222;color:var(--text);width:250px}
+.vault-login button{margin-top:1rem;padding:.5rem 1rem;border:none;border-radius:4px;background:var(--accent);color:#fff;cursor:pointer;font-weight:bold}
+
+/* ----------  IVCF STYLES  ---------- */
+.ivcf-page{background:var(--bg);color:var(--text);display:none}
+.ivcf-page.active{display:block}
+.ivcf-header{background:#1e1e1e;border-bottom:2px solid #00b4ff;padding:1rem 2rem;display:flex;align-items:center;gap:1.5rem}
+.ivcf-header h1{margin:0;font-size:1.6rem}
+.ivcf-nav{display:flex;gap:1rem;flex-wrap:wrap}
+.ivcf-nav a{padding:.4rem .7rem;border-radius:4px;background:#0003}
+.ivcf-nav a.active{background:#00b4ff;color:#000;font-weight:bold}
+.ivcf-main{padding:2rem;max-width:1200px;margin:auto}
+.ivcf-section{display:none}
+.ivcf-section.active{display:block}
+.ivcf-table{width:100%;border-collapse:collapse;margin-top:1rem}
+.ivcf-table th,.ivcf-table td{padding:.5rem;text-align:left;border-bottom:1px solid #333}
+.ivcf-table th{color:#00b4ff}
+.ivcf-card{background:#1e1e1e;padding:1.2rem;border-radius:8px;margin-bottom:1.2rem}
+.ivcf-input,.ivcf-select,.ivcf-button{padding:.5rem;border:none;border-radius:4px}
+.ivcf-input,.ivcf-select{background:#222;color:var(--text);width:100%}
+.ivcf-button{background:#00b4ff;color:#000;cursor:pointer;font-weight:bold}
+.ivcf-button:hover{filter:brightness(1.15)}
+
+/* ----------  TIMELINE-SPECIFIC (keeps original look)  ---------- */
+.timeline-container{
+  max-width:1200px;
+  margin:0 auto;
+  padding:50px 20px;
+  position:relative;
+}
+h1{ /* page title */
+  text-align:center;
+  font-size:3.5em;
+  margin-bottom:50px;
+  background:linear-gradient(45deg,#ffd700,#ff6b6b,#4ecdc4);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  text-shadow:0 0 30px rgba(255,215,0,.5);
+  animation:glow 2s ease-in-out infinite alternate;
+}
+@keyframes glow{from{filter:brightness(1)}to{filter:brightness(1.2)}}
+
+.timeline{position:relative;padding:20px 0}
+.timeline::before{ /* centre line */
+  content:'';
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+  width:4px;
+  height:100%;
+  background:linear-gradient(to bottom,#ffd700,#ff6b6b,#4ecdc4);
+  box-shadow:0 0 20px rgba(255,215,0,.5);
+}
+.timeline-item{
+  position:relative;
+  margin:50px 0;
+  opacity:0;
+  transform:translateY(50px);
+  animation:fadeInUp .8s ease forwards;
+}
+.timeline-item:nth-child(odd){animation-delay:.2s}
+.timeline-item:nth-child(even){animation-delay:.4s}
+@keyframes fadeInUp{to{opacity:1;transform:translateY(0)}}
+
+.timeline-content{
+  position:relative;
+  width:45%;
+  padding:30px;
+  background:rgba(255,255,255,.05);
+  backdrop-filter:blur(10px);
+  border-radius:15px;
+  border:1px solid rgba(255,215,0,.3);
+  cursor:pointer;
+  transition:all .3s ease;
+  box-shadow:0 10px 30px rgba(0,0,0,.3);
+}
+.timeline-content:hover{
+  transform:scale(1.05);
+  background:rgba(255,255,255,.1);
+  box-shadow:0 15px 40px rgba(255,215,0,.3);
+  border-color:rgba(255,215,0,.6);
+}
+.timeline-item:nth-child(odd) .timeline-content{margin-left:auto;margin-right:55%}
+.timeline-item:nth-child(even) .timeline-content{margin-left:55%}
+
+.timeline-dot{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  width:30px;
+  height:30px;
+  background:radial-gradient(circle,#ffd700,#ff6b6b);
+  border-radius:50%;
+  border:3px solid #fff;
+  box-shadow:0 0 20px rgba(255,215,0,.8);
+  z-index:1;
+  animation:pulse 2s infinite;
+}
+@keyframes pulse{
+  0%{box-shadow:0 0 20px rgba(255,215,0,.8)}
+  50%{box-shadow:0 0 40px rgba(255,215,0,1)}
+  100%{box-shadow:0 0 20px rgba(255,215,0,.8)}
+}
+
+.timeline-date{
+  font-size:1.2em;
+  color:#ffd700;
+  font-weight:bold;
+  margin-bottom:10px;
+  text-transform:uppercase;
+  letter-spacing:2px;
+}
+.timeline-title{font-size:1.8em;margin-bottom:15px;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,.5)}
+.timeline-description{font-size:1.1em;line-height:1.6;color:#ccc}
+.timeline-details{
+  display:none;
+  margin-top:20px;
+  padding-top:20px;
+  border-top:1px solid rgba(255,215,0,.3);
+  font-size:.95em;
+  color:#aaa;
+  line-height:1.8;
+}
+.timeline-details.active{display:block;animation:slideDown .3s ease}
+@keyframes slideDown{
+  from{opacity:0;transform:translateY(-10px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+.era-marker{text-align:center;margin:80px 0;position:relative}
+.era-marker h2{
+  font-size:2.5em;
+  color:#ffd700;
+  text-transform:uppercase;
+  letter-spacing:5px;
+  position:relative;
+  display:inline-block;
+  padding:20px 40px;
+  background:rgba(255,215,0,.1);
+  border:2px solid #ffd700;
+  border-radius:50px;
+  box-shadow:0 0 30px rgba(255,215,0,.3);
+}
+
+/* ----------  MOBILE  ---------- */
+@media (max-width:768px){
+  .timeline::before{left:30px}
+  .timeline-content{width:calc(100% - 80px);margin-left:80px!important;margin-right:0!important}
+  .timeline-dot{left:30px}
+  h1{font-size:2.5em}
+}
+</style>
+</head>
+<body>
+    <div class="timeline-container">
+        <h1>The Chronicle of Valoria</h1>
+        
+        <div class="era-marker">
+            <h2>The Ancient Era</h2>
+        </div>
+
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content" onclick="toggleDetails(this)">
+                    <div class="timeline-date">The Primordial Age</div>
+                    <div class="timeline-title">The Silent Overture</div>
+                    <div class="timeline-description">
+                        Before memory, the land of Valmyra lay sleeping - a canvas of crystalline ice and shadowed forests.
+                    </div>
+                    <div class="timeline-details">
+                        In the aeons before time, Valthar, the eternal Watcher, guarded the primordial expanse. Neither of land nor sky, he was presence itself - an incorporeal consciousness intertwined with Valmyra since its first molecule coalesced from cosmic dust. Through the Fire of Valmyra, a geothermal heart burning beneath the frozen surface, he shaped the destiny of the sleeping world with infinite patience.
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content" onclick="toggleDetails(this)">
+                    <div class="timeline-date">The First Arrival</div>
+                    <div class="timeline-title">The Coming of the People</div>
+                    <div class="timeline-description">
+                        Across frozen seas, humanity arrived - fragile figures against the vast, indifferent landscape.
+                    </div>
+                    <div class="timeline-details">
+                        They came seeking refuge, ill-suited to the harshness of the Land. The cold bit at their exposed skin, winds tore at their shelters, and long dark nights filled them with ancestral dread. Valthar perceived in their eyes a different light - a spark of curiosity, ambition, and deep emotion. During the deepest hours, he drew upon the Fire of Valmyra to radiate gentle warmth beneath their shelters, ensuring the spark of life within them would not extinguish.
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content" onclick="toggleDetails(this)">
+                    <div class="timeline-date">The Founding</div>
+                    <div class="timeline-title">Rise of Valor</div>
+                    <div class="timeline-description">
+                        From crude dwellings to enduring structures - the birth of a civilization in the frozen wilderness.
+                    </div>
+                    <div class="timeline-details">
+                        Years turned to decades. The settlement transformed as Valthar subtly smoothed jagged surfaces and shifted massive boulders while they slept. The people marveled at their fortune, speaking of the "spirit of the land" being kind to them. Their village grew into Valor - a beacon of warmth and light in the vast cold. Stone walls rose as bulwarks against harsh elements, markets bustled, and the first council of elders formed the kingdom's foundation.
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content" onclick="toggleDetails(this)">
+                    <div class="timeline-date">The Withdrawal</div>
+                    <div class="timeline-title">The Watcher's Vigil Ends</div>
+                    <div class="timeline-description">
+                        Valthar's ancient vigil draws to a close as the people stand strong on their own.
+                    </div>
+                    <div class="timeline-details">
+                        Centuries passed. The kingdom of Valoria had taken root with Valor as its shining capital. Valthar, witnessing generations born and pass away, saw his role as silent guardian drawing to a natural close. He vowed to retreat entirely, returning only if Valoria faced a cataclysm that threatened to unravel their very existence. His departure would be as silent as his presence - only a gradual fading of imperceptible warmth would mark the transition.
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content" onclick="toggleDetails(this)">
+                    <div class="timeline-date">The Conception</div>
+                    <div class="timeline-title">The Coming of Detlef</div>
+                    <div class="timeline-description">
+                        From essence to existence - Valthar creates a bridge between the divine and mortal worlds.
+                    </div>
+                    <div class="timeline-details">
+                        In his withdrawal, Valthar felt the Valorians' need for connection and guidance. From their courage, resilience, and the Fire of Valmyra, he conceived Detlef - not through mortal means but through intricate weaving of spiritual energy. Born to a stonemason and weaver who had longed for a child, Detlef carried Valthar's whispers as thoughts and gentle guidance resonating within his soul, destined to become the kingdom's first martyr.
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content" onclick="toggleDetails(this)">
+                    <div class="timeline-date">The Sacrifice</div>
+                    <div class="timeline-title">The Underground Tragedy</div>
+                    <div class="timeline-description">
+                        In the depths of the earth, Detlef and his companions perish in pursuit of a better future.
+                    </div>
+                    <div class="timeline-details">
+                        Leading the great undertaking into the Underground, Detlef discovered caverns of remarkable warmth that could shelter many during harsh winters. But fate struck cruelly - a mysterious fire erupted in the connecting tunnels. As smoke choked the passages and panic ensued, Detlef remained a beacon of calm, guiding his companions toward escape. When the heat destabilized the rock above and tons of earth collapsed, sealing their fate, Detlef gathered the trapped men, speaking of purpose and community until the last breath of air gave way to smoke and flame.
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content" onclick="toggleDetails(this)">
+                    <div class="timeline-date">The Rebirth</div>
+                    <div class="timeline-title">The Emergence of Valseran</div>
+                    <div class="timeline-description">
+                        From tragedy comes transformation - the spirit of Detlef reborn with ancient wisdom.
+                    </div>
+                    <div class="timeline-details">
+                        On the first anniversary of the tragedy, as people gathered at Detlef's monument, a strange light emanated from the sealed Underground. From the illuminated opening emerged Valseran - tall and robed, with features reminiscent of Detlef but imbued with ageless wisdom and serene authority. "The work begun in shadow must be completed in light," he proclaimed. "Detlef's sacrifice was not in vain. I am Valseran, and I have come to help you walk the path he opened."
+                    </div>
+                </div>
+            </div>
+
+        <div class="era-marker">
+            <h2>The Imperial Era</h2>
+        </div>
+
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content" onclick="toggleDetails(this)">
+                    <div class="timeline-date">The Coronation</div>
+                    <div class="timeline-title">Emperor Adam Ascends</div>
+                    <div class="timeline-description">
+                        A new chapter begins as Adam accepts the crown and forges Valoria's modern identity.
+                    </div>
+                    <div class="timeline-details">
+                        Following Beeba's abdication, Mutant of the NCN offered Adam the Crown of Valoria with the condition of joining the alliance. On December 12, 2024, Adam was crowned, immediately integrating Valoria into the NCN as an autonomous country. This marked the beginning of Valoria's transformation into a dominant northern power, setting the stage for unprecedented growth and cultural revolution.
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content" onclick="toggleDetails(this)">
+                    <div class="timeline-date">The Dictatorship</div>
+                    <div class="timeline-title">The Valorian Reich</div>
+                    <div class="timeline-description">
+                        An iron fist forged in nationalism - communism outlawed, dissent crushed, unity achieved.
+                    </div>
+                    <div class="timeline-details">
+                        Emperor Adam initiated an authoritarian regime grounded in Valorian nationalism, outlawing Communism and blaming it for past failures. The state security apparatus (VIS) identified and suppressed dissent, making criticism of government the worst crime. Despite severe restrictions, this era achieved exceptional social cohesion, zero recorded crime, and forged the modern Valorian identity. Citizens greeted each other with "Sieg Valoria," cementing the unofficial "Valorian Reich" legacy.
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content" onclick="toggleDetails(this)">
+                    <div class="timeline-date">The Innovation</div>
+                    <div class="timeline-title">Birth of the Springer-Stiefel</div>
+                    <div class="timeline-description">
+                        From humor to heritage - how decorated boots became a national symbol of strength.
+                    </div>
+                    <div class="timeline-details">
+                        During advancement period, VIS Agent BobDolf humorously decorated his netherite boots and named them "Springer-Stiefel." The trend exploded after he gifted a pair to Emperor Adam, who wore them regularly. These durable boots became cultural staples for miners and outdoor workers, eventually symbolizing Valorian strength and tradition. All Valorian netherite boots became commonly known as "Springerstiefel," representing the people's resilience and connection to their land.
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content" onclick="toggleDetails(this)">
+                    <div class="timeline-date">The Militarization</div>
+                    <div class="timeline-title">The Rüstungs-Phase</div>
+                    <div class="timeline-description">
+                        "Our Citizens are our Soldiers" - arming the populace for national defense.
+                    </div>
+                    <div class="timeline-details">
+                        Lacking resources for formal standing military, Adam launched the "Rüstungs-Phase" based on direct citizen armament. The state facilitated acquisition of netherite armor and weapons for all citizens, distributing countless Springerstiefel in the process. This policy transformed every Valorian into a potential defender, creating a nation where the line between civilian and soldier blurred, ensuring that any invader would face an entire armed populace.
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content" onclick="toggleDetails(this)">
+                    <div class="timeline-date">The Betrayal</div>
+                    <div class="timeline-title">Alliance with the Astari</div>
+                    <div class="timeline-description">
+                        Valoria abandons the NCN, sells Valorka, and finds a new powerful ally.
+                    </div>
+                    <div class="timeline-details">
+                        Believing Mutant neglected the NCN, Adam orchestrated Valoria's departure from the alliance. Seeking stronger partnerships, Valoria sold the territory of Valorka to the Astari for millions, generating massive economic boost. Duayne of the Astari became Valoria's biggest investor, injecting over 10 million into the economy. This period saw creation of Valoria's national flag and establishment of the Valorian Franc currency through the newly built Valorian National Bank.
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content" onclick="toggleDetails(this)">
+                    <div class="timeline-date">The Unification</div>
+                    <div class="timeline-title">The Great UUR Unification</div>
+                    <div class="timeline-description">
+                        Global conflict leads to world unification under UUR - Valoria defends itself and rises to power.
+                    </div>
+                    <div class="timeline-details">
+                        A major global conflict led by ZXiDeath, Phoenix, and Mutant resulted in complete world unification under the UUR. Though attacked, Valoria successfully defended itself under Adam's leadership. During transition, VIS transformed into NDI, later becoming independent. Adam won the 15th UUR presidential election, reforming Valoria into the Valorian Republican Kingdom (VRC), restoring free speech while introducing democratic voting and maintaining autonomy.
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content" onclick="toggleDetails(this)">
+                    <div class="timeline-date">The Reconciliation</div>
+                    <div class="timeline-title">Peace with Elytheria</div>
+                    <div class="timeline-description">
+                        Ancient rivalries healed as King Duayne bridges the divide between nations.
+                    </div>
+                    <div class="timeline-details">
+                        During growth period, Valoria faced renewed racism from Elytheria, perceived as unprovoked by Valorians. This rivalry led to creation of the term "Con-Valo" for those who insulted the nation. The tension finally resolved when Valoria's ally, Duayne, won the Elytherian elections and became its new King, ushering in an era of peace between the historically opposed nations and cementing Valoria's diplomatic triumph.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleDetails(element) {
+            const details = element.querySelector('.timeline-details');
+            details.classList.toggle('active');
+            
+            // Add a subtle animation to the dot
+            const dot = element.parentElement.querySelector('.timeline-dot');
+            dot.style.animation = 'none';
+            setTimeout(() => {
+                dot.style.animation = 'pulse 2s infinite';
+            }, 10);
+        }
+
+        // Add scroll-triggered animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationPlayState = 'running';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.timeline-item').forEach(item => {
+            observer.observe(item);
+        });
+    </script>
+</body>
+</html>

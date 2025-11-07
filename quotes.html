@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Random Quote Machine</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+/* ---------- your original palette ---------- */
+:root{
+  --bg:#000;
+  --card:#0a0a0a;
+  --border:#222;
+  --accent:#dc143c;
+  --text:#fff;
+  --sub:#aaa;
+  --gap:1.2rem;
+  font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+}
+/* ---------- reset / layout helpers ---------- */
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+header,footer{background:var(--card);border-bottom:2px solid var(--accent)}
+header{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem}
+header h1{margin:0;font-size:1.6rem;letter-spacing:1px}
+header span{font-weight:300;font-size:.9rem;color:var(--sub)}
+main{flex:1;padding:2rem;max-width:700px;margin:auto;width:100%;text-align:center}
+/* ---------- card that holds the quote ---------- */
+.quote-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:2.5rem 2rem;
+  position:relative;
+  transition:transform .2s,box-shadow .2s;
+}
+.quote-card:hover{transform:translateY(-4px);box-shadow:0 8px 24px #0008}
+.quote-text{font-size:1.4rem;line-height:1.4;margin-bottom:1rem;font-style:italic}
+.quote-author{font-size:1rem;color:var(--accent);font-weight:600}
+/* ---------- button ---------- */
+button{
+  margin-top:1.8rem;
+  padding:.6rem 1.4rem;
+  border:none;
+  border-radius:4px;
+  background:var(--accent);
+  color:#fff;
+  font-weight:bold;
+  cursor:pointer;
+  font-size:1rem;
+  letter-spacing:.5px;
+  transition:filter .15s;
+}
+button:hover{filter:brightness(1.15)}
+/* ---------- footer ---------- */
+footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-bottom:none;border-top:2px solid var(--accent)}
+</style>
+</head>
+
+<body>
+<header>
+  <h1>Hall of Fame</h1>
+  <span>VRC &amp; VK</span>
+</header>
+
+<main>
+  <div class="quote-card">
+    <div class="quote-text" id="text">Loading…</div>
+    <div class="quote-author" id="author"></div>
+  </div>
+  <button onclick="showQuote()">Another one</button>
+</main>
+
+<footer>
+  Built by the VED &nbsp;—&nbsp; refresh for a new quote
+</footer>
+
+<script>
+/* ---------- hard-coded quote bank ---------- */
+const quotes = [
+  {text:"If humans did not push the boundaries of the unknown we would still be hunting animals all day.",author:"Dwayne"},
+  {text:"Horse jockeys are useless—the horse does all the work.",author:"Dwayne"},
+  {text:"People are not scared of the dark, they are scared of what they think is in the dark.",author:"Dwayne"},
+  {text:"There is no such thing as good or bad, the darkness is just the absence of light.",author:"Dwayne"},
+  {text:"Time is the measurement of the age of the universe.",author:"Dwayne"},
+  {text:"Humans did not invent math—we discovered it. Politics is a game for those fit to rule.",author:"Dwayne"},
+  {text:"Even the greatest of minds make the biggest of blunders; just know you cannot predict the future. If Hannibal marched on Rome, it would have fell.",author:"Dwayne"},
+  {text:"To lead a nation is to be the architect of tomorrow's common memory.",author:"King MineKid"},
+  {text:"The true strength of a leader is not measured by the power they hold, but by the unleashed potential of the people they serve.",author:"King MineKid"},
+  {text:"Governance is not a matter of popularity, but a tireless devotion to the uncomfortable truth and the difficult right.",author:"King MineKid"},
+  {text:"A great nation is built on bridges, not walls—bridges of trust, opportunity, and shared understanding.",author:"King MineKid"},
+  {text:"The compass of a country's future is set by the leader's vision, but it is the courage of the citizens that catches the wind.",author:"King MineKid"},
+  {text:"Integrity in national leadership is not an asset; it is the bedrock foundation, without which the whole structure is sand.",author:"King MineKid"},
+  {text:"The most profound act of national service is to recognize when a problem is a systemic failure, not just a temporary inconvenience.",author:"King MineKid"},
+  {text:"Before a leader asks a citizen to sacrifice, they must first demonstrate a willingness to share the burden of the hardest path.",author:"King MineKid"},
+  {text:"A true national leader seeks to be a temporary custodian of power, a permanent shepherd of the public good.",author:"King MineKid"},
+  {text:"Never confuse the noise of a few for the voice of the many; leadership demands the humility to listen past the loudest echoes.",author:"King MineKid"},
+  {text:"The legacy of a leader is not inscribed on monuments, but on the quality of life granted to the nation's citizens.",author:"King MineKid"},
+  {text:"Lead with the knowledge that the problems you face today are the unplanted seeds of solutions for the next generation.",author:"King MineKid"},
+  {text:"A nation's prosperity is measured not by its largest fortunes, but by the minimum floor beneath its most vulnerable citizens.",author:"King MineKid"},
+  {text:"The hardest choice in governance is deciding what you will tear down in the short term to build what will endure in the long run.",author:"King MineKid"},
+  {text:"Smart people are not born—they're made.",author:"King Adam of Valoria"},
+  {text:"I'd rather be called a follower than being the one dying on the ground.",author:"King Adam of Valoria"},
+  {text:"The system is here to work, but it's not gonna work for us.",author:"King Adam of Valoria"},
+  {text:"Your opinion is important—the success of your nation is too.",author:"King Adam of Valoria"},
+  {text:"Schwarz, Weiss, Rot—alles endet und beginnt hier.",author:"King Adam of Valoria"}
+];
+
+/* ---------- simple engine ---------- */
+function showQuote(){
+  const pick = quotes[Math.floor(Math.random()*quotes.length)];
+  document.getElementById('text').textContent = '"' + pick.text + '"';
+  document.getElementById('author').textContent = '— ' + pick.author;
+}
+/* ---------- kick off ---------- */
+showQuote();
+</script>
+</body>
+</html>

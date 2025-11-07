@@ -1,276 +1,112 @@
 <!DOCTYPE html>
-<html lang="en"> 
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF Newspaper Archive</title>
-    <style>
-        :root{
-          --bg:#000;
-          --card:#0a0a0a;
-          --border:#222;
-          --accent:#dc143c;
-          --text:#fff;
-          --sub:#aaa;
-          --gap:1.2rem;
-          font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-        }
-        * {box-sizing:border-box}
-        body{margin:0;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
-        a{color:var(--accent);text-decoration:none}
-        header,footer{background:var(--card);border-bottom:2px solid var(--accent)}
-        header{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem}
-        header h1{margin:0;font-size:1.6rem;letter-spacing:1px}
-        header span{font-weight:300;font-size:.9rem;color:var(--sub)}
-        main{flex:1;padding:2rem;max-width:1100px;margin:auto;width:100%}
-        .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:var(--gap)}
-        .tile{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.5rem 1rem;text-align:center;transition:transform .15s,box-shadow .15s;cursor:pointer;position:relative}
-        .tile:hover{transform:translateY(-4px);box-shadow:0 8px 24px #0008}
-        .tile .emoji{font-size:2.2rem;margin-bottom:.5rem}
-        .tile h3{margin:.4rem 0 .2rem;font-size:1.1rem}
-        .tile p{font-size:.85rem;color:var(--sub);margin:0}
-        .tile.external::after{content:"⧉";position:absolute;top:.5rem;right:.7rem;font-size:.8rem;opacity:.6}
-        footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-bottom:none;border-top:2px solid var(--accent)}
-        .badge{display:inline-block;background:var(--accent);color:#fff;padding:.15rem .35rem;border-radius:4px;font-size:.65rem;margin-left:.4rem}
-        .mono{font-family:monospace}
+  <meta charset="UTF-8">
+  <title>PDF Newspaper Archive</title>
+  <style>
+    /* ---------- THEME (exactly as provided) ---------- */
+    :root{
+      --bg:#000;
+      --card:#0a0a0a;
+      --border:#222;
+      --accent:#dc143c;
+      --text:#fff;
+      --sub:#aaa;
+      --gap:1.2rem;
+      font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    }
+    * {box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+    a{color:var(--accent);text-decoration:none}
+    header,footer{background:var(--card);border-bottom:2px solid var(--accent)}
+    header{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem}
+    header h1{margin:0;font-size:1.6rem;letter-spacing:1px}
+    header span{font-weight:300;font-size:.9rem;color:var(--sub)}
+    main{flex:1;padding:2rem;max-width:1100px;margin:auto;width:100%}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:var(--gap)}
+    .tile{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.5rem 1rem;text-align:center;transition:transform .15s,box-shadow .15s;cursor:pointer;position:relative}
+    .tile:hover{transform:translateY(-4px);box-shadow:0 8px 24px #0008}
+    .tile .emoji{font-size:2.2rem;margin-bottom:.5rem}
+    .tile h3{margin:.4rem 0 .2rem;font-size:1.1rem}
+    .tile p{font-size:.85rem;color:var(--sub);margin:0}
+    .tile.external::after{content:"⧉";position:absolute;top:.5rem;right:.7rem;font-size:.8rem;opacity:.6}
+    footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-bottom:none;border-top:2px solid var(--accent)}
+    .badge{display:inline-block;background:var(--accent);color:#fff;padding:.15rem .35rem;border-radius:4px;font-size:.65rem;margin-left:.4rem}
 
-        /* Upload Section */
-        .upload-section{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:2rem;margin-bottom:2rem;text-align:center}
-        .upload-section h2{margin-top:0}
-        .file-input-wrapper{position:relative;display:inline-block;margin:1rem 0}
-        .file-input-wrapper input[type=file]{position:absolute;opacity:0;width:100%;height:100%;cursor:pointer}
-        .file-input-button{background:var(--accent);color:#fff;padding:.8rem 1.5rem;border-radius:4px;cursor:pointer;display:inline-block;font-weight:bold;transition:filter .2s}
-        .file-input-button:hover{filter:brightness(1.2)}
-        .upload-btn{background:var(--accent);color:#fff;padding:.8rem 2rem;border:none;border-radius:4px;cursor:pointer;font-weight:bold;font-size:1rem;margin-top:1rem;transition:filter .2s}
-        .upload-btn:hover{filter:brightness(1.2)}
-        .upload-btn:disabled{background:var(--sub);cursor:not-allowed}
-
-        /* PDF Viewer */
-        .pdf-viewer{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:2rem}
-        .pdf-viewer h3{margin-top:0}
-        .pdf-container{width:100%;height:600px;border:1px solid var(--border);border-radius:4px;overflow:hidden;background:#333;display:flex;align-items:center;justify-content:center}
-        .pdf-container iframe{width:100%;height:100%;border:none}
-        .pdf-container .placeholder{color:var(--sub);font-size:1.2rem}
-
-        /* Archive List */
-        .archive-section h2{margin-bottom:1rem}
-        .archive-list{display:flex;flex-direction:column;gap:1rem}
-        .archive-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem;display:flex;justify-content:space-between;align-items:center;transition:transform .15s,box-shadow .15s}
-        .archive-item:hover{transform:translateY(-2px);box-shadow:0 4px 12px #0008}
-        .archive-item-info h4{margin:0 0 .5rem 0;font-size:1.1rem}
-        .archive-item-info p{margin:0;color:var(--sub);font-size:.9rem}
-        .archive-item-actions{display:flex;gap:.5rem}
-        .btn-small{padding:.4rem .8rem;border:none;border-radius:4px;cursor:pointer;font-weight:bold;font-size:.85rem;transition:filter .2s}
-        .btn-view{background:var(--accent);color:#fff}
-        .btn-download{background:#28a745;color:#fff}
-        .btn-delete{background:#dc3545;color:#fff}
-        .btn-small:hover{filter:brightness(1.2)}
-
-        /* Messages */
-        .message{padding:1rem;border-radius:4px;margin-bottom:1rem}
-        .message.success{background:#28a74533;border:1px solid #28a745;color:#fff}
-        .message.error{background:#dc354533;border:1px solid #dc3545;color:#fff}
-        .message.info{background:#17a2b833;border:1px solid #17a2b8;color:#fff}
-    </style>
+    /* ---------- EXTRA LAYOUT FOR THIS PAGE ---------- */
+    #viewer{width:100%;height:80vh;border:1px solid var(--border);border-radius:8px;background:#111;margin-bottom:2rem}
+    #archive h2{margin-bottom:1rem;font-size:1.3rem;border-bottom:1px solid var(--border);padding-bottom:.5rem}
+    .archive-item{display:flex;justify-content:space-between;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:.8rem 1rem;margin-bottom:.7rem}
+    .archive-item span{font-size:.9rem;color:var(--sub)}
+    .archive-item a{font-size:.85rem}
+  </style>
 </head>
 <body>
-    <header>
-        <div>
-            <h1>📰 Newspaper Archive</h1>
-            <span>Your digital newspaper collection</span>
-        </div>
-        <div id="stats">
-            <span class="badge mono" id="totalPapers">0</span> newspapers archived
-        </div>
-    </header>
+  <header>
+    <h1>PDF Newspaper Archive</h1>
+    <span>Newest edition always on top</span>
+  </header>
 
-    <main>
-        <!-- Upload Section -->
-        <div class="upload-section">
-            <h2>Upload New Newspaper</h2>
-            <div class="file-input-wrapper">
-                <input type="file" id="pdfUpload" accept=".pdf" />
-                <div class="file-input-button">Choose PDF File</div>
-            </div>
-            <div id="selectedFile" style="color: var(--sub); margin-top: 0.5rem;">No file selected</div>
-            <button class="upload-btn" id="uploadBtn" disabled>Upload Newspaper</button>
-        </div>
+  <main>
+    <!-- Embedded viewer for the latest paper -->
+    <iframe id="viewer" src=""></iframe>
 
-        <!-- Messages -->
-        <div id="messageContainer"></div>
+    <!-- Archive list -->
+    <section id="archive">
+      <h2>Older Editions</h2>
+      <div id="list"></div>
+    </section>
+  </main>
 
-        <!-- Current/Newest Newspaper -->
-        <div class="pdf-viewer" id="currentPaper" style="display: none;">
-            <h3>Latest Edition</h3>
-            <div class="pdf-container" id="pdfContainer">
-                <div class="placeholder">Select a newspaper to view</div>
-            </div>
-        </div>
+  <footer>
+    © <span id="year"></span> – Static archive, no uploads via web.
+  </footer>
 
-        <!-- Archive List -->
-        <div class="archive-section">
-            <h2>Archive</h2>
-            <div class="archive-list" id="archiveList">
-                <p style="color: var(--sub); text-align: center;">No newspapers uploaded yet</p>
-        </div>
-        </div>
-    </main>
+  <script>
+    /* =========================================================
+       1.  ADD / EDIT NEWSPAPERS HERE ONLY
+       ========================================================= */
+    const newspapers = [
+      // Example entries – replace with your own files (relative or absolute URLs)
+      { date: "2025-11-08", file: "papers/2025-11-08.pdf" },
+      { date: "2025-11-01", file: "papers/2025-11-01.pdf" },
+      { date: "2025-10-25", file: "papers/2025-10-25.pdf" }
+    ];
 
-    <footer>
-        <p>© 2024 Newspaper Archive | Built with ❤️ for digital preservation</p>
-    </footer>
+    /* =========================================================
+       2.  RENDER LOGIC (no need to touch)
+       ========================================================= */
+    function render() {
+      const viewer = document.getElementById('viewer');
+      const list   = document.getElementById('list');
 
-    <script>
-        // Data storage
-        let newspapers = JSON.parse(localStorage.getItem('newspapers')) || [];
+      // Sort newest → oldest
+      const sorted = [...newspapers].sort((a,b) => new Date(b.date) - new Date(a.date));
 
-        // DOM elements
-        const fileInput = document.getElementById('pdfUpload');
-        const selectedFileText = document.getElementById('selectedFile');
-        const uploadBtn = document.getElementById('uploadBtn');
-        const messageContainer = document.getElementById('messageContainer');
-        const archiveList = document.getElementById('archiveList');
-        const currentPaper = document.getElementById('currentPaper');
-        const pdfContainer = document.getElementById('pdfContainer');
-        const totalPapers = document.getElementById('totalPapers');
+      // Load newest into viewer
+      if (sorted.length) viewer.src = sorted[0].file;
 
-        // File selection
-        fileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                selectedFileText.textContent = `Selected: ${file.name}`;
-                uploadBtn.disabled = false;
-            } else {
-                selectedFileText.textContent = 'No file selected';
-                uploadBtn.disabled = true;
-            }
-        });
+      // Build archive list
+      list.innerHTML = '';
+      sorted.forEach((paper, idx) => {
+        const div = document.createElement('div');
+        div.className = 'archive-item';
+        div.innerHTML = `
+          <div>
+            <strong>${paper.date}</strong>
+            <span>${idx === 0 ? '<span class="badge">NEWEST</span>' : ''}</span>
+          </div>
+          <a href="${paper.file}" download>Download PDF</a>
+        `;
+        list.appendChild(div);
+      });
+    }
 
-        // Upload functionality
-        uploadBtn.addEventListener('click', () => {
-            const file = fileInput.files[0];
-            if (!file) return;
+    // Footer year
+    document.getElementById('year').textContent = new Date().getFullYear();
 
-            if (file.type !== 'application/pdf') {
-                showMessage('Please select a PDF file', 'error');
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const newspaper = {
-                    id: Date.now(),
-                    name: file.name.replace('.pdf', ''),
-                    date: new Date().toISOString(),
-                    size: formatFileSize(file.size),
-                    data: e.target.result
-                };
-
-                newspapers.unshift(newspaper);
-                localStorage.setItem('newspapers', JSON.stringify(newspapers));
-                
-                showMessage('Newspaper uploaded successfully!', 'success');
-                fileInput.value = '';
-                selectedFileText.textContent = 'No file selected';
-                uploadBtn.disabled = true;
-                
-                renderArchive();
-                viewNewspaper(newspaper.id);
-            };
-
-            reader.readAsDataURL(file);
-        });
-
-        // Format file size
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-        }
-
-        // Show message
-        function showMessage(text, type) {
-            const message = document.createElement('div');
-            message.className = `message ${type}`;
-            message.textContent = text;
-            messageContainer.appendChild(message);
-            
-            setTimeout(() => {
-                message.remove();
-            }, 3000);
-        }
-
-        // View newspaper
-        function viewNewspaper(id) {
-            const paper = newspapers.find(p => p.id === id);
-            if (!paper) return;
-
-            currentPaper.style.display = 'block';
-            pdfContainer.innerHTML = `<iframe src="${paper.data}" title="${paper.name}"></iframe>`;
-            
-            // Scroll to viewer
-            currentPaper.scrollIntoView({ behavior: 'smooth' });
-        }
-
-        // Download newspaper
-        function downloadNewspaper(id) {
-            const paper = newspapers.find(p => p.id === id);
-            if (!paper) return;
-
-            const link = document.createElement('a');
-            link.href = paper.data;
-            link.download = `${paper.name}.pdf`;
-            link.click();
-        }
-
-        // Delete newspaper
-        function deleteNewspaper(id) {
-            if (confirm('Are you sure you want to delete this newspaper?')) {
-                newspapers = newspapers.filter(p => p.id !== id);
-                localStorage.setItem('newspapers', JSON.stringify(newspapers));
-                
-                if (newspapers.length === 0) {
-                    currentPaper.style.display = 'none';
-                }
-                
-                renderArchive();
-                showMessage('Newspaper deleted', 'info');
-            }
-        }
-
-        // Render archive list
-        function renderArchive() {
-            totalPapers.textContent = newspapers.length;
-            
-            if (newspapers.length === 0) {
-                archiveList.innerHTML = '<p style="color: var(--sub); text-align: center;">No newspapers uploaded yet</p>';
-                return;
-            }
-
-            archiveList.innerHTML = newspapers.map((paper, index) => `
-                <div class="archive-item">
-                    <div class="archive-item-info">
-                        <h4>${paper.name} ${index === 0 ? '<span class="badge">NEWEST</span>' : ''}</h4>
-                        <p>📅 ${new Date(paper.date).toLocaleDateString()} | 📦 ${paper.size}</p>
-                    </div>
-                    <div class="archive-item-actions">
-                        <button class="btn-small btn-view" onclick="viewNewspaper(${paper.id})">View</button>
-                        <button class="btn-small btn-download" onclick="downloadNewspaper(${paper.id})">Download</button>
-                        <button class="btn-small btn-delete" onclick="deleteNewspaper(${paper.id})">Delete</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // Initial render
-        renderArchive();
-        
-        // Show newest paper if available
-        if (newspapers.length > 0) {
-            viewNewspaper(newspapers[0].id);
-        }
-    </script>
+    // Initial render
+    render();
+  </script>
 </body>
 </html>

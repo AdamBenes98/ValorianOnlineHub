@@ -4,28 +4,26 @@
   <meta charset="UTF-8">
   <title>PDF Newspaper Archive</title>
   <style>
- /* ==========================================================
-   Medieval-Newspaper reskin – dark parchment & iron
-   ========================================================== */
+
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cinzel+Decorative&display=swap');
 
 :root{
-  /* --- palette --- */
-  --bg:#0c0b08;                 /* almost-black parchment */
-  --card:#14110e;               /* deep wood */
-  --border:#4a3829;             /* old iron / dried ink */
-  --accent:#c03;                /* kept your crimson */
-  --text:#e8dfc8;               /* aged parchment */
-  --sub:#8a7d69;                /* faded ink */
 
-  /* --- type --- */
+  --bg:#0c0b08;                 
+  --card:#14110e;              
+  --border:#4a3829;             
+  --accent:#c03;               
+  --text:#e8dfc8;               
+  --sub:#8a7d69;               
+
+ 
   --gap:1.2rem;
   font-family:"Cinzel", "Palatino Linotype", "Book Antiqua", Palatino, serif;
   font-weight:400;
   letter-spacing:.4px;
 }
 
-/* --- subtle parchment grain --- */
+
 body{
   margin:0;
   background:var(--bg);
@@ -40,7 +38,7 @@ body{
 }
 a{color:var(--accent);text-decoration:none}
 
-/* --- headers --- */
+
 header,footer{
   background:var(--card);
   border-bottom:2px solid var(--accent);
@@ -50,14 +48,14 @@ header{display:flex;align-items:center;justify-content:space-between;padding:1re
 header h1{margin:0;font-size:1.8rem;font-family:"Cinzel Decorative",serif;letter-spacing:2px;text-shadow:1px 1px 2px #000}
 header span{font-weight:300;font-size:.9rem;color:var(--sub)}
 
-/* --- main grid & tiles --- */
+
 main{flex:1;padding:2rem;max-width:1100px;margin:auto;width:100%}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:var(--gap)}
 .tile{
   background:
     linear-gradient(145deg, var(--card) 0%, #1a1612 100%);
   border:1px solid var(--border);
-  border-radius:0;               /* stone-slab feel */
+  border-radius:0;              
   padding:1.5rem 1rem;
   text-align:center;
   transition:transform .15s,box-shadow .15s;
@@ -71,7 +69,7 @@ main{flex:1;padding:2rem;max-width:1100px;margin:auto;width:100%}
 .tile.external::after{content:"⧉";position:absolute;top:.5rem;right:.7rem;font-size:.8rem;opacity:.6}
 .badge{display:inline-block;background:var(--accent);color:#fff;padding:.15rem .35rem;border-radius:0;font-size:.65rem;margin-left:.4rem;font-family:"Cinzel",serif}
 
-/* --- PDF viewer --- */
+
 #viewer{
   width:100%;
   height:80vh;
@@ -82,7 +80,6 @@ main{flex:1;padding:2rem;max-width:1100px;margin:auto;width:100%}
   box-shadow:0 4px 12px #0008;
 }
 
-/* --- archive list --- */
 #archive h2{
   margin-bottom:1rem;
   font-size:1.4rem;
@@ -106,7 +103,7 @@ main{flex:1;padding:2rem;max-width:1100px;margin:auto;width:100%}
 .archive-item span{font-size:.9rem;color:var(--sub)}
 .archive-item a{font-size:.85rem;font-weight:600}
 
-/* --- footer --- */
+
 footer{
   text-align:center;
   padding:1.2rem;
@@ -124,10 +121,10 @@ footer{
   </header>
 
   <main>
-    <!-- Embedded viewer for the latest paper -->
+    
     <iframe id="viewer" src=""></iframe>
 
-    <!-- Archive list -->
+    
     <section id="archive">
       <h2>Older Editions</h2>
       <div id="list"></div>
@@ -139,28 +136,24 @@ footer{
   </footer>
 
   <script>
-    /* =========================================================
-       1. EDIT NEWSPAPERS HERE ONLY
-       ========================================================= */
+   
     const newspapers = [
-      // Example entries – replace with your own files (relative or absolute URLs)
+     //Edit Newspapers here:
       { date: "2025-11-08", file: "Valorian_News_08.11.25.pdf" }
     ];
 
-    /* =========================================================
-       2.  RENDER LOGIC 
-       ========================================================= */
+   
     function render() {
       const viewer = document.getElementById('viewer');
       const list   = document.getElementById('list');
 
-      // Sort newest → oldest
+    
       const sorted = [...newspapers].sort((a,b) => new Date(b.date) - new Date(a.date));
 
-      // Load newest into viewer
+  
       if (sorted.length) viewer.src = sorted[0].file;
 
-      // Build archive list
+   
       list.innerHTML = '';
       sorted.forEach((paper, idx) => {
         const div = document.createElement('div');
@@ -176,10 +169,10 @@ footer{
       });
     }
 
-    // Footer year
+   
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // Initial render
+
     render();
   </script>
 </body>

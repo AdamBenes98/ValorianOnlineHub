@@ -5,32 +5,77 @@
 <title>Valorian Citizenship Course</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-/* ---------- your requested dark theme ---------- */
-:root{
-  --bg:#000;
-  --card:#0a0a0a;
-  --border:#222;
-  --accent:#dc143c;
-  --text:#fff;
-  --sub:#aaa;
-  --gap:1.2rem;
-  font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-}
-* {box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
-a{color:var(--accent);text-decoration:none}
-header,footer{background:var(--card);border-bottom:2px solid var(--accent)}
-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem}
-header h1{margin:0;font-size:1.6rem;letter-spacing:1px}
-header span{font-weight:300;font-size:.9rem;color:var(--sub)}
-main{flex:1;padding:2rem;max-width:900px;margin:auto;width:100%}
-.tile{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.5rem 1rem;text-align:center;transition:transform .15s,box-shadow .15s;cursor:pointer;position:relative}
-.tile:hover{transform:translateY(-4px);box-shadow:0 8px 24px #0008}
-.tile h3{margin:.4rem 0 .2rem;font-size:1.1rem}
-.tile p{font-size:.85rem;color:var(--sub);margin:0}
-footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-bottom:none;border-top:2px solid var(--accent)}
+/* =========================================================
+   Valorian Citizenship Course – medieval parchment & iron
+   ========================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cinzel+Decorative&display=swap');
 
-/* ---------- course extras ---------- */
+:root{
+  /* --- palette --- */
+  --bg:#0c0b08;                 /* almost-black parchment */
+  --card:#14110e;               /* deep wood */
+  --border:#4a3829;             /* old iron rust */
+  --accent:#c03;                /* your crimson */
+  --text:#e8dfc8;               /* aged parchment */
+  --sub:#8a7d69;                /* faded ink */
+
+  /* --- typography --- */
+  --gap:1.2rem;
+  font-family:"Cinzel", "Palatino Linotype", "Book Antiqua", Palatino, serif;
+  font-weight:400;
+  letter-spacing:.4px;
+}
+
+/* --- parchment grain --- */
+body{
+  margin:0;
+  background:var(--bg);
+  background-image:
+    radial-gradient(circle at 25% 25%, #1a1612 1px, transparent 1px),
+    radial-gradient(circle at 75% 75%, #1a1612 1px, transparent 1px);
+  background-size:4px 4px;
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+a{color:var(--accent);text-decoration:none}
+
+/* --- headers --- */
+header,footer{
+  background:var(--card);
+  border-bottom:2px solid var(--accent);
+  box-shadow:0 2px 6px #0006;
+}
+header{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem}
+header h1{margin:0;font-size:1.8rem;font-family:"Cinzel Decorative",serif;letter-spacing:2px;text-shadow:1px 1px 2px #000}
+header span{font-weight:300;font-size:.9rem;color:var(--sub)}
+
+/* --- main grid & tiles --- */
+main{flex:1;padding:2rem;max-width:900px;margin:auto;width:100%}
+.tile{
+  background:linear-gradient(145deg, var(--card) 0%, #1a1612 100%);
+  border:1px solid var(--border);
+  border-radius:0;               /* stone-slab feel */
+  padding:1.5rem 1rem;
+  text-align:center;
+  transition:transform .15s,box-shadow .15s;
+  cursor:pointer;
+  position:relative;
+}
+.tile:hover{transform:translateY(-3px);box-shadow:0 6px 20px #000c}
+.tile h3{margin:.4rem 0 .2rem;font-size:1.1rem;font-weight:600}
+.tile p{font-size:.85rem;color:var(--sub);margin:0}
+footer{
+  text-align:center;
+  padding:1.2rem;
+  font-size:.8rem;
+  color:var(--sub);
+  border-bottom:none;
+  border-top:2px solid var(--accent);
+}
+
+/* --- course extras --- */
 .chapter-content{display:none;animation:fade .4s}
 .chapter-content.active{display:block}
 @keyframes fade{from{opacity:0}to{opacity:1}}
@@ -39,8 +84,23 @@ footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-
 #scoreBoard{margin-top:1rem;font-size:1.2rem}
 .correct{color:#3c3}
 .wrong{color:var(--accent)}
-.progress-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin:1rem 0}
+.progress-bar{height:6px;background:var(--border);border-radius:0;overflow:hidden;margin:1rem 0}
 .progress-bar div{height:100%;background:var(--accent);width:0%;transition:width .3s}
+
+/* --- chapter & quiz buttons --- */
+button{
+  padding:.6rem 1.2rem;
+  border:none;
+  border-radius:0;
+  background:var(--accent);
+  color:#fff;
+  cursor:pointer;
+  font-weight:bold;
+  font-family:"Cinzel",serif;
+  letter-spacing:1px;
+  transition:background .15s;
+}
+button:hover{background:#a02}
 </style>
 </head>
 <body>

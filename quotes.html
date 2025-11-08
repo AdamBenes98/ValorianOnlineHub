@@ -5,80 +5,109 @@
 <title>Random Quote Machine</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-/* ---------- medieval palette ---------- */
+/* --------------------------------------------------
+   Medieval-touch reskin – keeps your original layout
+   -------------------------------------------------- */
 :root{
-  --bg:#0c0b0a;                 /* almost-black parchment */
-  --card:#12100e;               /* deep wood */
-  --border:#3a2e22;             /* old oak */
-  --accent:#8b0000;             /* dried blood / wax seal */
-  --text:#e8e2d9;               /* faded parchment */
-  --sub:#9a8e7e;                /* weathered ink */
+  /* --- palette shift --- */
+  --bg:#0c0b08;                 /* almost-black parchment */
+  --card:#12100d;               /* deep wood */
+  --border:#3d2f1f;             /* old iron rust */
+  --accent:#c03;                /* kept your crimson */
+  --text:#e8dfc8;               /* aged parchment */
+  --sub:#8a7d69;                /* faded ink */
+
+  /* --- typography --- */
   --gap:1.2rem;
-  /* system stack + black-letter spice */
-  font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  font-family:"Cinzel", "Palatino Linotype", "Book Antiqua", Palatino, serif;
+  font-weight:400;
+  letter-spacing:.4px;
 }
 
-/* ---------- subtle stone texture ---------- */
+/* --- subtle parchment grain --- */
 body{
-  background:
-    radial-gradient(ellipse at 50% 0%, rgba(0,0,0,.15) 0%, transparent 70%),
-    repeating-linear-gradient(180deg,
-      var(--bg) 0px, var(--bg) 2px,
-      rgba(0,0,0,.15) 2px, rgba(0,0,0,.15) 4px);
-  background-attachment:fixed;
+  background:var(--bg);
+  background-image:
+    radial-gradient(circle at 25% 25%, #1a1612 1px, transparent 1px),
+    radial-gradient(circle at 75% 75%, #1a1612 1px, transparent 1px);
+  background-size:4px 4px;
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
 }
 
-/* ---------- reset / layout helpers ---------- */
-*{box-sizing:border-box;margin:0}
-body{color:var(--text);min-height:100vh;display:flex;flex-direction:column}
-header,footer{background:var(--card);border-bottom:2px solid var(--accent)}
-header{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 2rem}
-header h1{margin:0;font-size:1.8rem;letter-spacing:2px;font-weight:600}
-header span{font-weight:300;font-size:.85rem;color:var(--sub)}
-main{flex:1;padding:2rem;max-width:720px;margin:auto;width:100%;text-align:center}
-
-/* ---------- quote card ---------- */
-.quote-card{
-  position:relative;
+/* --- headers --- */
+header,footer{
   background:var(--card);
-  border:1px solid var(--border);
-  border-radius:4px;
-  padding:3rem 2.5rem 2.5rem;
-  box-shadow:0 4px 18px #0006;
-  transition:transform .25s,box-shadow .25s;
+  border-bottom:2px solid var(--accent);
+  box-shadow:0 2px 6px #0006;
 }
-.quote-card:hover{transform:translateY(-3px);box-shadow:0 6px 24px #0009}
-/* black-letter initial */
-.quote-text::first-letter{
-  float:left;
-  font-size:3.2rem;
-  line-height:2.8rem;
-  margin:0 .1em 0 0;
-  font-family:"Times New Roman",serif;
-  color:var(--accent);
+header h1{
+  font-family:"Cinzel Decorative", serif;
+  font-size:1.8rem;
+  letter-spacing:2px;
+  text-shadow:1px 1px 2px #000;
 }
-.quote-text{font-size:1.45rem;line-height:1.5;font-style:italic;margin-bottom:1.2rem}
-.quote-author{font-size:1rem;color:var(--accent);font-weight:600;text-align:right}
+header span{font-weight:300;font-size:.9rem;color:var(--sub)}
 
-/* ---------- button ---------- */
+/* --- main card --- */
+main{flex:1;padding:2rem;max-width:700px;margin:auto;width:100%;text-align:center}
+.quote-card{
+  background:
+    linear-gradient(145deg, var(--card) 0%, #1a1612 100%);
+  border:1px solid var(--border);
+  border-radius:0;               /* square, stone-slab feel */
+  padding:2.5rem 2rem 2rem;
+  position:relative;
+  transition:transform .25s, box-shadow .25s;
+  box-shadow:0 4px 12px #0008;
+}
+.quote-card::before, .quote-card::after{
+  content:"";
+  position:absolute;
+  width:40px;height:40px;
+  border:2px solid var(--accent);
+}
+.quote-card::before{top:8px;left:8px;border-right:none;border-bottom:none}
+.quote-card::after{bottom:8px;right:8px;border-left:none;border-top:none}
+
+.quote-card:hover{transform:translateY(-3px);box-shadow:0 6px 20px #000c}
+.quote-text{font-size:1.5rem;line-height:1.45;margin-bottom:1.2rem;font-style:italic}
+.quote-author{font-size:1rem;color:var(--accent);font-weight:600;font-family:"Cinzel",serif}
+
+/* --- iron-button --- */
 button{
-  margin-top:2rem;
+  margin-top:1.8rem;
   padding:.7rem 1.6rem;
   border:none;
-  border-radius:3px;
+  border-radius:0;
   background:var(--accent);
   color:#fff;
   font-weight:bold;
   cursor:pointer;
   font-size:1rem;
-  letter-spacing:.5px;
-  transition:background .2s,transform .1s;
+  font-family:"Cinzel",serif;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  transition:background .15s, transform .15s;
+  box-shadow:0 2px 6px #0008;
 }
-button:hover{background:#a00000}
-button:active{transform:scale(.97)}
+button:hover{background:#a02;transform:translateY(-2px)}
+button:active{transform:translateY(0)}
 
-/* ---------- footer ---------- */
-footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-top:2px solid var(--accent);border-bottom:none}
+/* --- footer --- */
+footer{
+  text-align:center;
+  padding:1.2rem;
+  font-size:.8rem;
+  color:var(--sub);
+  border-bottom:none;
+  border-top:2px solid var(--accent);
+}
+
+/* --- quick Google-font loader (optional) --- */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cinzel+Decorative&display=swap');
 </style>
 </head>
 
@@ -93,7 +122,7 @@ footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-
     <div class="quote-text" id="text">Loading…</div>
     <div class="quote-author" id="author"></div>
   </div>
-  <button onclick="showQuote()">Another one</button>
+  <button onclick="showQuote()">Speak again</button>
 </main>
 
 <footer>

@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valorian Knowledge Trial</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cinzel+Decorative&display=swap');
+
+        :root {
+            --bg: #0c0b08;
+            --card: #14110e;
+            --border: #4a3829;
+            --accent: #c03;
+            --text: #e8dfc8;
+            --sub: #8a7d69;
+            --gap: 1.2rem;
+            font-family: "Cinzel", serif;
+            font-weight: 400;
+            letter-spacing: .4px;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            background-image:
+                radial-gradient(circle at 25% 25%, #1a1612 1px, transparent 1px),
+                radial-gradient(circle at 75% 75%, #1a1612 1px, transparent 1px);
+            background-size: 4px 4px;
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 90%;
+            padding: 2rem;
+            background: linear-gradient(145deg, var(--card) 0%, #1a1612 100%);
+            border: 2px solid var(--border);
+            box-shadow: 0 6px 20px #000c;
+            text-align: center;
+        }
+
+        h1 {
+            font-family: "Cinzel Decorative", serif;
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            text-shadow: 2px 2px 4px #000;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .stat-item {
+            padding: 0.5rem 1rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+        }
+
+        .question-area {
+            min-height: 150px;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+        }
+
+        .question {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .answers {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .answer-btn {
+            padding: 1rem;
+            background: var(--card);
+            border: 2px solid var(--border);
+            color: var(--text);
+            font-family: "Cinzel", serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .answer-btn:hover {
+            background: var(--border);
+            transform: translateY(-2px);
+        }
+
+        .answer-btn.correct {
+            background: #2a4d2a;
+            border-color: #4a7c4a;
+        }
+
+        .answer-btn.wrong {
+            background: #4d2a2a;
+            border-color: #7c4a4a;
+        }
+
+        .timer {
+            font-size: 2rem;
+            color: var(--accent);
+            margin-bottom: 1rem;
+            font-family: "Courier New", monospace;
+        }
+
+        .controls {
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 0.8rem 2rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+            font-family: "Cinzel", serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0 0.5rem;
+        }
+
+        .btn:hover {
+            background: #a00;
+            transform: translateY(-2px);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .game-over {
+            text-align: center;
+        }
+
+        .export-area {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            font-family: "Courier New", monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            text-align: left;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .start-screen p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Valorian Knowledge Trial</h1>
+        
+        <div id="startScreen" class="start-screen">
+            <p>Test your knowledge of Valorian lore! You have 1 minute to answer as many questions as possible. You can only answer incorrectly 3 times. Good luck!</p>
+            <button class="btn" onclick="startGame()">Begin Trial</button>
+        </div>
+
+        <div id="gameScreen" class="hidden">
+            <div class="stats">
+                <div class="stat-item">Score: <span id="score">0</span></div>
+                <div class="stat-item">Lives: <span id="lives">3</span></div>
+                <div class="stat-item">Time: <span id="timer" class="timer">60</span>s</div>
+            </div>
+
+            <div class="question-area">
+                <div id="question" class="question"></div>
+                <div id="answers" class="answers"></div>
+            </div>
+        </div>
+
+        <div id="gameOverScreen" class="game-over hidden">
+            <h2>Trial Complete!</h2>
+            <p>Final Score: <span id="finalScore"></span></p>
+            <p>Questions Answered: <span id="totalQuestions"></span></p>
+            <div class="export-area" id="exportData"></div>
+            <button class="btn" onclick="exportResults()">Export Results</button>
+            <button class="btn" onclick="resetGame()">Try Again</button>
+        </div>
+    </div>
+
+    <script>
+        // Question database based on the uploaded files
+        const questions = [
+            {
+                question: "Who was the silent watcher of Valmyra before humans arrived?",
+                answers: ["Valthar", "Valseran", "Detlef", "Adam"],
+                correct: 0
+            },
+            {
+                question: "What is the name of the geothermal energy source beneath Valmyra?",
+                answers: ["Fire of Valmyra", "Deep Flame", "Earth's Heart", "Valorian Core"],
+                correct: 0
+            },
+            {
+                question: "Who was the first martyr of Valoria?",
+                answers: ["Detlef", "Valseran", "Valthar", "Emperor Adam"],
+                correct: 0
+            },
+            {
+                question: "What was the name of the city founded by the first settlers?",
+                answers: ["Valor", "Valon", "Valoria", "Valmyra"],
+                correct: 0
+            },
+            {
+                question: "Who emerged from the Underground a year after the mine disaster?",
+                answers: ["Valseran", "Valthar", "Detlef", "Adam"],
+                correct: 0
+            },
+            {
+                question: "What is the name of Valoria's currency?",
+                answers: ["Valorian Franc", "Valorian Mark", "Valorian Crown", "Valorian Dollar"],
+                correct: 0
+            },
+            {
+                question: "Who became Emperor of Valoria on December 12, 2024?",
+                answers: ["Adam", "Mutant", "Duayne", "MineKid"],
+                correct: 0
+            },
+            {
+                question: "What are the durable netherite boots called in Valoria?",
+                answers: ["Springerstiefel", "Jump Boots", "Army Boots", "Valorian Boots"],
+                correct: 0
+            },
+            {
+                question: "What is the name of the temple built in the reclaimed Underground?",
+                answers: ["Sanctum of the Deep Flame", "Temple of Ascendant Light", "Underground Cathedral", "Fire Temple"],
+                correct: 0
+            },
+            {
+                question: "Who is considered the spiritual head of the Valorian faith?",
+                answers: ["First Flamekeeper", "Emperor", "Valseran", "High Priest"],
+                correct: 0
+            },
+            {
+                question: "What does 'Rhen-Val' mean in Valorian liturgy?",
+                answers: ["So be it in Valorian", "Praise Valoria", "Valoria forever", "Amen"],
+                correct: 0
+            },
+            {
+                question: "What was the name of Detlef's parents?",
+                answers: ["Elana and Borin", "Maria and John", "Sarah and Thomas", "Lisa and David"],
+                correct: 0
+            },
+            {
+                question: "What event led to Detlef's death?",
+                answers: ["Underground fire", "Cave collapse", "Mining accident", "Gas explosion"],
+                correct: 0
+            },
+            {
+                question: "What is the name of Valoria's intelligence agency?",
+                answers: ["VIS", "NDI", "VSS", "VIA"],
+                correct: 0
+            },
+            {
+                question: "What territory did Valoria sell to the Astari?",
+                answers: ["Valorka", "Alter Hafen", "Frostborne", "Deyvoss"],
+                correct: 0
+            },
+            {
+                question: "What is the significance of the Dawn Vigil?",
+                answers: ["Morning prayer to Valthar", "Sunrise ceremony", "Daily worship", "All of the above"],
+                correct: 3
+            },
+            {
+                question: "What are the three main figures of Valorian faith?",
+                answers: ["Valthar, Detlef, Valseran", "Valthar, Adam, Detlef", "Valseran, Adam, Valthar", "Detlef, Valseran, MineKid"],
+                correct: 0
+            },
+            {
+                question: "What was the period of militarization called?",
+                answers: ["Rüstungs-Phase", "Military Era", "Arms Race", "Defense Phase"],
+                correct: 0
+            },
+            {
+                question: "Who rebuilt Alter Hafen and became Lord?",
+                answers: ["MineKid", "Adam", "Duayne", "Mutant"],
+                correct: 0
+            },
+            {
+                question: "What is the Evening Remembrance ritual for?",
+                answers: ["Detlef's spirit", "Valthar's watch", "Valseran's wisdom", "Daily thanks"],
+                correct: 0
+            },
+            {
+                question: "What does 'Con-Valo' mean?",
+                answers: ["Contra-Valoria", "Pro-Valoria", "Valoria forever", "Valoria united"],
+                correct: 0
+            },
+            {
+                question: "What is the Elite Communion?",
+                answers: ["Direct spiritual communion with Valseran", "Regular prayer", "Temple ceremony", "Imperial decree"],
+                correct: 0
+            },
+            {
+                question: "What are the surface temples called?",
+                answers: ["Temples of Ascendant Light", "Sky Temples", "Light Temples", "Above-ground Sanctuaries"],
+                correct: 0
+            },
+            {
+                question: "What is the role of Hearthtenders?",
+                answers: ["Community guides in villages", "Temple priests", "Flamekeepers", "Scholars"],
+                correct: 0
+            },
+            {
+                question: "What is the Festival of First Light?",
+                answers: ["Anniversary of Valseran's emergence", "New Year celebration", "Spring festival", "Winter solstice"],
+                correct: 0
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let lives = 3;
+        let timeLeft = 60;
+        let gameTimer;
+        let questionStartTime;
+        let results = [];
+        let askedQuestions = [];
+
+        function getRandomQuestion() {
+            let availableQuestions = questions.filter((q, index) => !askedQuestions.includes(index));
+            if (availableQuestions.length === 0) {
+                askedQuestions = [];
+                availableQuestions = questions;
+            }
+            const randomIndex = Math.floor(Math.random() * availableQuestions.length);
+            const questionIndex = questions.indexOf(availableQuestions[randomIndex]);
+            askedQuestions.push(questionIndex);
+            return questions[questionIndex];
+        }
+
+        function startGame() {
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+            document.getElementById('gameOverScreen').classList.add('hidden');
+            
+            currentQuestion = 0;
+            score = 0;
+            lives = 3;
+            timeLeft = 60;
+            results = [];
+            askedQuestions = [];
+            
+            updateStats();
+            loadQuestion();
+            startTimer();
+        }
+
+        function startTimer() {
+            gameTimer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').textContent = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function updateStats() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('lives').textContent = lives;
+        }
+
+        function loadQuestion() {
+            questionStartTime = Date.now();
+            const question = getRandomQuestion();
+            currentQuestion = question;
+            
+            document.getElementById('question').textContent = question.question;
+            
+            const answersDiv = document.getElementById('answers');
+            answersDiv.innerHTML = '';
+            
+            question.answers.forEach((answer, index) => {
+                const button = document.createElement('button');
+                button.className = 'answer-btn';
+                button.textContent = answer;
+                button.onclick = () => selectAnswer(index);
+                answersDiv.appendChild(button);
+            });
+        }
+
+        function selectAnswer(selectedIndex) {
+            const buttons = document.querySelectorAll('.answer-btn');
+            const timeTaken = ((Date.now() - questionStartTime) / 1000).toFixed(2);
+            
+            buttons.forEach(btn => btn.disabled = true);
+            
+            const result = {
+                question: currentQuestion.question,
+                correctAnswer: currentQuestion.answers[currentQuestion.correct],
+                userAnswer: currentQuestion.answers[selectedIndex],
+                timeTaken: timeTaken,
+                correct: selectedIndex === currentQuestion.correct
+            };
+            
+            results.push(result);
+            
+            if (selectedIndex === currentQuestion.correct) {
+                buttons[selectedIndex].classList.add('correct');
+                score++;
+                updateStats();
+                setTimeout(() => {
+                    loadQuestion();
+                }, 1000);
+            } else {
+                buttons[selectedIndex].classList.add('wrong');
+                buttons[currentQuestion.correct].classList.add('correct');
+                lives--;
+                updateStats();
+                
+                if (lives <= 0) {
+                    setTimeout(() => endGame(), 1000);
+                } else {
+                    setTimeout(() => {
+                        loadQuestion();
+                    }, 2000);
+                }
+            }
+        }
+
+        function endGame() {
+            clearInterval(gameTimer);
+            
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('gameOverScreen').classList.remove('hidden');
+            
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('totalQuestions').textContent = results.length;
+            
+            generateExportData();
+        }
+
+        function generateExportData() {
+            let exportText = `VALORIAN KNOWLEDGE TRIAL RESULTS\n`;
+            exportText += `=====================================\n\n`;
+            exportText += `Final Score: ${score}/${results.length}\n`;
+            exportText += `Total Time: ${60 - timeLeft} seconds\n`;
+            exportText += `Accuracy: ${((score / results.length) * 100).toFixed(1)}%\n\n`;
+            exportText += `DETAILED RESULTS:\n`;
+            exportText += `-------------------------------------\n\n`;
+            
+            results.forEach((result, index) => {
+                exportText += `Question ${index + 1}:\n`;
+                exportText += `Q: ${result.question}\n`;
+                exportText += `Your Answer: ${result.userAnswer} ${result.correct ? '✓' : '✗'}\n`;
+                exportText += `Correct Answer: ${result.correctAnswer}\n`;
+                exportText += `Time Taken: ${result.timeTaken} seconds\n`;
+                exportText += `Result: ${result.correct ? 'CORRECT' : 'INCORRECT'}\n\n`;
+            });
+            
+            document.getElementById('exportData').textContent = exportText;
+        }
+
+        function exportResults() {
+            const exportText = document.getElementById('exportData').textContent;
+            const blob = new Blob([exportText], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `valorian_trial_results_${new Date().toISOString().slice(0, 10)}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        function resetGame() {
+            document.getElementById('startScreen').classList.remove('hidden');
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('gameOverScreen').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

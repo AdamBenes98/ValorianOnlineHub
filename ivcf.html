@@ -397,62 +397,157 @@ document.addEventListener('DOMContentLoaded', () => {
 </div>
 
 <script>
-/* =========================  HARDCODED DATA  ========================= */
-const players = [
+<script>
+/* =========================================================
+   SINGLE SOURCE OF TRUTH – ONLY EDIT gameHistory
+   ========================================================= */
+const gameHistory = [
+  /*  Add new games here – and nowhere else.
+      Every property is required. id must be unique (timestamp is fine).
+      date: yyyy-mm-dd  */
   {
-    id: "Beeba", 
-    name: "Beeba", 
-    team: "None", 
-    nation: "Valoria", 
-    ccr: 1143, 
-    tourneys: 0, 
-    gamesWon: 0, 
-    gamesPlayed: 0,
-    bonusEarned: 0,
-    winRate: 0,
-    averageOpponent: 1200,
-    streak: 0,
-    peakRating: 1143,
-    tournamentsWon: [],
-    currentForm: "Stable",
-    // Real calculated stats
-    headToHeadWins: 0,
-    headToHeadLosses: 0,
-    performanceTrend: 50, // 0-100 scale
-    pressureHandling: 75, // 0-100 scale
-    comebackAbility: 60,  // 0-100 scale
-    endgamePerformance: 70 // 0-100 scale
+    id: 20251108_001,
+    player1: "Beeba",
+    player2: "Dwayne",
+    result: "1-0",
+    tournament: "CCWT 2025",
+    date: "2025-11-06"
   },
   {
-    id: "Dwayne",
-    name: "Dwayne",
-    team: "None",
-    nation: "Solar",  
-    ccr: 1503, 
-    tourneys: 0, 
-    gamesWon: 0, 
-    gamesPlayed: 0,
-    bonusEarned: 0,
-    winRate: 0,
-    averageOpponent: 1450,
-    streak: 0,
-    peakRating: 1503,
-    tournamentsWon: [],
-    currentForm: "Improving",
-    // Real calculated stats
-    headToHeadWins: 0,
-    headToHeadLosses: 0,
-    performanceTrend: 65,
-    pressureHandling: 80,
-    comebackAbility: 70,
-    endgamePerformance: 75
+    id: 20251108_002,
+    player1: "Dwayne",
+    player2: "Beeba",
+    result: "0.5-0.5",
+    tournament: "CCWT 2025",
+    date: "2025-11-07"
   }
 ];
 
-// Game history storage
-let gameHistory = JSON.parse(localStorage.getItem('ivcfGames')) || [];
+/*  ----------  player “roster” – only names / teams / nations  ----------  */
+const playerRoster = [
+  { id: "Beeba", name: "Beeba", team: "None", nation: "Valoria" },
+  { id: "Dwayne", name: "Dwayne", team: "None", nation: "Solar"  }
+];
 
-const titleFromCCR = c => c < 1000 ? 'IC' : c < 1400 ? 'AC' : c < 1700 ? 'SCM' : c < 2000 ? 'CCM' : c < 2300 ? 'CIM' : c < 2500 ? 'CE' : 'CEC';
+/*  ----------  utility ----------  */
+const titleFromCCR = c =>
+  c < 1000 ? 'IC' :
+  c < 1400 ? 'AC' :
+  c < 1700 ? 'SCM' :
+  c < 2000 ? 'CCM' :
+  c < 2300 ? 'CIM' :
+  c < 2500 ? 'CE' : 'CEC';
+
+/*  ----------  build full player objects from gameHistory  ----------  */
+function buildPlayersFromHistory() {
+  const base = playerRoster.map(p => ({
+    ...p,
+    ccr: 1200,                 // default – will be overwritten by first rating calc if you want
+    tourneys: 0,
+    gamesPlayed: 0,
+    gamesWon: 0,
+    winRate: 0,
+    averageOpponent: 1200,
+    streak: 0,
+    peakRating: 1200,
+    tournamentsWon: [],
+    currentForm: "Stable",
+    headToHeadWins: 0,
+    headToHeadLosses: 0,
+    performanceTrend: 50,
+    pressureHandling: 75,
+    comebackAbility: 60,
+    endgamePerformance: 70
+  }));
+
+  /* working objects */
+  const map = Object.fromEntries(base.map(p => [p.id, p]));
+
+  /* simple rating calculator (IVCF 2.1) */
+  function newRating(old, opp, result) {   // result: 1 / 0 / 0.5
+    let k = 50;
+    if (old >= 2400) k = 10;
+    else if (old >= 2200) k = 24;
+    else if (old >= 1800) k = 32;
+    else if (old >= 1400) k = 40;
+
+    const e = 1 / (1 + 10 ** ((opp - old) / 400));
+    let delta = k * (result - e);
+    if (result === 1) {
+      const diff = opp - old;
+      if (diff >= 200) delta += 15;
+      else if (diff >= 100) delta += 10;
+      else if (diff >= 50) delta += 5;
+    }
+    return Math.round(old + delta);
+  }
+
+  /* walk through every game chronologically */
+  gameHistory
+    .sort((a, b) => a.date.localeCompare(b.date) || a.id - b.id)
+    .forEach(g => {
+      const p1 = map[g.player1];
+      const p2 = map[g.player2];
+      if (!p1 || !p2) return;
+
+      p1.gamesPlayed++;
+      p2.gamesPlayed++;
+
+      const [s1, s2] = g.result.split('-').map(Number);   // 1-0 → [1,0]
+      const opp1 = p2.ccr;
+      const opp2 = p1.ccr;
+
+      /* update ratings first */
+      p1.ccr = newRating(p1.ccr, opp1, s1);
+      p2.ccr = newRating(p2.ccr, opp2, s2);
+      p1.peakRating = Math.max(p1.peakRating, p1.ccr);
+      p2.peakRating = Math.max(p2.peakRating, p2.ccr);
+
+      /* wins / streaks */
+      if (s1 === 1) {
+        p1.gamesWon++; p1.streak++; p2.streak = 0;
+        p1.headToHeadWins++; p2.headToHeadLosses++;
+      } else if (s2 === 1) {
+        p2.gamesWon++; p2.streak++; p1.streak = 0;
+        p2.headToHeadWins++; p1.headToHeadLosses++;
+      } else {
+        p1.streak = 0; p2.streak = 0;
+      }
+
+      /* tournament counter (simple) */
+      if (!p1.tournamentsWon.includes(g.tournament)) p1.tournamentsWon.push(g.tournament);
+      if (!p2.tournamentsWon.includes(g.tournament)) p2.tournamentsWon.push(g.tournament);
+    });
+
+  /* final pass – win-rates, form, etc. */
+  Object.values(map).forEach(p => {
+    p.winRate = p.gamesPlayed ? Math.round((p.gamesWon / p.gamesPlayed) * 100) : 0;
+    p.tourneys = p.tournamentsWon.length;
+
+    /* last-10-games form */
+    const last10 = gameHistory.filter(g => g.player1 === p.id || g.player2 === p.id).slice(-10);
+    let recentWins = 0;
+    last10.forEach(g => {
+      const [s1, s2] = g.result.split('-').map(Number);
+      if ((g.player1 === p.id && s1 === 1) || (g.player2 === p.id && s2 === 1)) recentWins++;
+    });
+    p.performanceTrend = last10.length ? Math.round((recentWins / last10.length) * 100) : 50;
+  });
+
+  return Object.values(map);
+}
+
+/*  ----------  expose the dynamic list as “players” to the rest of the file  ----------  */
+const players = buildPlayersFromHistory();
+
+/*  ----------  keep localStorage in sync (optional)  ----------  */
+localStorage.setItem('ivcfGames', JSON.stringify(gameHistory));
+
+/*  ----------  remove “Game Manager” from nav (keep hidden)  ----------  */
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.ivcf-nav a[data-ipage="games"]').forEach(el => el.remove());
+});
+</script>
 
 /* =========================  RANKING TABLE  ========================= */
 function buildRanking() {

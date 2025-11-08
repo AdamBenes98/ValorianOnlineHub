@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/3.0.3/plotly.min.js  "></script>
 <style>
-/* (LOADED YOUR ORIGINAL CSS — unchanged) */
+
 :root{
   --bg:#000;
   --card:#0a0a0a;
@@ -39,7 +39,7 @@ footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-
 .badge{display:inline-block;background:var(--accent);color:#fff;padding:.15rem .35rem;border-radius:4px;font-size:.65rem;margin-left:.4rem}
 .mono{font-family:monospace}
 
-/* IVCF STYLES */
+
 .ivcf-page{background:var(--bg);color:var(--text);display:none}
 .ivcf-page.active{display:block}
 .ivcf-header{background:#1e1e1e;border-bottom:2px solid var(--secondary);padding:1rem 2rem;display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap}
@@ -62,7 +62,7 @@ footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-
 .ivcf-button{background:var(--secondary);color:#000;cursor:pointer;font-weight:bold;transition:all .3s ease}
 .ivcf-button:hover{filter:brightness(1.15);transform:translateY(-1px)}
 
-/* Comparison Styles */
+
 .comparison-container{display:grid;grid-template-columns:1fr 2fr 1fr;gap:2rem;align-items:start;margin-top:2rem}
 .player-card{background:linear-gradient(135deg,#1e1e1e,#2a2a2a);border:1px solid var(--border);border-radius:12px;padding:2rem;text-align:center;position:relative;overflow:hidden;transition:all .3s ease}
 .player-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--accent),var(--secondary))}
@@ -77,7 +77,7 @@ footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-
 .metric-value{font-size:1.3rem;font-weight:700;margin-bottom:.5rem;color:var(--secondary)}
 .metric-label{font-size:.85rem;color:var(--sub)}
 
-/* Power Bars - Pushing Against Each Other */
+
 .power-bars-container{background:#1e1e1e;border:1px solid var(--border);border-radius:12px;padding:2rem;margin:2rem 0}
 .power-bars-container h3{color:var(--secondary);margin-bottom:1.5rem;text-align:center}
 .power-bar-item{margin-bottom:2rem}
@@ -90,30 +90,30 @@ footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-
 .power-bar-fill.player2{background:linear-gradient(90deg,var(--secondary),#3742fa);color:#000}
 .power-bar-center{min-width:60px;text-align:center;font-weight:600;color:var(--secondary)}
 
-/* Radar Chart */
+
 .radar-container{background:#1e1e1e;border:1px solid var(--border);border-radius:12px;padding:2rem;margin:2rem 0}
 .radar-container h3{color:var(--secondary);margin-bottom:1rem;text-align:center}
 
-/* Battle Arena */
+
 .battle-arena{background:linear-gradient(135deg,#2d3748,#4a5568);border:1px solid var(--border);border-radius:12px;padding:2rem;margin:2rem 0;text-align:center;position:relative;overflow:hidden}
 .battle-arena::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle,rgba(255,255,255,.05) 0%,transparent 70%);animation:battleGlow 4s infinite alternate}
 @keyframes battleGlow{0%{transform:scale(1) rotate(0deg)}100%{transform:scale(1.1) rotate(180deg)}}
 .battle-title{font-size:2rem;font-weight:700;margin-bottom:1rem;position:relative;z-index:1;color:var(--text)}
 .battle-outcome{font-size:1.2rem;font-weight:600;padding:1.5rem;background:rgba(255,255,255,.1);border-radius:8px;margin-top:1rem;position:relative;z-index:1;color:var(--text)}
 
-/* Statistical Analysis */
+
 .statistical-analysis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;margin-top:2rem}
 .stat-card{background:linear-gradient(135deg,var(--accent),#ff4757);color:#fff;padding:1.5rem;border-radius:12px;text-align:center;box-shadow:0 10px 20px rgba(0,0,0,.3)}
 .stat-value{font-size:1.8rem;font-weight:700;margin-bottom:.5rem}
 .stat-label{font-size:.9rem;opacity:.9}
 
-/* Compare Selectors */
+
 .compare-selectors{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem}
 .compare-selectors select{padding:1rem;border:1px solid var(--border);border-radius:8px;font-size:1rem;font-weight:500;background:#222;color:var(--text);cursor:pointer;transition:all .3s ease}
 .compare-selectors select:hover{border-color:var(--secondary)}
 .compare-selectors select:focus{outline:none;border-color:var(--secondary)}
 
-/* Game Management */
+
 .game-management{background:#1e1e1e;border:1px solid var(--border);border-radius:12px;padding:2rem;margin:2rem 0}
 .game-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1.5rem}
 .game-list{max-height:400px;overflow-y:auto;border:1px solid var(--border);border-radius:8px}
@@ -125,7 +125,7 @@ footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-
 .result-loss{background:var(--accent);color:#000}
 .result-draw{background:var(--warning);color:#000}
 
-/* Responsive */
+
 @media (max-width: 768px) {
 .comparison-container{grid-template-columns:1fr;gap:1.5rem}
 .compare-selectors{grid-template-columns:1fr}
@@ -154,7 +154,7 @@ footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-
   </div>
 
   <div class="ivcf-main">
-    <!-- HOME -->
+  
     <section id="ivcf-home" class="ivcf-section active">
       <div class="ivcf-card">
         <h2>Welcome to IVCF 2.0 Hub</h2>
@@ -167,7 +167,7 @@ footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-
       </div>
     </section>
 
-    <!-- RANKINGS -->
+   
     <section id="ivcf-ranking" class="ivcf-section">
       <div class="ivcf-card">
         <h2>Live Rankings</h2>
@@ -181,7 +181,6 @@ footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-
       </table>
     </section>
 
-    <!-- COMPARE -->
     <section id="ivcf-compare" class="ivcf-section">
       <div class="ivcf-card">
         <h2>Advanced Player Comparison</h2>
@@ -235,7 +234,7 @@ footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-
       </div>
     </section>
 
-<!-- GAME MANAGER  –  HIDDEN FROM USERS, CODE-ONLY INPUT -->
+
 <section id="ivcf-games" class="ivcf-section" style="display:none">
   <div class="ivcf-card">
     <h2>Game Management (Code-Only)</h2>
@@ -244,7 +243,7 @@ footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-
       Games can <strong>only</strong> be added or edited directly in the source code.
     </p>
 
-    <!--  READ-ONLY GAME LIST  -->
+  
     <h3>Recorded Games</h3>
     <div class="game-list" id="gameList">
       <div style="padding: 2rem; text-align: center; color: var(--sub);">
@@ -252,7 +251,7 @@ footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-
       </div>
     </div>
 
-    <!--  ADMIN INSTRUCTIONS  -->
+    
     <div class="ivcf-card" style="margin-top:1.5rem">
       <h3>For Administrators</h3>
       <p>To add a result, open this file in any editor and append an object to the
@@ -272,15 +271,14 @@ defaultGameHistory.push({
   </div>
 </section>
 
-<!--  REMOVE THE MENU ITEM  -->
+
 <script>
-/* =====  REMOVE “Game Manager” FROM THE NAVIGATION  ===== */
 document.addEventListener('DOMContentLoaded', () => {
   const navLinks = document.querySelectorAll('.ivcf-nav a[data-ipage="games"]');
   navLinks.forEach(link => link.remove());
 });
 </script>
-    <!-- EVENTS -->
+   
     <section id="ivcf-events" class="ivcf-section">
       <div class="ivcf-card">
         <h2>Upcoming Events</h2>
@@ -293,7 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     </section>
 
-    <!-- RULES -->
+   
     <section id="ivcf-rules" class="ivcf-section">
       <div class="ivcf-card">
         <h2>Quick-Reference Rules</h2>
@@ -331,7 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     </section>
 
-    <!-- RATING CALCULATOR -->
+   
     <section id="ivcf-calc" class="ivcf-section">
       <div class="ivcf-card">
         <h2>Rating Calculator</h2>
@@ -378,7 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     </section>
 
-    <!-- RESULTS -->
+    
     <section id="ivcf-results" class="ivcf-section">
       <div class="ivcf-card">
         <h2>Event Results</h2>
@@ -398,7 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </div>
 
 <script>
-/* =========================  HARDCODED PLAYERS  ========================= */
+//Players List
 const players = [
   {
     id: "Beeba",
@@ -422,11 +420,9 @@ const players = [
 
 const titleFromCCR = c => c < 1000 ? 'IC' : c < 1400 ? 'AC' : c < 1700 ? 'SCM' : c < 2000 ? 'CCM' : c < 2300 ? 'CIM' : c < 2500 ? 'CE' : 'CEC';
 
-/* =========================  HARDCODED GAME HISTORY (EDIT HERE)  =========================
-   Edit this array directly in the source. Each entry must include:
-     id (unique), player1 (first player id), player2, result ("1-0", "0-1" or "0.5-0.5"), tournament, date ("yyyy-mm-dd").
-   All comparison and ranking stats are computed from this data.
-   ========================================================================= */
+
+   //Edit this array directly in the source. Each entry must include:
+  //id (unique), player1 (first player id), player2, result ("1-0", "0-1" or "0.5-0.5"), tournament, date ("yyyy-mm-dd").
 const defaultGameHistory = [
   // sample entries — edit/delete/add as you like
   { id: 1001, player1: "Beeba", player2: "Dwayne", result: "0-1", tournament: "Friendly", date: "2025-10-20" },
@@ -434,12 +430,10 @@ const defaultGameHistory = [
   { id: 1003, player1: "Beeba", player2: "Dwayne", result: "0-1", tournament: "Friendly", date: "2025-11-01" }
 ];
 
-/* If you prefer to use localStorage to persist changes after deleting from UI,
-   they will be saved to localStorage; but defaultGameHistory is the authoritative
-   source that you should edit in the file itself (per your request). */
+
 let gameHistory = defaultGameHistory.length ? defaultGameHistory.slice() : (JSON.parse(localStorage.getItem('ivcfGames')) || []);
 
-/* =========================  INTERNALS: computed stats (initialized later)  ========================= */
+
 function resetPlayerStats() {
   players.forEach(player => {
     player.gamesPlayed = 0;
@@ -449,11 +443,11 @@ function resetPlayerStats() {
     player.headToHeadWins = 0;
     player.headToHeadLosses = 0;
     player.performanceTrend = 50;
-    player.games = []; // store game ids for trend calculation if needed
+    player.games = []; 
   });
 }
 
-/* =========================  RANKING TABLE  ========================= */
+//Ranking
 function buildRanking() {
   // compute derived title from CCR and sort by CCR desc
   const list = players.map(p => {
@@ -481,7 +475,7 @@ function buildRanking() {
   });
 }
 
-/* quick search */
+
 document.getElementById('rankSearch').addEventListener('input', e => {
   const q = e.target.value.toLowerCase();
   document.querySelectorAll('#rankTable tbody tr').forEach(row => {
@@ -489,7 +483,7 @@ document.getElementById('rankSearch').addEventListener('input', e => {
   });
 });
 
-/* =========================  NAVIGATION  ========================= */
+
 document.querySelectorAll('.ivcf-nav a[data-ipage]').forEach(a => {
   a.addEventListener('click', ev => {
     ev.preventDefault();
@@ -501,7 +495,7 @@ document.querySelectorAll('.ivcf-nav a[data-ipage]').forEach(a => {
   });
 });
 
-/* =========================  COMPARE TOOL  ========================= */
+
 const leftSel = document.getElementById('leftPick');
 const rightSel = document.getElementById('rightPick');
 const comparisonContent = document.getElementById('comparisonContent');
@@ -801,14 +795,14 @@ function renderCompare() {
 
 [leftSel, rightSel].forEach(sel => sel.addEventListener('change', renderCompare));
 
-/* =========================  GAME MANAGEMENT (UI hidden — code-only editing)  ========================= */
 
-/* Safe fill for optional admin form selectors — only if they exist in the DOM */
+
+
 function fillGameSelectors() {
   const gamePlayer1 = document.getElementById('gamePlayer1');
   const gamePlayer2 = document.getElementById('gamePlayer2');
   if (!gamePlayer1 || !gamePlayer2) return;
-  // clear old
+ 
   while (gamePlayer1.options.length > 0) gamePlayer1.remove(0);
   while (gamePlayer2.options.length > 0) gamePlayer2.remove(0);
   players.forEach(p => {
@@ -818,7 +812,7 @@ function fillGameSelectors() {
 }
 fillGameSelectors();
 
-/* Add game from UI — only active if you create the form controls */
+
 function addGame() {
   const player1IdEl = document.getElementById('gamePlayer1');
   const player2IdEl = document.getElementById('gamePlayer2');
@@ -842,7 +836,7 @@ function addGame() {
   gameHistory.push(game);
   localStorage.setItem('ivcfGames', JSON.stringify(gameHistory));
   recalculateAllStatsAndRefresh();
-  // clear form if present
+
   player1IdEl.value = '';
   player2IdEl.value = '';
   resultEl.value = '';
@@ -875,7 +869,7 @@ function updatePlayerStats(game) {
     p2.headToHeadWins = (p2.headToHeadWins || 0) + 1;
     p1.headToHeadLosses = (p1.headToHeadLosses || 0) + 1;
   } else {
-    // draw resets streaks (your original logic)
+ 
     p1.streak = 0;
     p2.streak = 0;
   }
@@ -943,22 +937,22 @@ function renderGameList() {
 function deleteGame(gameId) {
   if (!confirm('Are you sure you want to delete this game?')) return;
   gameHistory = gameHistory.filter(g => g.id !== gameId);
-  // persist to localStorage to survive reloads — defaultGameHistory remains authoritative in the source
+ 
   localStorage.setItem('ivcfGames', JSON.stringify(gameHistory));
   recalculateAllStatsAndRefresh();
 }
 
-/* Recalculate stats from full gameHistory (used on load and after deletes/edits) */
+
 function recalculateAllStatsAndRefresh() {
   resetPlayerStats();
-  // Important: process games in chronological order (by date) so streaks make sense
+ 
   const sortedGames = gameHistory.slice().sort((a,b) => {
-    // compare by date (yyyy-mm-dd), fallback to id
+   
     if (a.date && b.date) return a.date.localeCompare(b.date);
     return a.id - b.id;
   });
   sortedGames.forEach(game => updatePlayerStats(game));
-  // ensure numeric values exist
+
   players.forEach(p => {
     p.gamesPlayed = p.gamesPlayed || 0;
     p.gamesWon = p.gamesWon || 0;
@@ -967,12 +961,12 @@ function recalculateAllStatsAndRefresh() {
   });
   buildRanking();
   renderGameList();
-  // refresh selects/compare if open
+
   fillSelects();
   renderCompare();
 }
 
-/* =========================  CALCULATOR  ========================= */
+
 function calcRating() {
   const old = +document.getElementById('cOld').value;
   const opp = +document.getElementById('cOpp').value;
@@ -1017,18 +1011,18 @@ function firstCCR() {
     `Starting CCR: ${start} (use this as "old" in the rating calculator)`;
 }
 
-/* =========================  INITIALIZATION ON LOAD  ========================= */
+
 document.addEventListener('DOMContentLoaded', () => {
-  // If localStorage has saved games from UI deletes/edits, merge if defaultGameHistory is empty
+ 
   try {
     const saved = JSON.parse(localStorage.getItem('ivcfGames')) || [];
     if (!defaultGameHistory.length && saved.length) {
       gameHistory = saved.slice();
     }
   } catch (e) {
-    // ignore invalid saved data
+  
   }
-  // compute all stats from gameHistory (hard-coded)
+  
   recalculateAllStatsAndRefresh();
 });
 </script>

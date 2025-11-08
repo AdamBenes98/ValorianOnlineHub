@@ -5,54 +5,80 @@
 <title>Random Quote Machine</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-/* ---------- your original palette ---------- */
+/* ---------- medieval palette ---------- */
 :root{
-  --bg:#000;
-  --card:#0a0a0a;
-  --border:#222;
-  --accent:#dc143c;
-  --text:#fff;
-  --sub:#aaa;
+  --bg:#0c0b0a;                 /* almost-black parchment */
+  --card:#12100e;               /* deep wood */
+  --border:#3a2e22;             /* old oak */
+  --accent:#8b0000;             /* dried blood / wax seal */
+  --text:#e8e2d9;               /* faded parchment */
+  --sub:#9a8e7e;                /* weathered ink */
   --gap:1.2rem;
+  /* system stack + black-letter spice */
   font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
 }
+
+/* ---------- subtle stone texture ---------- */
+body{
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(0,0,0,.15) 0%, transparent 70%),
+    repeating-linear-gradient(180deg,
+      var(--bg) 0px, var(--bg) 2px,
+      rgba(0,0,0,.15) 2px, rgba(0,0,0,.15) 4px);
+  background-attachment:fixed;
+}
+
 /* ---------- reset / layout helpers ---------- */
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+*{box-sizing:border-box;margin:0}
+body{color:var(--text);min-height:100vh;display:flex;flex-direction:column}
 header,footer{background:var(--card);border-bottom:2px solid var(--accent)}
-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem}
-header h1{margin:0;font-size:1.6rem;letter-spacing:1px}
-header span{font-weight:300;font-size:.9rem;color:var(--sub)}
-main{flex:1;padding:2rem;max-width:700px;margin:auto;width:100%;text-align:center}
-/* ---------- card that holds the quote ---------- */
+header{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 2rem}
+header h1{margin:0;font-size:1.8rem;letter-spacing:2px;font-weight:600}
+header span{font-weight:300;font-size:.85rem;color:var(--sub)}
+main{flex:1;padding:2rem;max-width:720px;margin:auto;width:100%;text-align:center}
+
+/* ---------- quote card ---------- */
 .quote-card{
+  position:relative;
   background:var(--card);
   border:1px solid var(--border);
-  border-radius:8px;
-  padding:2.5rem 2rem;
-  position:relative;
-  transition:transform .2s,box-shadow .2s;
+  border-radius:4px;
+  padding:3rem 2.5rem 2.5rem;
+  box-shadow:0 4px 18px #0006;
+  transition:transform .25s,box-shadow .25s;
 }
-.quote-card:hover{transform:translateY(-4px);box-shadow:0 8px 24px #0008}
-.quote-text{font-size:1.4rem;line-height:1.4;margin-bottom:1rem;font-style:italic}
-.quote-author{font-size:1rem;color:var(--accent);font-weight:600}
+.quote-card:hover{transform:translateY(-3px);box-shadow:0 6px 24px #0009}
+/* black-letter initial */
+.quote-text::first-letter{
+  float:left;
+  font-size:3.2rem;
+  line-height:2.8rem;
+  margin:0 .1em 0 0;
+  font-family:"Times New Roman",serif;
+  color:var(--accent);
+}
+.quote-text{font-size:1.45rem;line-height:1.5;font-style:italic;margin-bottom:1.2rem}
+.quote-author{font-size:1rem;color:var(--accent);font-weight:600;text-align:right}
+
 /* ---------- button ---------- */
 button{
-  margin-top:1.8rem;
-  padding:.6rem 1.4rem;
+  margin-top:2rem;
+  padding:.7rem 1.6rem;
   border:none;
-  border-radius:4px;
+  border-radius:3px;
   background:var(--accent);
   color:#fff;
   font-weight:bold;
   cursor:pointer;
   font-size:1rem;
   letter-spacing:.5px;
-  transition:filter .15s;
+  transition:background .2s,transform .1s;
 }
-button:hover{filter:brightness(1.15)}
+button:hover{background:#a00000}
+button:active{transform:scale(.97)}
+
 /* ---------- footer ---------- */
-footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-bottom:none;border-top:2px solid var(--accent)}
+footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-top:2px solid var(--accent);border-bottom:none}
 </style>
 </head>
 

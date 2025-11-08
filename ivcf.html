@@ -6,6 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/3.0.3/plotly.min.js  "></script>
 <style>
+/* (LOADED YOUR ORIGINAL CSS — unchanged) */
 :root{
   --bg:#000;
   --card:#0a0a0a;
@@ -255,9 +256,9 @@ footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-
     <div class="ivcf-card" style="margin-top:1.5rem">
       <h3>For Administrators</h3>
       <p>To add a result, open this file in any editor and append an object to the
-      <code class="mono">gameHistory</code> array (already declared near the top of the script):</p>
+      <code class="mono">defaultGameHistory</code> array (already declared near the top of the script):</p>
       <pre style="background:#222;padding:1rem;border-radius:4px;overflow:auto">
-gameHistory.push({
+defaultGameHistory.push({
   id: Date.now(),                       // unique numeric id
   player1: "Beeba",                     // id of white/first player
   player2: "Dwayne",                    // id of black/second player
@@ -397,66 +398,70 @@ document.addEventListener('DOMContentLoaded', () => {
 </div>
 
 <script>
-/* =========================  HARDCODED DATA  ========================= */
+/* =========================  HARDCODED PLAYERS  ========================= */
 const players = [
   {
-    id: "Beeba", 
-    name: "Beeba", 
-    team: "None", 
-    nation: "Valoria", 
-    ccr: 1143, 
-    tourneys: 0, 
-    gamesWon: 0, 
-    gamesPlayed: 0,
-    bonusEarned: 0,
-    winRate: 0,
-    averageOpponent: 1200,
-    streak: 0,
-    peakRating: 1143,
+    id: "Beeba",
+    name: "Beeba",
+    team: "None",
+    nation: "Valoria",
+    ccr: 1143,
     tournamentsWon: [],
-    currentForm: "Stable",
-    // Real calculated stats
-    headToHeadWins: 0,
-    headToHeadLosses: 0,
-    performanceTrend: 50, // 0-100 scale
-    pressureHandling: 75, // 0-100 scale
-    comebackAbility: 60,  // 0-100 scale
-    endgamePerformance: 70 // 0-100 scale
+    bonusEarned: 0
   },
   {
     id: "Dwayne",
     name: "Dwayne",
     team: "None",
-    nation: "Solar",  
-    ccr: 1503, 
-    tourneys: 0, 
-    gamesWon: 0, 
-    gamesPlayed: 0,
-    bonusEarned: 0,
-    winRate: 0,
-    averageOpponent: 1450,
-    streak: 0,
-    peakRating: 1503,
+    nation: "Solar",
+    ccr: 1503,
     tournamentsWon: [],
-    currentForm: "Improving",
-    // Real calculated stats
-    headToHeadWins: 0,
-    headToHeadLosses: 0,
-    performanceTrend: 65,
-    pressureHandling: 80,
-    comebackAbility: 70,
-    endgamePerformance: 75
+    bonusEarned: 0
   }
 ];
 
-// Game history storage
-let gameHistory = JSON.parse(localStorage.getItem('ivcfGames')) || [];
-
 const titleFromCCR = c => c < 1000 ? 'IC' : c < 1400 ? 'AC' : c < 1700 ? 'SCM' : c < 2000 ? 'CCM' : c < 2300 ? 'CIM' : c < 2500 ? 'CE' : 'CEC';
+
+/* =========================  HARDCODED GAME HISTORY (EDIT HERE)  =========================
+   Edit this array directly in the source. Each entry must include:
+     id (unique), player1 (first player id), player2, result ("1-0", "0-1" or "0.5-0.5"), tournament, date ("yyyy-mm-dd").
+   All comparison and ranking stats are computed from this data.
+   ========================================================================= */
+const defaultGameHistory = [
+  // sample entries — edit/delete/add as you like
+  { id: 1001, player1: "Beeba", player2: "Dwayne", result: "1-0", tournament: "Friendly", date: "2025-10-20" },
+  { id: 1002, player1: "Dwayne", player2: "Beeba", result: "0.5-0.5", tournament: "CCWT Qual", date: "2025-10-25" },
+  { id: 1003, player1: "Beeba", player2: "Dwayne", result: "0-1", tournament: "Friendly", date: "2025-11-01" }
+];
+
+/* If you prefer to use localStorage to persist changes after deleting from UI,
+   they will be saved to localStorage; but defaultGameHistory is the authoritative
+   source that you should edit in the file itself (per your request). */
+let gameHistory = defaultGameHistory.length ? defaultGameHistory.slice() : (JSON.parse(localStorage.getItem('ivcfGames')) || []);
+
+/* =========================  INTERNALS: computed stats (initialized later)  ========================= */
+function resetPlayerStats() {
+  players.forEach(player => {
+    player.gamesPlayed = 0;
+    player.gamesWon = 0;
+    player.winRate = 0;
+    player.streak = 0;
+    player.headToHeadWins = 0;
+    player.headToHeadLosses = 0;
+    player.performanceTrend = 50;
+    player.games = []; // store game ids for trend calculation if needed
+  });
+}
 
 /* =========================  RANKING TABLE  ========================= */
 function buildRanking() {
-  const list = players.map(p => ({...p, title: titleFromCCR(p.ccr)})).sort((a, b) => b.ccr - a.ccr);
+  // compute derived title from CCR and sort by CCR desc
+  const list = players.map(p => {
+    const copy = {...p};
+    copy.title = titleFromCCR(copy.ccr);
+    return copy;
+  }).sort((a, b) => b.ccr - a.ccr);
+
   const tbody = document.querySelector('#rankTable tbody');
   tbody.innerHTML = '';
   list.forEach((p, i) => {
@@ -475,8 +480,8 @@ function buildRanking() {
     tbody.appendChild(tr);
   });
 }
-buildRanking();
 
+/* quick search */
 document.getElementById('rankSearch').addEventListener('input', e => {
   const q = e.target.value.toLowerCase();
   document.querySelectorAll('#rankTable tbody tr').forEach(row => {
@@ -502,6 +507,12 @@ const rightSel = document.getElementById('rightPick');
 const comparisonContent = document.getElementById('comparisonContent');
 
 function fillSelects() {
+  // clear any existing options besides placeholder
+  [leftSel, rightSel].forEach(sel => {
+    // remove existing options except first
+    while (sel.options.length > 1) sel.remove(1);
+  });
+
   players.forEach(p => {
     leftSel.insertAdjacentHTML('beforeend', `<option value="${p.id}">${p.name} (${p.ccr})</option>`);
     rightSel.insertAdjacentHTML('beforeend', `<option value="${p.id}">${p.name} (${p.ccr})</option>`);
@@ -513,31 +524,11 @@ function createPowerBars(leftPlayer, rightPlayer) {
   const powerBars = document.getElementById('powerBars');
   
   const metrics = [
-    { 
-      label: 'Rating Power', 
-      left: Math.min((leftPlayer.ccr / 3000) * 100, 100), 
-      right: Math.min((rightPlayer.ccr / 3000) * 100, 100) 
-    },
-    { 
-      label: 'Win Rate Dominance', 
-      left: leftPlayer.winRate, 
-      right: rightPlayer.winRate 
-    },
-    { 
-      label: 'Experience Factor', 
-      left: Math.min((leftPlayer.gamesPlayed / 200) * 100, 100), 
-      right: Math.min((rightPlayer.gamesPlayed / 200) * 100, 100) 
-    },
-    { 
-      label: 'Current Streak Power', 
-      left: Math.min((leftPlayer.streak / 20) * 100, 100), 
-      right: Math.min((rightPlayer.streak / 20) * 100, 100) 
-    },
-    { 
-      label: 'Tournament Success', 
-      left: Math.min((leftPlayer.tournamentsWon.length / 5) * 100, 100), 
-      right: Math.min((rightPlayer.tournamentsWon.length / 5) * 100, 100) 
-    }
+    { label: 'Rating Power', left: Math.min((leftPlayer.ccr / 3000) * 100, 100), right: Math.min((rightPlayer.ccr / 3000) * 100, 100) },
+    { label: 'Win Rate Dominance', left: leftPlayer.winRate, right: rightPlayer.winRate },
+    { label: 'Experience Factor', left: Math.min((leftPlayer.gamesPlayed / 200) * 100, 100), right: Math.min((rightPlayer.gamesPlayed / 200) * 100, 100) },
+    { label: 'Current Streak Power', left: Math.min((leftPlayer.streak / 20) * 100, 100), right: Math.min((rightPlayer.streak / 20) * 100, 100) },
+    { label: 'Tournament Success', left: Math.min((leftPlayer.tournamentsWon ? leftPlayer.tournamentsWon.length : 0) / 5 * 100, 100), right: Math.min((rightPlayer.tournamentsWon ? rightPlayer.tournamentsWon.length : 0) / 5 * 100, 100) }
   ];
 
   powerBars.innerHTML = metrics.map(metric => {
@@ -550,15 +541,11 @@ function createPowerBars(leftPlayer, rightPlayer) {
         <div class="power-bar-label">${metric.label}</div>
         <div class="power-bar-wrapper">
           <div class="power-bar-player1">
-            <div class="power-bar-fill player1" style="width: ${leftPercent}%; margin-left: ${100 - leftPercent}%;">
-              ${Math.round(metric.left)}%
-            </div>
+            <div class="power-bar-fill player1" style="width: ${leftPercent}%; margin-left: ${100 - leftPercent}%;">${Math.round(metric.left)}%</div>
           </div>
           <div class="power-bar-center">VS</div>
           <div class="power-bar-player2">
-            <div class="power-bar-fill player2" style="width: ${rightPercent}%;">
-              ${Math.round(metric.right)}%
-            </div>
+            <div class="power-bar-fill player2" style="width: ${rightPercent}%;">${Math.round(metric.right)}%</div>
           </div>
         </div>
       </div>
@@ -567,7 +554,6 @@ function createPowerBars(leftPlayer, rightPlayer) {
 }
 
 function createRadarChart(leftPlayer, rightPlayer) {
-  // Calculate real statistics from game data
   const leftStats = calculatePlayerStatsFromGames(leftPlayer.id);
   const rightStats = calculatePlayerStatsFromGames(rightPlayer.id);
   
@@ -607,23 +593,11 @@ function createRadarChart(leftPlayer, rightPlayer) {
 
   const layout = {
     polar: {
-      radialaxis: {
-        visible: true,
-        range: [0, 100],
-        tickfont: { size: 12, color: '#aaa' }
-      },
-      angularaxis: {
-        tickfont: { color: '#fff' }
-      }
+      radialaxis: { visible: true, range: [0, 100], tickfont: { size: 12, color: '#aaa' } },
+      angularaxis: { tickfont: { color: '#fff' } }
     },
     showlegend: true,
-    legend: {
-      x: 0.5,
-      y: -0.1,
-      xanchor: 'center',
-      orientation: 'h',
-      font: { color: '#fff' }
-    },
+    legend: { x: 0.5, y: -0.1, xanchor: 'center', orientation: 'h', font: { color: '#fff' } },
     font: { family: 'system-ui, sans-serif', color: '#fff' },
     paper_bgcolor: 'rgba(0,0,0,0)',
     plot_bgcolor: 'rgba(0,0,0,0)'
@@ -638,62 +612,37 @@ function calculatePlayerStatsFromGames(playerId) {
   );
   
   if (playerGames.length === 0) {
-    return {
-      pressureHandling: 75,
-      comebackAbility: 60,
-      endgamePerformance: 70
-    };
+    return { pressureHandling: 75, comebackAbility: 60, endgamePerformance: 70 };
   }
   
-  let wins = 0;
-  let losses = 0;
-  let draws = 0;
-  let comebackWins = 0; // Wins after being behind
-  let pressureGames = 0; // Games against higher-rated opponents
-  let pressureWins = 0;
-  
+  let wins = 0, losses = 0, draws = 0, comebackWins = 0, pressureGames = 0, pressureWins = 0;
+  const player = players.find(p => p.id === playerId);
+
   playerGames.forEach(game => {
-    const [p1Result, p2Result] = game.result.split('-');
+    const parts = game.result.split('-').map(s => s.trim());
+    const [p1Result, p2Result] = parts;
     const isPlayer1 = game.player1 === playerId;
     const opponentId = isPlayer1 ? game.player2 : game.player1;
     const opponent = players.find(p => p.id === opponentId);
-    const player = players.find(p => p.id === playerId);
-    
+
+    // count result
     if (isPlayer1) {
-      if (p1Result === '1') {
-        wins++;
-        if (opponent && opponent.ccr > player.ccr + 100) {
-          pressureWins++;
-          comebackWins++;
-        }
-      } else if (p2Result === '1') {
-        losses++;
-      } else {
-        draws++;
-      }
+      if (p1Result === '1') { wins++; if (opponent && opponent.ccr > (player.ccr + 100)) { pressureWins++; comebackWins++; } }
+      else if (p2Result === '1') { losses++; }
+      else { draws++; }
     } else {
-      if (p2Result === '1') {
-        wins++;
-        if (opponent && opponent.ccr > player.ccr + 100) {
-          pressureWins++;
-          comebackWins++;
-        }
-      } else if (p1Result === '1') {
-        losses++;
-      } else {
-        draws++;
-      }
+      if (p2Result === '1') { wins++; if (opponent && opponent.ccr > (player.ccr + 100)) { pressureWins++; comebackWins++; } }
+      else if (p1Result === '1') { losses++; }
+      else { draws++; }
     }
-    
-    if (opponent && opponent.ccr > player.ccr + 50) {
-      pressureGames++;
-    }
+
+    if (opponent && opponent.ccr > (player.ccr + 50)) pressureGames++;
   });
-  
+
   const pressureHandling = pressureGames > 0 ? Math.round((pressureWins / pressureGames) * 100) : 75;
   const comebackAbility = wins > 0 ? Math.round((comebackWins / wins) * 100) : 60;
   const endgamePerformance = wins + losses + draws > 0 ? Math.round((wins / (wins + losses + draws)) * 100) : 70;
-  
+
   return {
     pressureHandling: Math.max(pressureHandling, 50),
     comebackAbility: Math.max(comebackAbility, 50),
@@ -709,18 +658,15 @@ function createStatisticalAnalysis(leftPlayer, rightPlayer) {
   const winProbRight = 1 - winProbLeft;
   const performanceGap = Math.abs(leftPlayer.performanceTrend - rightPlayer.performanceTrend);
   
-  // Calculate head-to-head record
   const h2hGames = gameHistory.filter(game => 
     (game.player1 === leftPlayer.id && game.player2 === rightPlayer.id) ||
     (game.player1 === rightPlayer.id && game.player2 === leftPlayer.id)
   );
   
-  let leftH2HWins = 0;
-  let rightH2HWins = 0;
-  let h2hDraws = 0;
-  
+  let leftH2HWins = 0, rightH2HWins = 0, h2hDraws = 0;
   h2hGames.forEach(game => {
-    const [p1Result, p2Result] = game.result.split('-');
+    const parts = game.result.split('-').map(s => s.trim());
+    const [p1Result, p2Result] = parts;
     if (game.player1 === leftPlayer.id) {
       if (p1Result === '1') leftH2HWins++;
       else if (p2Result === '1') rightH2HWins++;
@@ -750,33 +696,21 @@ function createStatisticalAnalysis(leftPlayer, rightPlayer) {
 
 function predictBattleOutcome(leftPlayer, rightPlayer) {
   const battleOutcome = document.getElementById('battleOutcome');
-  
-  let leftScore = 0;
-  let rightScore = 0;
+  let leftScore = 0, rightScore = 0;
 
-  if (leftPlayer.ccr > rightPlayer.ccr) leftScore += 3;
-  else rightScore += 3;
+  if (leftPlayer.ccr > rightPlayer.ccr) leftScore += 3; else if (rightPlayer.ccr > leftPlayer.ccr) rightScore += 3;
+  if (leftPlayer.winRate > rightPlayer.winRate) leftScore += 2; else if (rightPlayer.winRate > leftPlayer.winRate) rightScore += 2;
+  if (leftPlayer.performanceTrend > rightPlayer.performanceTrend) leftScore += 1; else if (rightPlayer.performanceTrend > leftPlayer.performanceTrend) rightScore += 1;
+  if (leftPlayer.gamesPlayed > rightPlayer.gamesPlayed) leftScore += 1; else if (rightPlayer.gamesPlayed > leftPlayer.gamesPlayed) rightScore += 1;
 
-  if (leftPlayer.winRate > rightPlayer.winRate) leftScore += 2;
-  else rightScore += 2;
-
-  if (leftPlayer.performanceTrend > rightPlayer.performanceTrend) leftScore += 1;
-  else rightScore += 1;
-
-  if (leftPlayer.gamesPlayed > rightPlayer.gamesPlayed) leftScore += 1;
-  else rightScore += 1;
-
-  // Check head-to-head record
   const h2hGames = gameHistory.filter(game => 
     (game.player1 === leftPlayer.id && game.player2 === rightPlayer.id) ||
     (game.player1 === rightPlayer.id && game.player2 === leftPlayer.id)
   );
-  
-  let leftH2HWins = 0;
-  let rightH2HWins = 0;
-  
+  let leftH2HWins = 0, rightH2HWins = 0;
   h2hGames.forEach(game => {
-    const [p1Result, p2Result] = game.result.split('-');
+    const parts = game.result.split('-').map(s => s.trim());
+    const [p1Result, p2Result] = parts;
     if (game.player1 === leftPlayer.id) {
       if (p1Result === '1') leftH2HWins++;
       else if (p2Result === '1') rightH2HWins++;
@@ -785,18 +719,14 @@ function predictBattleOutcome(leftPlayer, rightPlayer) {
       else if (p1Result === '1') rightH2HWins++;
     }
   });
-  
+
   if (leftH2HWins > rightH2HWins) leftScore += 2;
   else if (rightH2HWins > leftH2HWins) rightScore += 2;
 
   let outcome = '';
-  if (leftScore > rightScore) {
-    outcome = `${leftPlayer.name} is favored to win (${leftScore}-${rightScore} advantage)`;
-  } else if (rightScore > leftScore) {
-    outcome = `${rightPlayer.name} is favored to win (${rightScore}-${leftScore} advantage)`;
-  } else {
-    outcome = 'Very close match - could go either way!';
-  }
+  if (leftScore > rightScore) outcome = `${leftPlayer.name} is favored to win (${leftScore}-${rightScore} advantage)`;
+  else if (rightScore > leftScore) outcome = `${rightPlayer.name} is favored to win (${rightScore}-${leftScore} advantage)`;
+  else outcome = 'Very close match - could go either way!';
 
   battleOutcome.textContent = outcome;
 }
@@ -871,11 +801,16 @@ function renderCompare() {
 
 [leftSel, rightSel].forEach(sel => sel.addEventListener('change', renderCompare));
 
-/* =========================  GAME MANAGEMENT  ========================= */
+/* =========================  GAME MANAGEMENT (UI hidden — code-only editing)  ========================= */
+
+/* Safe fill for optional admin form selectors — only if they exist in the DOM */
 function fillGameSelectors() {
   const gamePlayer1 = document.getElementById('gamePlayer1');
   const gamePlayer2 = document.getElementById('gamePlayer2');
-  
+  if (!gamePlayer1 || !gamePlayer2) return;
+  // clear old
+  while (gamePlayer1.options.length > 0) gamePlayer1.remove(0);
+  while (gamePlayer2.options.length > 0) gamePlayer2.remove(0);
   players.forEach(p => {
     gamePlayer1.insertAdjacentHTML('beforeend', `<option value="${p.id}">${p.name} (${p.ccr})</option>`);
     gamePlayer2.insertAdjacentHTML('beforeend', `<option value="${p.id}">${p.name} (${p.ccr})</option>`);
@@ -883,126 +818,116 @@ function fillGameSelectors() {
 }
 fillGameSelectors();
 
+/* Add game from UI — only active if you create the form controls */
 function addGame() {
-  const player1Id = document.getElementById('gamePlayer1').value;
-  const player2Id = document.getElementById('gamePlayer2').value;
-  const result = document.getElementById('gameResult').value;
-  const tournament = document.getElementById('gameTournament').value || 'Friendly Match';
-  const date = document.getElementById('gameDate').value || new Date().toISOString().split('T')[0];
+  const player1IdEl = document.getElementById('gamePlayer1');
+  const player2IdEl = document.getElementById('gamePlayer2');
+  const resultEl = document.getElementById('gameResult');
+  const tournamentEl = document.getElementById('gameTournament');
+  const dateEl = document.getElementById('gameDate');
+  if (!player1IdEl || !player2IdEl || !resultEl) { alert('Game UI not available. Edit defaultGameHistory in source.'); return; }
+
+  const player1Id = player1IdEl.value;
+  const player2Id = player2IdEl.value;
+  const result = resultEl.value;
+  const tournament = tournamentEl ? tournamentEl.value || 'Friendly Match' : 'Friendly Match';
+  const date = dateEl ? (dateEl.value || new Date().toISOString().split('T')[0]) : new Date().toISOString().split('T')[0];
 
   if (!player1Id || !player2Id || !result || player1Id === player2Id) {
     alert('Please select two different players and a valid result');
     return;
   }
 
-  const game = {
-    id: Date.now(),
-    player1: player1Id,
-    player2: player2Id,
-    result: result,
-    tournament: tournament,
-    date: date
-  };
-
+  const game = { id: Date.now(), player1: player1Id, player2: player2Id, result: result, tournament: tournament, date: date };
   gameHistory.push(game);
   localStorage.setItem('ivcfGames', JSON.stringify(gameHistory));
-  
-  updatePlayerStats(game);
-  
-  // Clear form
-  document.getElementById('gamePlayer1').value = '';
-  document.getElementById('gamePlayer2').value = '';
-  document.getElementById('gameResult').value = '';
-  document.getElementById('gameTournament').value = '';
-  document.getElementById('gameDate').value = '';
-  
-  renderGameList();
-  buildRanking();
-  renderCompare(); // Refresh comparison if players are selected
+  recalculateAllStatsAndRefresh();
+  // clear form if present
+  player1IdEl.value = '';
+  player2IdEl.value = '';
+  resultEl.value = '';
+  if (tournamentEl) tournamentEl.value = '';
+  if (dateEl) dateEl.value = '';
   alert('Game added successfully!');
 }
 
 function updatePlayerStats(game) {
-  const player1 = players.find(p => p.id === game.player1);
-  const player2 = players.find(p => p.id === game.player2);
-  
-  player1.gamesPlayed++;
-  player2.gamesPlayed++;
-  
-  const [p1Result, p2Result] = game.result.split('-');
-  
+  const p1 = players.find(p => p.id === game.player1);
+  const p2 = players.find(p => p.id === game.player2);
+  if (!p1 || !p2) return;
+
+  p1.gamesPlayed++;
+  p2.gamesPlayed++;
+
+  const parts = game.result.split('-').map(s => s.trim());
+  const [p1Result, p2Result] = parts;
+
   if (p1Result === '1') {
-    player1.gamesWon++;
-    player1.streak++;
-    player2.streak = 0;
-    player1.headToHeadWins++;
-    player2.headToHeadLosses++;
+    p1.gamesWon++;
+    p1.streak = (p1.streak || 0) + 1;
+    p2.streak = 0;
+    p1.headToHeadWins = (p1.headToHeadWins || 0) + 1;
+    p2.headToHeadLosses = (p2.headToHeadLosses || 0) + 1;
   } else if (p2Result === '1') {
-    player2.gamesWon++;
-    player2.streak++;
-    player1.streak = 0;
-    player2.headToHeadWins++;
-    player1.headToHeadLosses++;
+    p2.gamesWon++;
+    p2.streak = (p2.streak || 0) + 1;
+    p1.streak = 0;
+    p2.headToHeadWins = (p2.headToHeadWins || 0) + 1;
+    p1.headToHeadLosses = (p1.headToHeadLosses || 0) + 1;
   } else {
-    player1.streak = 0;
-    player2.streak = 0;
+    // draw resets streaks (your original logic)
+    p1.streak = 0;
+    p2.streak = 0;
   }
-  
-  player1.winRate = Math.round((player1.gamesWon / player1.gamesPlayed) * 100);
-  player2.winRate = Math.round((player2.gamesWon / player2.gamesPlayed) * 100);
-  
-  // Update performance trend based on recent games
-  updatePerformanceTrend(player1);
-  updatePerformanceTrend(player2);
+
+  p1.winRate = Math.round((p1.gamesWon / p1.gamesPlayed) * 100);
+  p2.winRate = Math.round((p2.gamesWon / p2.gamesPlayed) * 100);
+
+  updatePerformanceTrend(p1);
+  updatePerformanceTrend(p2);
 }
 
 function updatePerformanceTrend(player) {
-  const playerGames = gameHistory.filter(game => 
-    game.player1 === player.id || game.player2 === player.id
-  ).slice(-10); // Last 10 games
-  
-  if (playerGames.length === 0) return;
-  
+  const playerGames = gameHistory.filter(game => game.player1 === player.id || game.player2 === player.id)
+                                 .slice(-10); // last 10
+  if (playerGames.length === 0) {
+    player.performanceTrend = 50;
+    return;
+  }
   let recentWins = 0;
   playerGames.forEach(game => {
-    const [p1Result, p2Result] = game.result.split('-');
-    if ((game.player1 === player.id && p1Result === '1') || 
-        (game.player2 === player.id && p2Result === '1')) {
+    const parts = game.result.split('-').map(s => s.trim());
+    const [p1Result, p2Result] = parts;
+    if ((game.player1 === player.id && p1Result === '1') || (game.player2 === player.id && p2Result === '1')) {
       recentWins++;
     }
   });
-  
   player.performanceTrend = Math.round((recentWins / playerGames.length) * 100);
 }
 
 function renderGameList() {
   const gameList = document.getElementById('gameList');
   
-  if (gameHistory.length === 0) {
-    gameList.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--sub);">No games recorded yet. Add your first game above!</div>';
+  if (!gameHistory || gameHistory.length === 0) {
+    gameList.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--sub);">No games recorded yet. Add your first game in the source code (defaultGameHistory)!</div>';
     return;
   }
   
   gameList.innerHTML = gameHistory.map(game => {
-    const player1 = players.find(p => p.id === game.player1);
-    const player2 = players.find(p => p.id === game.player2);
-    const [p1Result, p2Result] = game.result.split('-');
+    const p1 = players.find(p => p.id === game.player1) || { name: game.player1, ccr: '—' };
+    const p2 = players.find(p => p.id === game.player2) || { name: game.player2, ccr: '—' };
+    const parts = game.result.split('-').map(s => s.trim());
+    const [p1Result, p2Result] = parts;
     
     let resultClass = 'result-draw';
     let resultText = 'Draw';
-    
-    if (p1Result === '1') {
-      resultClass = 'result-win';
-      resultText = `${player1.name} Wins`;
-    } else if (p2Result === '1') {
-      resultClass = 'result-loss';
-      resultText = `${player2.name} Wins`;
-    }
-    
+    if (p1Result === '1') { resultClass = 'result-win'; resultText = `${p1.name} Wins`; }
+    else if (p2Result === '1') { resultClass = 'result-loss'; resultText = `${p2.name} Wins`; }
+
     return `
       <div class="game-item">
         <div>
-          <strong>${player1.name}</strong> (${player1.ccr}) vs <strong>${player2.name}</strong> (${player2.ccr})
+          <strong>${p1.name}</strong> (${p1.ccr}) vs <strong>${p2.name}</strong> (${p2.ccr})
         </div>
         <div class="game-result ${resultClass}">${resultText}</div>
         <div>${game.tournament}</div>
@@ -1016,34 +941,35 @@ function renderGameList() {
 }
 
 function deleteGame(gameId) {
-  if (confirm('Are you sure you want to delete this game?')) {
-    gameHistory = gameHistory.filter(game => game.id !== gameId);
-    localStorage.setItem('ivcfGames', JSON.stringify(gameHistory));
-    renderGameList();
-    
-    resetPlayerStats();
-    recalculateAllStats();
-    buildRanking();
-    renderCompare();
-  }
+  if (!confirm('Are you sure you want to delete this game?')) return;
+  gameHistory = gameHistory.filter(g => g.id !== gameId);
+  // persist to localStorage to survive reloads — defaultGameHistory remains authoritative in the source
+  localStorage.setItem('ivcfGames', JSON.stringify(gameHistory));
+  recalculateAllStatsAndRefresh();
 }
 
-function resetPlayerStats() {
-  players.forEach(player => {
-    player.gamesPlayed = 0;
-    player.gamesWon = 0;
-    player.winRate = 0;
-    player.streak = 0;
-    player.headToHeadWins = 0;
-    player.headToHeadLosses = 0;
-    player.performanceTrend = 50;
+/* Recalculate stats from full gameHistory (used on load and after deletes/edits) */
+function recalculateAllStatsAndRefresh() {
+  resetPlayerStats();
+  // Important: process games in chronological order (by date) so streaks make sense
+  const sortedGames = gameHistory.slice().sort((a,b) => {
+    // compare by date (yyyy-mm-dd), fallback to id
+    if (a.date && b.date) return a.date.localeCompare(b.date);
+    return a.id - b.id;
   });
-}
-
-function recalculateAllStats() {
-  gameHistory.forEach(game => {
-    updatePlayerStats(game);
+  sortedGames.forEach(game => updatePlayerStats(game));
+  // ensure numeric values exist
+  players.forEach(p => {
+    p.gamesPlayed = p.gamesPlayed || 0;
+    p.gamesWon = p.gamesWon || 0;
+    p.winRate = p.winRate || 0;
+    p.streak = p.streak || 0;
   });
+  buildRanking();
+  renderGameList();
+  // refresh selects/compare if open
+  fillSelects();
+  renderCompare();
 }
 
 /* =========================  CALCULATOR  ========================= */
@@ -1091,8 +1017,20 @@ function firstCCR() {
     `Starting CCR: ${start} (use this as "old" in the rating calculator)`;
 }
 
-// Initialize game list on page load
-renderGameList();
+/* =========================  INITIALIZATION ON LOAD  ========================= */
+document.addEventListener('DOMContentLoaded', () => {
+  // If localStorage has saved games from UI deletes/edits, merge if defaultGameHistory is empty
+  try {
+    const saved = JSON.parse(localStorage.getItem('ivcfGames')) || [];
+    if (!defaultGameHistory.length && saved.length) {
+      gameHistory = saved.slice();
+    }
+  } catch (e) {
+    // ignore invalid saved data
+  }
+  // compute all stats from gameHistory (hard-coded)
+  recalculateAllStatsAndRefresh();
+});
 </script>
 </body>
 </html>

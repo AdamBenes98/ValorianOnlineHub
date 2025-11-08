@@ -5,34 +5,83 @@
 <title>Constitution & Codex | Kingdom of Valoria</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
+/* =========================================================
+   Constitution & Codex – medieval parchment & iron
+   ========================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cinzel+Decorative&display=swap');
+
 :root{
-  --bg:#000;
-  --card:#0a0a0a;
-  --border:#222;
-  --accent:#dc143c;
-  --text:#fff;
-  --sub:#aaa;
+  /* --- palette --- */
+  --bg:#0c0b08;                 /* almost-black parchment */
+  --card:#14110e;               /* deep wood */
+  --border:#4a3829;             /* old iron rust */
+  --accent:#c03;                /* your crimson */
+  --text:#e8dfc8;               /* aged parchment */
+  --sub:#8a7d69;                /* faded ink */
+
+  /* --- typography --- */
   --gap:1.2rem;
-  font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  font-family:"Cinzel", "Palatino Linotype", "Book Antiqua", Palatino, serif;
+  font-weight:400;
+  letter-spacing:.4px;
 }
-* {box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+
+/* --- parchment grain --- */
+body{
+  margin:0;
+  background:var(--bg);
+  background-image:
+    radial-gradient(circle at 25% 25%, #1a1612 1px, transparent 1px),
+    radial-gradient(circle at 75% 75%, #1a1612 1px, transparent 1px);
+  background-size:4px 4px;
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
 a{color:var(--accent);text-decoration:none}
-header,footer{background:var(--card);border-bottom:2px solid var(--accent)}
+
+/* --- headers --- */
+header,footer{
+  background:var(--card);
+  border-bottom:2px solid var(--accent);
+  box-shadow:0 2px 6px #0006;
+}
 header{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem}
-header h1{margin:0;font-size:1.6rem;letter-spacing:1px}
+header h1{margin:0;font-size:1.8rem;font-family:"Cinzel Decorative",serif;letter-spacing:2px;text-shadow:1px 1px 2px #000}
+header h1 span{font-weight:400;font-size:.7em;color:var(--sub)}
 header span{font-weight:300;font-size:.9rem;color:var(--sub)}
-main{flex:1;padding:2rem;max-width:1100px;margin:auto;width:100%}
+
+/* --- navigation pills --- */
 nav{display:flex;gap:1rem;margin-top:.5rem}
-nav a{padding:.4rem .8rem;border:1px solid var(--border);border-radius:4px;background:#111;transition:background .2s}
+nav a{
+  padding:.4rem .8rem;
+  border:1px solid var(--border);
+  border-radius:0;
+  background:#111;
+  transition:background .2s;
+  font-family:"Cinzel",serif;
+}
 nav a:hover{background:var(--accent);color:#fff}
+
+/* --- main parchment scroll --- */
+main{flex:1;padding:2rem;max-width:1100px;margin:auto;width:100%}
 section{margin-bottom:2.5rem}
-h2{margin-top:0;border-left:4px solid var(--accent);padding-left:.6rem;font-size:1.4rem}
-h3{font-size:1.1rem;margin-top:1.2rem}
+h2{margin-top:0;border-left:4px solid var(--accent);padding-left:.6rem;font-size:1.4rem;font-family:"Cinzel Decorative",serif}
+h3{font-size:1.1rem;margin-top:1.2rem;font-family:"Cinzel",serif}
 p,li{line-height:1.55}
 ol{margin-left:1.2rem}
 hr{border:none;height:1px;background:var(--border);margin:2rem 0}
-footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-bottom:none;border-top:2px solid var(--accent)}
+
+/* --- footer seal --- */
+footer{
+  text-align:center;
+  padding:1.2rem;
+  font-size:.8rem;
+  color:var(--sub);
+  border-bottom:none;
+  border-top:2px solid var(--accent);
+}
 </style>
 </head>
 <body>

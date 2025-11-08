@@ -5,28 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Poll Statistics Overview</title>
     <style>
-     /* =========================================================
-   Poll Statistics – medieval parchment & iron
-   ========================================================= */
+    
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cinzel+Decorative&display=swap');
 
 :root{
-  /* --- palette --- */
-  --bg:#0c0b08;                 /* almost-black parchment */
-  --card:#14110e;               /* deep wood */
-  --border:#4a3829;             /* old iron rust */
-  --accent:#c03;                /* your crimson */
-  --text:#e8dfc8;               /* aged parchment */
-  --sub:#8a7d69;                /* faded ink */
+ 
+  --bg:#0c0b08;                 
+  --card:#14110e;               
+  --border:#4a3829;           
+  --accent:#c03;             
+  --text:#e8dfc8;           
+  --sub:#8a7d69;               
 
-  /* --- typography --- */
+
   --gap:1.2rem;
   font-family:"Cinzel", "Palatino Linotype", "Book Antiqua", Palatino, serif;
   font-weight:400;
   letter-spacing:.4px;
 }
 
-/* --- parchment grain --- */
+
 body{
   margin:0;
   background:var(--bg);
@@ -41,7 +39,7 @@ body{
 }
 a{color:var(--accent);text-decoration:none}
 
-/* --- headers --- */
+
 header,footer{
   background:var(--card);
   border-bottom:2px solid var(--accent);
@@ -53,13 +51,13 @@ header span{font-weight:300;font-size:.9rem;color:var(--sub)}
 .mono{font-family:"Courier New",Courier,monospace}
 .badge{display:inline-block;background:var(--accent);color:#fff;padding:.15rem .35rem;border-radius:0;font-size:.65rem;margin-left:.4rem;font-family:"Cinzel",serif}
 
-/* --- main grid & tiles --- */
+
 main{flex:1;padding:2rem;max-width:1100px;margin:auto;width:100%}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:var(--gap)}
 .tile{
   background:linear-gradient(145deg, var(--card) 0%, #1a1612 100%);
   border:1px solid var(--border);
-  border-radius:0;               /* stone-slab feel */
+  border-radius:0;          
   padding:1.5rem 1rem;
   text-align:center;
   transition:transform .15s,box-shadow .15s;
@@ -78,7 +76,7 @@ footer{
   border-top:2px solid var(--accent);
 }
 
-/* --- poll specific --- */
+
 .poll-item{
   background:var(--card);
   border:1px solid var(--border);
@@ -111,13 +109,12 @@ footer{
     </header>
 
     <main>
-        <!-- Fun Facts Section -->
+      
         <div class="fun-facts">
             <h2 style="margin-top:0;color:var(--accent)">📊 FUN FACTS</h2>
             <div id="funFactsContainer"></div>
         </div>
 
-        <!-- Overall Statistics -->
         <div class="stats-section">
             <h2>OVERALL STATISTICS</h2>
             <div class="stats-grid">
@@ -148,7 +145,7 @@ footer{
             </div>
         </div>
 
-        <!-- Individual Poll Results -->
+        
         <div id="pollsList"></div>
     </main>
 
@@ -157,7 +154,7 @@ footer{
     </footer>
 
     <script>
-       // HARD-CODED POLLS - EDIT THIS SECTION TO ADD/MODIFY POLLS
+     //edit Poles here:
 const POLLS = [
     {
         id: "poll_001",
@@ -170,9 +167,9 @@ const POLLS = [
             { text: "Not a permanent position", votes: 0 }
         ]
     }
-    // <-- You can add more polls here, separated by commas
+    
 ];
-        // Calculate statistics
+        
         function calculateStats() {
             const stats = {
                 totalPolls: POLLS.length,
@@ -187,17 +184,15 @@ const POLLS = [
                 const pollTotal = poll.options.reduce((sum, opt) => sum + opt.votes, 0);
                 stats.totalVotes += pollTotal;
 
-                // Check most active poll
+              
                 if (pollTotal > stats.mostActivePoll.votes) {
                     stats.mostActivePoll = { name: poll.title, votes: pollTotal };
                 }
 
-                // Check least active poll
                 if (pollTotal < stats.leastActivePoll.votes) {
                     stats.leastActivePoll = { name: poll.title, votes: pollTotal };
                 }
 
-                // Check individual options
                 poll.options.forEach(option => {
                     stats.allOptions.push({ name: option.text, votes: option.votes, poll: poll.title });
                     if (option.votes > stats.mostPopularOption.votes) {
@@ -211,7 +206,6 @@ const POLLS = [
             return stats;
         }
 
-        // Generate fun facts
         function generateFunFacts(stats) {
             const facts = [
                 { icon: '👑', text: `Most voted option ever: <strong>${stats.mostPopularOption.name}</strong> with ${stats.mostPopularOption.votes} votes` },
@@ -221,11 +215,11 @@ const POLLS = [
                 { icon: '🎯', text: `Total options across all polls: <strong>${stats.allOptions.length}</strong>` }
             ];
 
-            // Add unique facts
-            const uniqueVoters = Math.floor(stats.totalVotes * 0.7); // Simulated
+           
+            const uniqueVoters = Math.floor(stats.totalVotes * 0.7); 
             facts.push({ icon: '👥', text: `Estimated unique voters: <strong>${uniqueVoters}</strong>` });
 
-            // Find option that appeared in multiple polls
+           
             const optionCounts = {};
             stats.allOptions.forEach(opt => {
                 optionCounts[opt.name] = (optionCounts[opt.name] || 0) + 1;
@@ -242,12 +236,12 @@ const POLLS = [
             return facts;
         }
 
-        // Render everything
+       
         function render() {
             const stats = calculateStats();
             const funFacts = generateFunFacts(stats);
 
-            // Update statistics
+            
             document.getElementById('totalPolls').textContent = stats.totalPolls;
             document.getElementById('totalVotes').textContent = stats.totalVotes.toLocaleString();
             document.getElementById('avgVotesPerPoll').textContent = stats.avgVotesPerPoll;
@@ -255,7 +249,6 @@ const POLLS = [
             document.getElementById('mostActivePoll').textContent = stats.mostActivePoll.name;
             document.getElementById('leastActivePoll').textContent = stats.leastActivePoll.name;
 
-            // Render fun facts
             const factsContainer = document.getElementById('funFactsContainer');
             factsContainer.innerHTML = funFacts.map(fact => `
                 <div class="fact-item">
@@ -264,7 +257,6 @@ const POLLS = [
                 </div>
             `).join('');
 
-            // Render polls
             const pollsList = document.getElementById('pollsList');
             pollsList.innerHTML = POLLS.map(poll => {
                 const totalVotes = poll.options.reduce((sum, opt) => sum + opt.votes, 0);
@@ -307,7 +299,7 @@ const POLLS = [
             }).join('');
         }
 
-        // Initialize
+        
         render();
     </script>
 </body>

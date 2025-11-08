@@ -234,48 +234,28 @@ footer{text-align:center;padding:1.2rem;font-size:.8rem;color:var(--sub);border-
       </div>
     </section>
 
-    <!-- GAME MANAGER -->
-   <!-- GAME MANAGER -->
-<section id="ivcf-games" class="ivcf-section">
+<!-- GAME MANAGER  –  HIDDEN FROM USERS, CODE-ONLY INPUT -->
+<section id="ivcf-games" class="ivcf-section" style="display:none">
   <div class="ivcf-card">
-    <h2>Game Management</h2>
+    <h2>Game Management (Code-Only)</h2>
     <p>
-      <strong>Game entry is locked.</strong>  
-      Results are now <em>hard-coded</em> and can only be changed by editing the source code.
-      You may still delete accidental duplicates from the list below.
+      This section is hidden from normal users.  
+      Games can <strong>only</strong> be added or edited directly in the source code.
     </p>
 
-    <!--  LOCKED ENTRY FORM  -->
-    <div class="game-management">
-      <h3>Add New Game Result</h3>
-      <div class="game-form">
-        <select id="gamePlayer1" class="ivcf-select" disabled>
-          <option>—  Locked  —</option>
-        </select>
-        <select id="gamePlayer2" class="ivcf-select" disabled>
-          <option>—  Locked  —</option>
-        </select>
-        <select id="gameResult" class="ivcf-select" disabled>
-          <option>—  Locked  —</option>
-        </select>
-        <input type="text" id="gameTournament" class="ivcf-input" placeholder="Tournament Name" disabled>
-        <input type="date" id="gameDate" class="ivcf-input" disabled>
-        <button class="ivcf-button" disabled style="opacity:.4;cursor:not-allowed">Add Game</button>
-      </div>
-
-      <h3>Game History</h3>
-      <div class="game-list" id="gameList">
-        <div style="padding: 2rem; text-align: center; color: var(--sub);">
-          No games recorded yet. Add your first game in the source code!
-        </div>
+    <!--  READ-ONLY GAME LIST  -->
+    <h3>Recorded Games</h3>
+    <div class="game-list" id="gameList">
+      <div style="padding: 2rem; text-align: center; color: var(--sub);">
+        No games recorded yet. Add them in the source code!
       </div>
     </div>
 
-    <!--  HOW-TO FOR ADMINS  -->
+    <!--  ADMIN INSTRUCTIONS  -->
     <div class="ivcf-card" style="margin-top:1.5rem">
       <h3>For Administrators</h3>
-      <p>To record a new result open this file in any editor and append an object to the
-      <code class="mono">gameHistory</code> array that already exists near the top of the script:</p>
+      <p>To add a result, open this file in any editor and append an object to the
+      <code class="mono">gameHistory</code> array (already declared near the top of the script):</p>
       <pre style="background:#222;padding:1rem;border-radius:4px;overflow:auto">
 gameHistory.push({
   id: Date.now(),                       // unique numeric id
@@ -286,11 +266,19 @@ gameHistory.push({
   date: "2025-11-06"                    // yyyy-mm-dd
 });
       </pre>
-      <p>Save the file, reload the page, and the new game will appear everywhere automatically.</p>
+      <p>Save the file, reload the page, and the new game will appear in rankings & comparisons automatically.</p>
     </div>
   </div>
 </section>
 
+<!--  REMOVE THE MENU ITEM  -->
+<script>
+/* =====  REMOVE “Game Manager” FROM THE NAVIGATION  ===== */
+document.addEventListener('DOMContentLoaded', () => {
+  const navLinks = document.querySelectorAll('.ivcf-nav a[data-ipage="games"]');
+  navLinks.forEach(link => link.remove());
+});
+</script>
     <!-- EVENTS -->
     <section id="ivcf-events" class="ivcf-section">
       <div class="ivcf-card">

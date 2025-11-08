@@ -5,28 +5,25 @@
 <title>Valorian Online Hub</title>
 <meta name="viewport" content="width=device-width, initial-scale=1"> 
 <style>
-/* =========================================================
-   Valorian Hub – medieval touch (dark parchment & iron)
-   ========================================================= */
+
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cinzel+Decorative&display=swap');
 
 :root{
-  /* --- palette --- */
-  --bg:#0c0b08;                 /* almost-black parchment */
-  --card:#14110e;               /* deep wood */
-  --border:#4a3829;             /* old iron rust */
-  --accent:#c03;                /* your crimson */
-  --text:#e8dfc8;               /* aged parchment */
-  --sub:#8a7d69;                /* faded ink */
 
-  /* --- type --- */
+  --bg:#0c0b08;                
+  --card:#14110e;              
+  --border:#4a3829;             
+  --accent:#c03;               
+  --text:#e8dfc8;               
+  --sub:#8a7d69;                
+ 
   --gap:1.2rem;
   font-family:"Cinzel", "Palatino Linotype", "Book Antiqua", Palatino, serif;
   font-weight:400;
   letter-spacing:.4px;
 }
 
-/* --- parchment grain --- */
+
 body{
   margin:0;
   background:var(--bg);
@@ -41,7 +38,7 @@ body{
 }
 a{color:var(--accent);text-decoration:none}
 
-/* --- headers --- */
+
 header,footer{
   background:var(--card);
   border-bottom:2px solid var(--accent);
@@ -52,13 +49,13 @@ header h1{margin:0;font-size:1.8rem;font-family:"Cinzel Decorative",serif;letter
 header span{font-weight:300;font-size:.9rem;color:var(--sub)}
 .mono{font-family:"Courier New",Courier,monospace}
 
-/* --- grid & tiles --- */
+
 main{flex:1;padding:2rem;max-width:1100px;margin:auto;width:100%}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:var(--gap)}
 .tile{
   background:linear-gradient(145deg, var(--card) 0%, #1a1612 100%);
   border:1px solid var(--border);
-  border-radius:0;               /* stone-slab */
+  border-radius:0;              
   padding:1.5rem 1rem;
   text-align:center;
   transition:transform .15s,box-shadow .15s;
@@ -72,7 +69,7 @@ main{flex:1;padding:2rem;max-width:1100px;margin:auto;width:100%}
 .tile.external::after{content:"⧉";position:absolute;top:.5rem;right:.7rem;font-size:.8rem;opacity:.6}
 .badge{display:inline-block;background:var(--accent);color:#fff;padding:.15rem .35rem;border-radius:0;font-size:.65rem;margin-left:.4rem;font-family:"Cinzel",serif}
 
-/* --- news page overrides --- */
+
 .news-header{background:#111;border-bottom:2px solid var(--accent);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between}
 .news-header h1{margin:0;font-size:1.5rem;font-family:"Cinzel Decorative",serif}
 .news-main{max-width:700px;margin:2rem auto;padding:0 1rem}
@@ -87,12 +84,11 @@ main{flex:1;padding:2rem;max-width:1100px;margin:auto;width:100%}
 .new-post input[type=file]{margin-top:.5rem}
 .new-post button{margin-top:.5rem;padding:.5rem 1rem;border:none;border-radius:0;background:var(--accent);color:#fff;cursor:pointer;font-weight:bold;font-family:"Cinzel",serif}
 
-/* --- vault login --- */
+
 .vault-login{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh}
 .vault-login input{padding:.5rem;border:none;border-radius:0;background:#222;color:var(--text);width:250px;font-family:"Cinzel",serif}
 .vault-login button{margin-top:1rem;padding:.5rem 1rem;border:none;border-radius:0;background:var(--accent);color:#fff;cursor:pointer;font-weight:bold;font-family:"Cinzel",serif}
 
-/* --- IVCF chess federation --- */
 .ivcf-page{background:var(--bg);color:var(--text);display:none}
 .ivcf-page.active{display:block}
 .ivcf-header{background:#1e1e1e;border-bottom:2px solid #00b4ff;padding:1rem 2rem;display:flex;align-items:center;gap:1.5rem}
@@ -112,7 +108,7 @@ main{flex:1;padding:2rem;max-width:1100px;margin:auto;width:100%}
 .ivcf-button{background:#00b4ff;color:#000;cursor:pointer;font-weight:bold}
 .ivcf-button:hover{filter:brightness(1.15)}
 
-/* --- footer --- */
+
 footer{
   text-align:center;
   padding:1.2rem;
@@ -143,7 +139,7 @@ footer{
 <footer>Kingdom of Valoria | &copy; <span id="yr"></span></footer>
 
 <script>
-/* CONFIG */
+
 const tiles = [
   {emoji:"🗣️", title:"Quotes", desc:"Hall of fame", url:"quotes.html", external:false, beta:false},
   {emoji:"📚", title:"Learn", desc:"Educational resources & guides", url:"learn.html", external:false, beta:false},
@@ -156,7 +152,7 @@ const tiles = [
   {emoji:"📖", title:"History", desc:"Valorian History", url:"History.html", external:false, beta:false}
 ];
 
-/* RENDER TILES */
+
 const grid = document.getElementById('grid');
 tiles.forEach(t=>{
   const div = document.createElement('div');
@@ -166,7 +162,7 @@ tiles.forEach(t=>{
   grid.appendChild(div);
 });
 
-/* CLOCK */
+
 function tick(){
   const now = new Date();
   document.getElementById('clock').textContent =

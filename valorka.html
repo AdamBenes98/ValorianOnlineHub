@@ -5,7 +5,7 @@
 <title>Valorka – The Wine of Valoria</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-/* ----------  visual theme (Cinzel / medieval-minimal) ---------- */
+
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cinzel+Decorative&display=swap');
 :root{
   --bg:#0c0b08;
@@ -46,7 +46,7 @@ h2{margin-bottom:1rem;font-family:"Cinzel Decorative",serif}
 p{line-height:1.6;margin-bottom:.8rem}
 .mono{font-family:"Courier New",Courier,monospace}
 
-/* ----------  hero banner ---------- */
+
 .hero{
   background:linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.55)),
               url('data:image/svg+xml;utf8,\
@@ -62,7 +62,7 @@ p{line-height:1.6;margin-bottom:.8rem}
 .hero h2{font-size:2.2rem;margin-bottom:.5rem}
 .hero p{font-size:1.1rem;color:var(--sub)}
 
-/* ----------  bottle card grid ---------- */
+
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:var(--gap)}
 .tile{
   background:linear-gradient(145deg, var(--card) 0%, #1a1612 100%);
@@ -76,7 +76,7 @@ p{line-height:1.6;margin-bottom:.8rem}
 .tile h3{margin:.4rem 0 .2rem;font-size:1.1rem;font-weight:600}
 .tile p{font-size:.85rem;color:var(--sub)}
 
-/* ----------  verifier ---------- */
+
 .verifier{
   background:var(--card);
   border:1px solid var(--border);
@@ -103,7 +103,7 @@ p{line-height:1.6;margin-bottom:.8rem}
 }
 #result{margin-top:1rem;font-size:.9rem}
 
-/* ----------  footer ---------- */
+
 footer{
   text-align:center;
   padding:1.2rem;
@@ -123,20 +123,20 @@ footer{
 
 <main>
 
-  <!-- HERO -->
+
   <section class="hero">
     <h2>Valorka</h2>
     <p>Signature sweet wine born from the rich soils of Valoria, sealed with honour.</p>
   </section>
 
-  <!-- STORY -->
+
   <section>
     <h2>Our Story</h2>
     <p>Valoria is among the largest wine producers of the world.  When the nation chose a new path—abandoning the NCN alliance—it sold the first casks of “Valorka” to the Astari for millions of gold.  The Astari investor <strong>Dwayne</strong> became Valoria’s biggest partner, injecting over 10 million into the young economy.  With that gold the Valorian National Bank was raised, the Franc was minted, and the crimson flag was hoisted for the first time.  Every bottle of Valorka carries that moment of independence.</p>
     <p>Only Valorian resources are pressed for the royal wine.  Each cask is produced in the heart of the Valorian wine production: Frostborne.</p>
   </section>
 
-  <!-- RANGE -->
+ 
   <section>
     <h2>The Sorts</h2>
     <div class="grid">
@@ -158,10 +158,10 @@ footer{
     </div>
   </section>
 
-  <!-- AUTHENTICATOR -->
+
   <section class="verifier">
     <h2>Authenticate Your Bottle</h2>
-    <p>Enter the code printed on the foil cap:</p>
+    <p>Enter the code from the Valorka shulker:</p>
     <input id="codeInput" placeholder="Valorka-YXXXX" maxlength="16">
     <button onclick="checkCode()">Verify</button>
     <div id="result"></div>

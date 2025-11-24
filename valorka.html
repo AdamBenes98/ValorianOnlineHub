@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Valorka – The Wine of Valoria</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+/* ----------  visual theme (Cinzel / medieval-minimal) ---------- */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cinzel+Decorative&display=swap');
+:root{
+  --bg:#0c0b08;
+  --card:#14110e;
+  --border:#4a3829;
+  --accent:#c03;
+  --text:#e8dfc8;
+  --sub:#8a7d69;
+  --gap:1.2rem;
+  font-family:"Cinzel", "Palatino Linotype", "Book Antiqua", Palatino, serif;
+  font-weight:400;
+  letter-spacing:.4px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg);
+  background-image:
+    radial-gradient(circle at 25% 25%, #1a1612 1px, transparent 1px),
+    radial-gradient(circle at 75% 75%, #1a1612 1px, transparent 1px);
+  background-size:4px 4px;
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+a{color:var(--accent);text-decoration:none}
+header,footer{
+  background:var(--card);
+  border-bottom:2px solid var(--accent);
+  box-shadow:0 2px 6px #0006;
+}
+header{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem}
+header h1{margin:0;font-size:1.8rem;font-family:"Cinzel Decorative",serif;letter-spacing:2px;text-shadow:1px 1px 2px #000}
+header span{font-weight:300;font-size:.9rem;color:var(--sub)}
+main{flex:1;padding:2rem;max-width:1100px;margin:auto;width:100%}
+section{margin-bottom:3rem}
+h2{margin-bottom:1rem;font-family:"Cinzel Decorative",serif}
+p{line-height:1.6;margin-bottom:.8rem}
+.mono{font-family:"Courier New",Courier,monospace}
+
+/* ----------  hero banner ---------- */
+.hero{
+  background:linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.55)),
+              url('data:image/svg+xml;utf8,\
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400">\
+                <rect fill="%230c0b08" width="1200" height="400"/>\
+                <path fill="%234a3829" opacity=".6" d="M0 200 Q300 100 600 200 T1200 200 L1200 400 L0 400 Z"/>\
+                <circle cx="900" cy="100" r="70" fill="%23c03" opacity=".15"/>\
+              </svg>') center/cover;
+  border:1px solid var(--border);
+  padding:3rem 2rem;
+  text-align:center;
+}
+.hero h2{font-size:2.2rem;margin-bottom:.5rem}
+.hero p{font-size:1.1rem;color:var(--sub)}
+
+/* ----------  bottle card grid ---------- */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:var(--gap)}
+.tile{
+  background:linear-gradient(145deg, var(--card) 0%, #1a1612 100%);
+  border:1px solid var(--border);
+  padding:1.5rem 1rem;
+  text-align:center;
+  transition:transform .15s,box-shadow .15s;
+}
+.tile:hover{transform:translateY(-3px);box-shadow:0 6px 20px #000c}
+.tile .emoji{font-size:2.2rem;margin-bottom:.5rem}
+.tile h3{margin:.4rem 0 .2rem;font-size:1.1rem;font-weight:600}
+.tile p{font-size:.85rem;color:var(--sub)}
+
+/* ----------  verifier ---------- */
+.verifier{
+  background:var(--card);
+  border:1px solid var(--border);
+  padding:2rem;
+  max-width:600px;margin:auto;
+}
+.verifier input{
+  width:100%;
+  padding:.6rem;
+  border:none;
+  background:#222;
+  color:var(--text);
+  font-family:"Cinzel",serif;
+  margin-bottom:1rem;
+}
+.verifier button{
+  width:100%;
+  padding:.6rem;
+  border:none;
+  background:var(--accent);
+  color:#fff;
+  font-family:"Cinzel",serif;
+  cursor:pointer;
+}
+#result{margin-top:1rem;font-size:.9rem}
+
+/* ----------  footer ---------- */
+footer{
+  text-align:center;
+  padding:1.2rem;
+  font-size:.8rem;
+  color:var(--sub);
+  border-bottom:none;
+  border-top:2px solid var(--accent);
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Valorka</h1>
+  <span>The Wine of Valoria</span>
+</header>
+
+<main>
+
+  <!-- HERO -->
+  <section class="hero">
+    <h2>Valorka</h2>
+    <p>Signature sweet wine born from the rich soils of Valoria, sealed with honour.</p>
+  </section>
+
+  <!-- STORY -->
+  <section>
+    <h2>Our Story</h2>
+    <p>Valoria is among the largest wine producers of the world.  When the nation chose a new path—abandoning the NCN alliance—it sold the first casks of “Valorka” to the Astari for millions of gold.  The Astari investor <strong>Dwayne</strong> became Valoria’s biggest partner, injecting over 10 million into the young economy.  With that gold the Valorian National Bank was raised, the Franc was minted, and the crimson flag was hoisted for the first time.  Every bottle of Valorka carries that moment of independence.</p>
+    <p>Only Valorian resources are pressed for the royal wine.  Each cask is produced in the heart of the Valorian wine production: Frostborne.</p>
+  </section>
+
+  <!-- RANGE -->
+  <section>
+    <h2>The Sorts</h2>
+    <div class="grid">
+      <div class="tile">
+        <div class="emoji">🍇</div>
+        <h3>Sweet Wine <span class="mono">S</span></h3>
+        <p>The Classic: The original Valorka which the Astari themselves drank.</p>
+      </div>
+      <div class="tile">
+        <div class="emoji">🍒</div>
+        <h3>Cherry Wine <span class="mono">C</span></h3>
+        <p>Fresh cherries from the cherry trees in Valoria.</p>
+      </div>
+      <div class="tile">
+        <div class="emoji">🍓</div>
+        <h3>Strawberry Wine <span class="mono">T</span></h3>
+        <p>Sweet fresh strawberries from Valoria.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- AUTHENTICATOR -->
+  <section class="verifier">
+    <h2>Authenticate Your Bottle</h2>
+    <p>Enter the code printed on the foil cap:</p>
+    <input id="codeInput" placeholder="Valorka-YXXXX" maxlength="16">
+    <button onclick="checkCode()">Verify</button>
+    <div id="result"></div>
+  </section>
+
+</main>
+
+<footer>
+  Brewed & bottled in Valoria
+</footer>
+
+<script>
+/* ----------  hard-coded bottle database ---------- */
+const bottles = {
+  "Valorka(Test)-S4833": { type:"Sweet Wine", Date:"24.11.2025", cask:"#00", soldTo:"Test" },
+  "Valorka(Test)-C1129": { type:"Cherry Wine", Date:"24.11.2025", cask:"#00", soldTo:"Test" },
+  "Valorka(Test)-T7602": { type:"Strawberry Wine", Date:"24.11.2025", cask:"#00", soldTo:"Test" }
+};
+
+function checkCode(){
+  const val = document.getElementById("codeInput").value.trim();
+  const res = document.getElementById("result");
+  if(bottles[val]){
+    const b = bottles[val];
+    res.innerHTML = `
+      <strong style="color:#c03">Authentic Valorka</strong><br>
+      Type: ${b.type}<br>
+      Vintage: ${b.vintage}<br>
+      Cask: ${b.cask}<br>
+      Original sale: ${b.soldTo}
+    `;
+  }else{
+    res.innerHTML = `<span style="color:#c03">Code not found – beware of counterfeits!</span>`;
+  }
+}
+</script>
+</body>
+</html>
